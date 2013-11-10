@@ -1,4 +1,7 @@
 open Ohm
 
+open User
+
 let () = Printexc.record_backtrace true
-let () = Cqrs.run_projections () 
+let () = Ohm.Main.run (fun () -> new O.ctx) 
+
