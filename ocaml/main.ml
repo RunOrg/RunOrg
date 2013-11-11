@@ -1,5 +1,6 @@
 open Ohm
 
+open Session
 open User
 
 let () = Printexc.record_backtrace true
