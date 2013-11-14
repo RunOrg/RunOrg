@@ -79,11 +79,26 @@ module Char = struct
     
 end
 
+(* Extend the option module from batteries with a few helper functions. *)
+module Option = struct
+    
+  include BatOption
+  module M = Run.ForOption
+
+  (** [first_or_default list def] return the first [Some] element in [list], 
+      or [def]. *)
+  let rec first_or_default l d = 
+    match l with 
+    | [] -> d 
+    | Some h :: _ -> h 
+    | None :: t -> first_or_default t d
+
+end
+
 (* Extend the list module from Batteries with a few helper functions. *)
 module List = struct
 
   include BatList
-
   module M = Run.ForList
     
   (** Returns the last element of a list, [None] for an empty list. *)

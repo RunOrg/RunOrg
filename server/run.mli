@@ -92,13 +92,24 @@ exception Timeout
     spawned by the original thread have completed, or the timeout
     function returns [true]. 
 
-    If an exception is thrown by a thread, it will appear here.
+    If an exception is raised by a thread, all threads immediately 
+    stop and the exception escapes [eval]. Note that forked threads
+    may fail without causing the evaluation to fail.
 
     {[ assert( 10 = eval 5 (let! n = context in return (n * 2)) ) ]}
 *)
 val eval : ?timeout:(unit -> bool) -> 'ctx -> ('ctx,'a) t -> 'a 
 
-(** Start several long-running operations in parallel. *)
+(** Start several long-running operations in parallel. 
+
+    If an exception is raised by a thread, then that thread is killed
+    and all threads which were dependent on it are aborted, then the
+    root thread is restarted. 
+
+    For instance, after calling [start ctx [a;b]], if the evaluation 
+    of thread [a] (or one of the sub-threads on which it is dependent)
+    causes an exception, then [a] will be re-started from scratch. 
+*)
 val start : 'ctx -> 'ctx thread list -> unit
 
 (** [timeout t] is a function that returns [false] after [t] 
