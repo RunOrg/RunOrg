@@ -166,3 +166,4 @@ module Sha1 = struct
     hash_of_string (o_key_pad ^ hash_of_string (i_key_pad ^ plaintext))
 
 end
+

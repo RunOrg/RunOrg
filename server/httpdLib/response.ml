@@ -5,13 +5,15 @@ open Std
 type status = 
   [ `OK 
   | `BadRequest
-  | `RequestEntityTooLarge ]
+  | `RequestEntityTooLarge 
+  | `NotImplemented ]
 
 (* The names of the status codes. *)
 let status = function
   | `OK -> "200 OK"
   | `BadRequest -> "400 Bad Request" 
   | `RequestEntityTooLarge -> "413 Request Entity Too Large"
+  | `NotImplemented -> "501 Not Implemented"
 
 (* Raw response function, merely formats the individual lines for output. *)
 let string ssl_socket code headers body = 
