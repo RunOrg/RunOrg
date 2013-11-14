@@ -3,6 +3,7 @@ let () = Printexc.record_backtrace true
 let mkctx () = new O.ctx
   
 let web_loop () = 
+  Log.trace "Starting web server" ;
   let respond = Api.run () in 
   begin 
     try 
@@ -15,6 +16,7 @@ let web_loop () =
   exit 0
 
 let bot_loop () = 
+  Log.trace "Starting background process" ;
   try 
     Run.start () [
       Cqrs.Running.heartbeat (mkctx ()) ;	
@@ -23,7 +25,7 @@ let bot_loop () =
   with Cqrs.Running.Shutdown -> () 
   
 let () =   
-  match Util.role () with
+  match Configuration.role with
   | `Web   -> web_loop ()
   | `Bot   -> bot_loop ()
   | `Reset -> Cqrs.Running.reset (mkctx ())

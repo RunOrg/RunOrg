@@ -104,7 +104,7 @@ let start query params (sql:Postgresql.connection) =
     | `Int    i -> string_of_int i  
   ) params) in
 
-  Util.log "%s%s" query  
+  Log.trace "%s%s" query  
     (if Array.length params = 0 then "" else 
 	"[" ^ (String.concat ", " (List.map (Printf.sprintf "%S") (Array.to_list params))) ^ "]") ;
 
@@ -132,9 +132,9 @@ let rec process cqrs =
   if cqrs.current = None then start_next_query cqrs 
 
 let dump result = 
-  Util.log "RESULT: %s" (Postgresql.result_status (result # status)) ;
+  Log.trace "RESULT: %s" (Postgresql.result_status (result # status)) ;
   Array.iter (fun line ->
-    Util.log "%s" ("[" ^ (String.concat ", " (List.map (Printf.sprintf "%S") (Array.to_list line))) ^ "]") ;
+    Log.trace "%s" ("[" ^ (String.concat ", " (List.map (Printf.sprintf "%S") (Array.to_list line))) ^ "]") ;
   ) (result # get_all) 
 
 let make_result_waiter query = 

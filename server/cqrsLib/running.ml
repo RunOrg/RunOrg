@@ -24,7 +24,7 @@ let start () =
 
   in
 
-  match Util.role () with
+  match Configuration.role with
   | `Web -> start "WEB"
   | `Bot -> start "BOT"
   |  _   -> Run.return None

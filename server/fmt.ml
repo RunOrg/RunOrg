@@ -1,7 +1,5 @@
 (* © 2013 RunOrg *)
 
-open Util
-
 let protect ?save f v = 
   try Some (f v)
   with Json.Error error ->
