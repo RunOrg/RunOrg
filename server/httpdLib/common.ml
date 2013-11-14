@@ -10,5 +10,7 @@ type config = {
   key_path : string ; 
   key_password : string ; 
   certificate_path : string ; 
+  max_header_size : int ;
+  max_body_size : int ; 
 }
 

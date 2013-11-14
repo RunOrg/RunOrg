@@ -5,6 +5,8 @@ open Common
 
 let start config handler = 
 
+  Https.init () ;
+  
   let connections = Event.new_channel () in 
 
   (* Create and set up a socket for listening to incoming connections
@@ -13,6 +15,8 @@ let start config handler =
   Unix.setsockopt socket Unix.SO_REUSEADDR true ;
   Unix.bind socket (Unix.ADDR_INET (Unix.inet_addr_any, config.port)) ;  
   Unix.listen socket 10 ; 
+
+  let https = Https.context socket config in 
 
   (* Called by the HTTPD thread to send a connection to the primary 
      thread. Logs an error if blocked too long (when the scheduler
@@ -37,13 +41,15 @@ let start config handler =
   (* This code handles an incoming connection, as part of the main
      thread. *)
   let handle socket caller = 
+
     let () = match caller with 
       | Unix.ADDR_UNIX _ -> ()
       | Unix.ADDR_INET (addr,port) -> Log.trace "Connection from %s:%d"
 	(Unix.string_of_inet_addr addr) port
     in
-    Unix.shutdown socket Unix.SHUTDOWN_ALL ; 
-    return () 
+
+    Https.parse https socket config handler
+
   in
 
   (* This code runs in the main thread, as part of the scheduler's loop.

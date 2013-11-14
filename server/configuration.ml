@@ -25,4 +25,6 @@ module Httpd = struct
   let key_path = "key.pem" 
   let certificate_path = "cert.pem" 
   let key_password = "test"
+  let max_header_size = 4096
+  let max_body_size = min Sys.max_string_length (1024*1024)
 end

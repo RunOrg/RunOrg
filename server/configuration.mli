@@ -25,4 +25,6 @@ module Httpd : sig
   val key_path : string 
   val certificate_path : string
   val key_password : string
+  val max_header_size : int
+  val max_body_size : int
 end
