@@ -59,12 +59,20 @@ let parse context socket config handler =
   try
     let ssl_socket = Ssl.embed_socket socket context in
     Ssl.accept ssl_socket ;   
-    let head, body = read_request config ssl_socket in
-    Log.trace "HEAD: %s" head ;   
-    let () = Ssl.output_string ssl_socket "HTTP/1.1 200 OK\r\n\r\n" in
-    let () = Ssl.output_string ssl_socket "OK!" in
-    Unix.shutdown socket Unix.SHUTDOWN_ALL ; 
-    return () 
+    try 
+      let head, body = read_request config ssl_socket in
+      Log.trace "HEAD: %s" head ;
+      let () = Response.string ssl_socket `OK [] "OK!" in
+      return () 
+    with 
+    | HeaderTooLong -> 
+      Response.json ssl_socket `RequestEntityTooLarge []
+	(Json.Object [ "error" , Json.String (!! "Header may not exceed %d bytes" config.max_header_size) ] ) ;
+      return () 
+    | BodyTooLong -> 
+      Response.json ssl_socket `RequestEntityTooLarge []
+	(Json.Object [ "error" , Json.String (!! "Body may not exceed %d bytes" config.max_body_size) ] ) ;
+      return () 
   with exn -> 
     (* TODO: deal with errors properly. *)
     return () 
