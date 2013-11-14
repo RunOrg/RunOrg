@@ -256,7 +256,8 @@ let sleep t =
   let ends = Unix.gettimeofday () +. t in
   loop (fun continue -> if Unix.gettimeofday () < ends then continue else return ())
 
-(* Evaluation ------------------------------------------------------------------------------ *)
+(* Evaluation 
+   ========== *)
 
 exception Timeout 
 
