@@ -15,6 +15,7 @@ let context socket config =
 
 exception HeaderTooLong
 exception BodyTooLong
+exception SyntaxError
 
 (* Reads the entire request out of a socket, returns the raw header and the raw footer. *)
 let read_request config ssl_socket = 
@@ -62,8 +63,9 @@ let parse context socket config handler =
     try 
       let head, body = read_request config ssl_socket in
       Log.trace "HEAD: %s" head ;
-      let () = Response.string ssl_socket `OK [] "OK!" in
-      return () 
+      let () = Response.json ssl_socket `OK [] 
+	(Json.Object [ "ok", Json.Bool true ]) in
+      return ()
     with 
     | HeaderTooLong -> 
       Response.json ssl_socket `RequestEntityTooLarge []
@@ -72,6 +74,10 @@ let parse context socket config handler =
     | BodyTooLong -> 
       Response.json ssl_socket `RequestEntityTooLarge []
 	(Json.Object [ "error" , Json.String (!! "Body may not exceed %d bytes" config.max_body_size) ] ) ;
+      return () 
+    | SyntaxError -> 
+      Response.json ssl_socket `BadRequest []
+	(Json.Object [ "error" , Json.String "Could not parse HTTP request" ] ) ;
       return () 
   with exn -> 
     (* TODO: deal with errors properly. *)
