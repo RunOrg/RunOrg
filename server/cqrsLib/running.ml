@@ -47,7 +47,7 @@ let heartbeat ctx =
     match id with None -> raise Shutdown | Some id ->
       Run.loop begin fun continue -> 
 	
-	let! () = Run.sleep 10.0 in
+	let! () = Run.sleep 10000.0 in
 
 	let! result = query begin
 	  "UPDATE \"meta:runs\" SET \"heartbeat\" = 'now' WHERE \"id\" = $1 "

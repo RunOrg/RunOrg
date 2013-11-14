@@ -372,7 +372,8 @@ let eval ctx m =
 
   (* Poll for any available events, remove them from the list. *)
   and poll_events ~block = 
-    if !events = [] then false else 
+    last_event_poll := Unix.gettimeofday () ;
+    if !events = [] then false else      
       let rec extract accRead accWait = function 
 	| [] -> events := accWait ; accRead
 	| (k,h) :: t -> match Event.poll h with 
@@ -380,9 +381,7 @@ let eval ctx m =
 	  | Some (_,thr) -> extract (thr :: accRead) accWait t 
       in
       match extract [] [] !events with
-      | [] when block -> let () = print_endline "Sleeping..." in
-			 let k, thr = Event.select (List.map snd !events) in 
-			 let () = print_endline "Waking up !" in
+      | [] when block -> let k, thr = Event.select (List.map snd !events) in 
 			 events := List.filter (fun (id,_) -> id <> k) !events ;
 			 to_active ( thr :: extract [] [] !events ) ; 
 			 true
