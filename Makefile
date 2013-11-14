@@ -1,18 +1,30 @@
-all: 
-	ohm plugins.all # Run the DWIM mode of all plugin tools
-	ohm assets # Build all the assets, place them in '/_build' 
-	ohm build  # Build the ocaml code found in '/ocaml', generates '/ocaml/main.byte'
+all: runorg
+	./runorg reset
 
-        # Copy the server binary over to the correct path
-	cp ocaml/main.byte server
-	chmod a+x server
+toolchain:
+	make -C syntax
 
-        # Publish all public elements
-	ohm publish 
-
-        # Perform the deployment
-	./server --put
-	./server --reset
+runorg: toolchain
+	make -C server
+	cp server/main.byte runorg
+	chmod a+x runorg
 
 clean: 
-	ohm clean 
+	rm runorg
+	make -C server clean
+
+start:
+	mkdir .bot
+	echo "#!/bin/sh\ncd ..\n./runorg bot\n" > .bot/run 
+	chmod u+x .bot/run
+	supervise .bot & 
+	mkdir .www
+	echo "#!/bin/sh\ncd ..\n./runorg www\n" > .bot/run 
+	chmod u+x .www/run
+	supervise .www & 
+
+stop:
+	svc -d .bot || echo "bot was not running"
+	rm -rf .bot
+	svc -d .www || echo "web server was not running"
+	rm -rf .www
