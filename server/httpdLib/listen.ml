@@ -41,15 +41,7 @@ let start config handler =
   (* This code handles an incoming connection, as part of the main
      thread. *)
   let handle socket caller = 
-
-    let () = match caller with 
-      | Unix.ADDR_UNIX _ -> ()
-      | Unix.ADDR_INET (addr,port) -> Log.trace "Connection from %s:%d"
-	(Unix.string_of_inet_addr addr) port
-    in
-
     Https.parse https socket config handler
-
   in
 
   (* This code runs in the main thread, as part of the scheduler's loop.

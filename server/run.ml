@@ -339,9 +339,6 @@ let eval ctx m =
     incr eventCount 
   in
 
-  let status () = Log.trace "Active: %d | Delayed: %d | Waiting: %d" 
-    (Queue.length active) (Queue.length delayed) (List.length !events) in
-
   (* The last time events were polled. *)
   let last_event_poll = ref 0.0 in
 
@@ -366,7 +363,6 @@ let eval ctx m =
   (* Looks for a task to be executed, because the current processing 
      chain was broken. *) 
   and continue () = 
-    status () ;
     if should_poll_events () then
       (ignore (poll_events ~block:false) ; continue ()) 
     else if not (Queue.is_empty active) then

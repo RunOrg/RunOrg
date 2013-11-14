@@ -20,7 +20,6 @@ let parse context socket config handler =
     let! response = 
       try 
 	let request = Request.parse config ssl_socket in
-	Log.trace "Request for: /%s" (String.concat "/" (request # path)) ;	
 	return (Response.for_request request 
 		  (Response.json `OK (Json.Object [ "ok", Json.Bool true ])))
       with 
