@@ -16,3 +16,6 @@ module Database : sig
   val user : string
   val password : string
 end
+
+(** The list of all super-administrator emails loaded from configuration. *)
+val admins : string list
