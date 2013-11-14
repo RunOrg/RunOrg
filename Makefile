@@ -17,12 +17,12 @@ clean:
 	make -C server clean
 
 start:
-	mkdir .bot
+	mkdir .bot 
 	echo "#!/bin/sh\ncd ..\n./runorg bot\n" > .bot/run 
 	chmod u+x .bot/run
 	supervise .bot & 
 	mkdir .www
-	echo "#!/bin/sh\ncd ..\n./runorg www\n" > .bot/run 
+	echo "#!/bin/sh\ncd ..\n./runorg www\n" > .www/run 
 	chmod u+x .www/run
 	supervise .www & 
 

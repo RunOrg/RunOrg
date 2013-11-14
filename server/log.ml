@@ -14,7 +14,7 @@ let file_name rolename error =
 let file role error = 
 
   (* For reset role, everything goes out to standard output (or error). *)
-  if role = `Bot then (if error then (fun _ -> stderr) else (fun _ -> stdout)) else
+  if role = `Reset then (if error then (fun _ -> stderr) else (fun _ -> stdout)) else
 
     let chanref = ref None in 
     let time    = ref Time.(day_only (now ())) in
@@ -63,10 +63,7 @@ let prefix t =
 let write channel t = 
   let channel = channel t in 
   let prefix  = prefix t in 
-  Printf.ksprintf 
-    (fun string -> 
-      output_string channel prefix ; 
-      output_string channel string ) 
+  Printf.ksprintf (fun string -> output_string channel (prefix ^ string ^ "\n") ; flush channel ) 
 
 (* The actual log functions. *)
   
