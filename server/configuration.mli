@@ -2,9 +2,12 @@
 
 type role = [ `Bot | `Web | `Reset ]
 
+(** The role of this instance, as parsed from the command line. *)
 val role : role
 
-val log_prefix : string
+(** If set, write logs to a file in that folder. Otherwise, write logs to 
+    standard output. *)
+val log_prefix : string option
 
 module Database : sig
   val host : string

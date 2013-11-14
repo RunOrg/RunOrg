@@ -1,9 +1,9 @@
 (* © 2013 RunOrg *)
 
 (* Returns the folder path for the specified time. Folder names change daily. *)
-let folder_path t = 
+let folder_path prefix t = 
   let y, m, d = Time.ymd t in
-  Filename.concat Configuration.log_prefix (Printf.sprintf "%04d-%02d-%02d" y m d)
+  Filename.concat prefix (Printf.sprintf "%04d-%02d-%02d" y m d)
   
 (* Returns the file basename for a specified role name. *)
 let file_name rolename error = 
@@ -13,9 +13,16 @@ let file_name rolename error =
    The file is kept open until the next day. *)
 let file role error = 
 
-  (* For reset role, everything goes out to standard output (or error). *)
-  if role = `Reset then (if error then (fun _ -> stderr) else (fun _ -> stdout)) else
-
+  let prefix = match Configuration.log_prefix with 
+    | None -> None 
+    | _ when role = `Reset -> None 
+    | Some prefix -> Some prefix 
+  in
+  
+  match prefix with 
+  | None -> if error then (fun _ -> stderr) else (fun _ -> stdout)
+  | Some prefix ->
+    
     let chanref = ref None in 
     let time    = ref Time.(day_only (now ())) in
 
@@ -37,7 +44,7 @@ let file role error =
 
 	(* TODO: catch exceptions below *)
 
-	let folder = folder_path t in
+	let folder = folder_path prefix t in
 	( try Unix.mkdir folder 0o755 with Unix.Unix_error (Unix.EEXIST, _, _) -> () ) ; 	
 
 	let path = Filename.concat folder (file_name rolename error) in 

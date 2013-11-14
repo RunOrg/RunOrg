@@ -1,12 +1,14 @@
 type role = [ `Bot | `Web | `Reset ]
 
 let role =
-  if Array.length Sys.argv < 2 then `Web
-  else if Sys.argv.(1) = "bot" then `Bot
-  else if Sys.argv.(1) = "reset" then `Reset
+  if BatArray.mem "bot" Sys.argv then `Bot 
+  else if BatArray.mem "reset" Sys.argv then `Reset 
   else `Web
+
+let to_stdout = 
+  BatArray.mem "-stdout" Sys.argv
     
-let log_prefix = "/var/log/runorg"
+let log_prefix = if to_stdout then None else Some "/var/log/runorg"
 
 module Database = struct
   let host = "localhost" 
