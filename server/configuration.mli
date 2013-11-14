@@ -19,3 +19,10 @@ end
 
 (** The list of all super-administrator emails loaded from configuration. *)
 val admins : string list
+
+module Httpd : sig
+  val port : int
+  val key_path : string 
+  val certificate_path : string
+  val key_password : string
+end

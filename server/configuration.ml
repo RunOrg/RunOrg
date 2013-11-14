@@ -19,3 +19,10 @@ module Database = struct
 end
 
 let admins = [ "vnicollet@runorg.com" ]
+
+module Httpd = struct
+  let port = 4443 
+  let key_path = "key.pem" 
+  let certificate_path = "cert.pem" 
+  let key_password = "test"
+end
