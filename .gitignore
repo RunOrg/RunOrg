@@ -1,9 +1,12 @@
 _build/
 .ohm/
+.fastcgi/
+.bot/
 www/
 server
 ocaml/ohm
 ocaml/plugins
-ocaml/gen
+ocaml/assets/
+ocaml/assets.mlpack
 ocaml/main.byte
 *~

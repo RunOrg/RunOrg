@@ -1,4 +1,6 @@
 open Ohm
+open Ohm.Universal
+open BatPervasives
 
 type i18n = Assets.AdLib.key 
 
@@ -40,5 +42,22 @@ let page url args action =
     let  lang = language req in    
     let  ctx  = new webctx lang in     
     let! res  = Run.with_context ctx (action req res) in
-    Run.return (with_language_cookie lang res) 
+    return (with_language_cookie lang res) 
   end
+
+let js = [
+  "/public/jquery.min.js" ;
+  "/public/jquery.json.min.js" ;
+  Assets.Static.js
+] 
+
+let render title html res = 
+  let! html = html in 
+  return $ Action.page
+    (Html.print_page
+       ~js
+       ~css:[Assets.Static.css]
+       ~favicon:"/favicon.ico"
+       ~title
+       html) res
+

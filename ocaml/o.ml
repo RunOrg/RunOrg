@@ -10,3 +10,4 @@ class ctx = object
   val time = Time.now () 
   method time = time 
 end 
+
