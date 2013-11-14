@@ -1,13 +1,16 @@
 open BatOption
 open Run
+open Std
 
 type ('ctx,'x) t = {
   finite : bool ;
-  next : unit -> ('ctx, [`Blocked | `End | `Next of 'x]) Run.t
+  next : unit -> ('ctx, [`Blocked | `End | `Next of 'x]) Run.t ;
+  wait : unit -> ('ctx, 'x option) Run.t ;	 
 }
 
 let is_finite t = t.finite
 let next t = t.next ()
+let wait t = t.wait ()
 
 let to_list ?min n t = 
 
@@ -20,34 +23,40 @@ let to_list ?min n t =
       match n with 
       | `End -> return acc
       | `Next x -> take (i+1) (x :: acc)
-      | `Blocked -> if i < min then Run.yield (take i acc) else return acc 
+      | `Blocked -> if i >= min then return acc else
+	  let! n = wait t in 
+	  match n with 
+	  | Some x -> take (i+1) (x :: acc) 
+	  | None -> return acc
   in
   
   let! reverse_list = take 0 [] in
   return (List.rev reverse_list)
-    
-let rec wait_next t = 
 
-  let! n = next t in 
-  match n with 
-  | `End -> return None
-  | `Next x -> return (Some x)
-  | `Blocked -> Run.yield (Run.of_call wait_next t) 
-    
-let map f t = 
-  { finite = t.finite ; next = (fun () -> 
-      let! n = next t in 
-      return (match n with 
-      | `Blocked -> `Blocked
-      | `End -> `End
-      | `Next x -> `Next (f x))) }
-    
-let mmap f t = 
-  { finite = t.finite ; next = (fun () -> 
+let map f t = { 
+  finite = t.finite ; 
+  next = (fun () -> 
+    let! n = next t in 
+    return (match n with 
+    | `Blocked -> `Blocked
+    | `End -> `End
+    | `Next x -> `Next (f x))) ; 
+  wait = (fun () -> 
+    let! n = wait t in 
+    return (BatOption.map f n)) 
+}
+  
+let mmap f t = { 
+  finite = t.finite ; 
+  next = (fun () -> 
     let! n = next t in match n with 
       | `Blocked -> return `Blocked
       | `End -> return `End
-      | `Next x -> let! y = f x in return (`Next y)) }
+      | `Next x -> let! y = f x in return (`Next y)) ;
+  wait = (fun () ->
+    let! n = wait t in 
+    Option.M.map f n) 
+}
       
 let filter f t = 
 
@@ -59,8 +68,16 @@ let filter f t =
 	| Some y -> return (`Next y) 
 	| None -> new_next ()
   in	    
-  
-  { finite = t.finite ; next = new_next }
+
+  let rec new_wait () = 
+    let! n = wait t in match n with 
+      | None -> return None
+      | Some x -> match f x with 
+	| Some y -> return (Some y)
+	| None -> new_wait () 
+  in
+
+  { finite = t.finite ; next = new_next ; wait = new_wait }
 
 let mfilter f t = 
 
@@ -73,8 +90,17 @@ let mfilter f t =
 		   | Some y -> return (`Next y) 
 		   | None -> new_next ()
   in	    
-  
-  { finite = t.finite ; next = new_next }
+
+  let rec new_wait () = 
+    let! n = wait t in match n with 
+      | None -> return None
+      | Some x -> let! yopt = f x in 
+		  match yopt with 
+		  | Some y -> return (Some y)
+		  | None -> new_wait () 
+  in
+
+  { finite = t.finite ; next = new_next ; wait = new_wait }
 
 let miter ~parallel f t = 
 
@@ -89,10 +115,9 @@ let miter ~parallel f t =
   in
   
   let rec work () = 
-    let! n = next t in match n with 
-      | `Blocked -> yield (work ())
-      | `End -> return () 
-      | `Next x -> split work x
+    let! n = wait t in match n with 
+      | None -> return () 
+      | Some x -> split work x
   in
   
   start work  
@@ -103,15 +128,28 @@ let iter ~parallel f t =
 let of_list list =
 
   let queue   = ref list in 
-  let next () = 
+  let wait () = 
     return (match !queue with 
-    | [] -> `End
-    | h :: t -> queue := t ; `Next h)
+    | [] -> None
+    | h :: t -> queue := t ; Some h)
+  in
+  let next () = 
+    Run.map (function
+    | None   -> `End
+    | Some x -> `Next x)  (wait ())
   in
 
-  { finite = true ; next }
+  { finite = true ; next ; wait }
+
+(* TODO: join [] and join [x] special cases. *)
 
 let join list = 
+
+  (* Non-blocking version shares a queue with the blocking version, 
+     because the blocking version starts up threads that load more than
+     one value (possibly one for each source). *)
+
+  let queue = Queue.create () in
 
   let rec next = function 
     | [] -> return `Blocked
@@ -120,55 +158,118 @@ let join list =
 		| `End | `Blocked -> next t
 		| `Next x -> return (`Next x) 
   in
+
+  let next () = 
+    if Queue.is_empty queue then next list else 
+      return (`Next (Queue.pop queue))
+  in
+
+  (* Blocking version uses a semaphore to wait for values to 
+     become available. *)
+
+  let semaphore = new Run.semaphore in
+  let blist = List.map (fun source -> ref false, source) list in 
   
-  { finite = List.for_all is_finite list ; next = (fun () -> next list) }
+  let rec wait () =
+    let! n = next () in  
+    match n with `End -> return None | `Next x -> return (Some x) | `Blocked -> 
+      Run.fork 
+	(List.M.iter (fun (blocked, source) -> 
+	  if !blocked then return () else (
+	    let () = blocked := true in
+	    let! value = source.wait () in
+	    let () = blocked := false in 
+	    match value with 
+	    | None -> return ()
+	    | Some value -> let () = Queue.add value queue in 
+			    semaphore # give 1)) blist)
+	(let! () = semaphore # take in
+	 wait ())
+  in
+
+  { finite = List.for_all is_finite list ; next ; wait }
     
 let of_finite_cursor fetch cursor = 
+
+  (* Both blocking and non-blocking versions use a semaphore. 
+     But the non-blocking version checks the semaphore state first. *)
+
   let q = Queue.create () in
+  let semaphore = new Run.semaphore in 
   let e = ref false in
   let cursor = ref cursor in  
   let runs = ref false in
+
+  let run () = 
+    if !runs then return () else  
+      let () = runs := true in 
+      let! list, c = fetch !cursor in 
+      let () = 
+	runs := false ;
+	cursor := c ;
+	e := c = None ;
+	List.iter (fun x -> Queue.push x q) list ;
+      in
+      semaphore # give (List.length list)
+  in
+
   let rec next () = 
     if !e then 
       return `End 
-    else if Queue.is_empty q then
-      
-      if !runs then return `Blocked else begin
-	runs := true ;
-	Run.fork begin 
-	  let! list, c = fetch !cursor in 
-	  return (
-	    runs := false ; 
-	    cursor := c ; 
-	    e := c = None ; 
-	    List.iter (fun x -> Queue.push x q) list ;
-	  )
-	end (return `Blocked) 
-      end
-
+    else if semaphore # count <= 0 then
+      Run.fork (run ()) (return `Blocked)
     else
+      let! () = semaphore # take in 
       return (`Next (Queue.take q))
   in
-  
-  { finite = true ; next }
+
+  let rec wait () = 
+    if !e then 
+      return None 
+    else 
+      let! () = if semaphore # count <= 0 then run () else return () in 
+      let! () = semaphore # take in       
+      return (Some (Queue.take q))
+  in
+
+  { finite = true ; next ; wait }
 
 let of_infinite_cursor fetch cursor = 
+
+
   let q = Queue.create () in
+  let semaphore = new Run.semaphore in 
   let cursor = ref cursor in  
-  let rec next () = 
-    if Queue.is_empty q then
+  let runs = ref false in
+
+  let rec run () = 
+    if !runs then return () else  
+      let () = runs := true in 
       let! list, c = fetch !cursor in 
-      begin 
-	cursor := Some c ; 
+      let () = 
+	runs := false ;
+	cursor := Some c ;
 	List.iter (fun x -> Queue.push x q) list ;
-	if Queue.is_empty q then 
-	  let! () = Run.sleep 2000. in 
-	  return `Blocked 
-	else
-	  return (`Next (Queue.take q))
-      end
+      in
+      if list = [] then 
+	let! () = Run.sleep 2000. in
+	run () 
+      else 
+	semaphore # give (List.length list)
+  in
+
+  let rec next () = 
+    if semaphore # count <= 0 then
+      Run.fork (run ()) (return `Blocked)
     else
+      let! () = semaphore # take in 
       return (`Next (Queue.take q))
   in
+
+  let rec wait () = 
+    let! () = if semaphore # count <= 0 then run () else return () in 
+    let! () = semaphore # take in       
+    return (Some (Queue.take q))
+  in
   
-  { finite = false ; next }
+  { finite = false ; next ; wait }

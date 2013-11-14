@@ -108,10 +108,6 @@ val eval : 'ctx -> ('ctx,'a) t -> 'a
 *)
 val start : 'ctx -> 'ctx thread list -> unit
 
-(** [timeout t] is a function that returns [false] after [t] 
-    milliseconds (after its creation). *)
-val timeout : float -> (unit -> bool) 
-
 (** {2 Concurrency manipulation} *)
 
 (** [yield t] gives {b all} other threads on the system a chance to run, then 
@@ -163,6 +159,23 @@ class mutex : object
   method if_unlocked : ('ctx, 'a) t -> ('ctx, 'a) t 
 
 end
+
+(** A counting semaphore.*)
+class ['ctx] semaphore : object
+
+  (** The number of gives minus the number of takes *)
+  method count : int 
+
+  (** If there are threads waiting on the semaphore, unlocks the oldest one 
+      and runs it. The argument is the number of [give]s to be given
+      (that is, the number of threads to be unlocked). *)
+  method give : int -> ('ctx, unit) t 
+
+  (** If [give] was called more than [take], executes the passed thread. 
+      Otherwise, the passed thread is blocked until [give] is called. *)
+  method take : ('ctx, unit) t 
+
+end 
 
 (** {2 Utilities} *)
 

@@ -25,7 +25,7 @@ val next : ('ctx, 'a) t -> ('ctx, [`Blocked | `End | `Next of 'a]) Run.t
     
     This is a {b very} dangerous function to use on infinite sequences,
     because it can block forever. *)
-val wait_next : ('ctx, 'a) t -> ('ctx, 'a option) Run.t
+val wait : ('ctx, 'a) t -> ('ctx, 'a option) Run.t
 
 (** Apply a map function to all items. *)
 val map : ('a -> 'b) -> ('ctx, 'a) t -> ('ctx, 'b) t

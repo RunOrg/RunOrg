@@ -115,7 +115,10 @@ class ['ctx] projection mkctx name = object (self)
 	
 	let! ready_actions = Seq.to_list ~min:0 100 actions in
 	
-	if ready_actions = [] then Run.yield (Run.of_call loop ()) else 
+	if ready_actions = [] then 
+	  let! () = Run.sleep 1.0 in
+	  loop () 
+	else 
 	  
 	  let! () = transaction begin 
 	    

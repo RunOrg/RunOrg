@@ -13,13 +13,13 @@ let start config handler =
       Event.sync (Event.send channel "Hello") ;
       let finish = Unix.gettimeofday () in
       Log.trace "Event waited %f seconds" ((finish -. start) /. 1000.) ;
-      Thread.delay 1000.0
+      Thread.delay 1.0
     done 
   end channel in 
 
   let rec process () = 
     let! request = Run.of_channel channel in
-    let () = assert (request = "Hello") in
+    let () = Log.trace "%s" request in
     process () 
   in
 

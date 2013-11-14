@@ -148,6 +148,35 @@ class mutex = object (self)
     
 end 
 
+class ['ctx] semaphore = object
+
+  val mutable count = 0
+
+  val waiting = Queue.create () 
+
+  method count = count
+
+  method take = fun (ctx : 'ctx) bad ok ->
+    count <- count - 1 ;     
+    if count >= 0 then try ok () with exn -> bad exn else
+      ( Queue.add (fun () -> try ok () with exn -> bad exn) waiting ; nop )
+    
+  method give n = fun (ctx : 'ctx) bad ok ->
+    count <- count + n ;
+
+    let rec list n = 
+      if n = 0 then [] else 
+	if Queue.is_empty waiting then [] else
+	  Queue.take waiting :: list (n-1)
+    in
+    
+    let next = list n in
+    count <- count - (List.length next) ;
+    
+    Fork (lazy ((try ok () with exn -> bad exn) :: List.map (fun f -> f ()) next))
+
+end 
+
 (* Utilities 
    ========= *)
 
@@ -259,10 +288,6 @@ end
 let loop f = 
   let rec loop () = f (yield (of_call loop ())) in loop () 
 
-let sleep t = 
-  let ends = Unix.gettimeofday () +. t in
-  loop (fun continue -> if Unix.gettimeofday () < ends then continue else return ())
-
 (* Evaluation 
    ========== *)
 
@@ -304,6 +329,9 @@ let eval ctx m =
     incr eventCount 
   in
 
+  let status () = Log.trace "Active: %d | Delayed: %d | Waiting: %d" 
+    (Queue.length active) (Queue.length delayed) (List.length !events) in
+
   (* The last time events were polled. *)
   let last_event_poll = ref 0.0 in
 
@@ -328,6 +356,7 @@ let eval ctx m =
   (* Looks for a task to be executed, because the current processing 
      chain was broken. *) 
   and continue () = 
+    status () ;
     if should_poll_events () then
       (ignore (poll_events ~block:false) ; continue ()) 
     else if not (Queue.is_empty active) then
@@ -351,7 +380,9 @@ let eval ctx m =
 	  | Some (_,thr) -> extract (thr :: accRead) accWait t 
       in
       match extract [] [] !events with
-      | [] when block -> let k, thr = Event.select (List.map snd !events) in 
+      | [] when block -> let () = print_endline "Sleeping..." in
+			 let k, thr = Event.select (List.map snd !events) in 
+			 let () = print_endline "Waking up !" in
 			 events := List.filter (fun (id,_) -> id <> k) !events ;
 			 to_active ( thr :: extract [] [] !events ) ; 
 			 true
@@ -370,6 +401,11 @@ let start ctx ms =
   
   eval ctx (ForList.iter retry ms) 
 
-let timeout duration = 
-  let ends = duration +. Unix.gettimeofday () in
-  fun () -> Unix.gettimeofday () > ends 
+let sleep duration = 
+  let channel = Event.new_channel () in
+  let _ = Thread.create 
+    (fun d -> 
+      Thread.delay d ; 
+      Event.sync (Event.send channel ())) 
+    (duration /. 1000.) in
+  of_channel channel 
