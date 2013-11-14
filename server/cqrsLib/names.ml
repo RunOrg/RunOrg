@@ -1,3 +1,7 @@
+(* © 2013 RunOrg *)
+
+open Std
+
 let is_alphanumeric = 
   let regexp = Str.regexp "^[a-zA-Z0-9_]+$" in
   fun name -> Str.string_match regexp name 0
@@ -73,7 +77,7 @@ let version () =
   let open Hashtbl in 
 
   let  proj = fold (fun n v l -> (n,v) :: l) projections [] in
-  let! proj = Run.list_map 
+  let! proj = List.M.map 
     (fun (n,v) -> let! v = v in Run.return ("proj:" ^ n ^ "[" ^ string_of_int v ^ "]")) proj in 
     
   let names = List.fold_left (fun acc f -> f acc) proj [

@@ -1,3 +1,4 @@
+open Std
 open Common
 
 let projection_run_functions = ref []
@@ -120,7 +121,7 @@ class ['ctx] projection mkctx name = object (self)
 	    
 	    let! clock = self # clock in 	  
 	    
-	    let! clock = Run.list_fold begin fun (action,time) clock ->
+	    let! clock = List.M.fold_left begin fun clock (action,time) -> 
 	      if Clock.earlier_than_checkpoint time clock then Run.return clock else
 		let! () = action in Run.return (Clock.merge time clock)
 	    end clock ready_actions in 	  

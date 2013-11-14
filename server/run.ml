@@ -1,6 +1,7 @@
-(* Ohm is © 2012 Victor Nicollet *)
+(* © 2013 RunOrg *)
 
-(* Types, both public and private ---------------------------------------------------------- *)
+(* Types, both public and private 
+   ============================== *)
 
 type thr             = Do of thr list Lazy.t
 type ('ctx,'value) t = 'ctx -> ('value -> thr) -> thr
@@ -9,14 +10,19 @@ type ('ctx,'value) value  = ('ctx,'value) t
 type 'ctx          effect = ('ctx,unit) t
 type 'ctx          thread = ('ctx,unit) t
 
-(* Monad usage ----------------------------------------------------------------------------- *)
+(* Monad usage 
+   =========== *)
 
 let return x = fun _ emit -> Do (lazy [emit x])   
 let bind f m = fun c emit -> m c (fun x -> f x c emit)
 let map  f m = fun c emit -> m c (fun x -> emit (f x))
 let unwrap m = fun c emit -> m c (fun x -> x c emit) 
 
-(* Context manipulation -------------------------------------------------------------------- *)
+(* Internal usage only *)
+let (|>>) m f = map f m 
+
+(* Context manipulation 
+   ==================== *)
 
 let context = fun c emit -> Do (lazy [emit c]) 
 
@@ -24,7 +30,8 @@ let with_context c m = fun _ emit -> m c emit
 
 let edit_context f m = fun c emit -> m (f c) emit
 
-(* Concurrency manipulation ---------------------------------------------------------------- *)
+(* Concurrency manipulation 
+   ======================== *)
 
 let nop = Do (lazy [])
 
@@ -92,7 +99,8 @@ class mutex = object (self)
     
 end 
 
-(* Utilities ------------------------------------------------------------------------------ *)
+(* Utilities 
+   ========= *)
 
 let memo m = 
   let r = ref None in 
@@ -107,55 +115,66 @@ let of_func f = fun c emit -> Do (lazy [emit (f ())])
 
 let of_call f a = fun c emit -> f a c emit
 
-let list_map f l = fun c emit -> 
-  if l = [] then emit [] else 
-    let num_unevaled = ref (List.length l) in
-    let result = List.map (fun x -> x, ref None) l in
-    let emit r y = 
-      if !r = None then decr num_unevaled ; 
-      r := Some y ;
-      if !num_unevaled > 0 then nop 
-      else emit (List.map 
-		   (fun (x,r) -> match !r with Some y -> y | None -> assert false) 
-		   result)
-    in
-    Do (lazy (List.map (fun (x,r) -> f x c (emit r)) result))
+(* List functions 
+   ============== *)
 
-let list_filter  f l = map (BatList.filter_map BatPervasives.identity) (list_map f l)
-let list_collect f l = map List.concat (list_map f l)
+module ForList = struct
 
-let rec list_find f = function 
-  | []     -> return None
-  | h :: t -> bind (function 
-      | None -> list_find f t
+  let map f l = fun c emit -> 
+    if l = [] then emit [] else 
+      let num_unevaled = ref (List.length l) in
+      let result = List.map (fun x -> x, ref None) l in
+      let emit r y = 
+	if !r = None then decr num_unevaled ; 
+	r := Some y ;
+	if !num_unevaled > 0 then nop 
+	else emit (List.map 
+		     (fun (x,r) -> match !r with Some y -> y | None -> assert false) 
+		     result)
+      in
+      Do (lazy (List.map (fun (x,r) -> f x c (emit r)) result))
+	
+  let filter_map f l = map f l |>> BatList.filter_map BatPervasives.identity
+  let collect f l = map f l |>> List.concat 
+
+  let rec find f = function 
+    | []     -> return None
+    | h :: t -> bind (function 
+      | None -> find f t
       | some -> return some) (f h) 
+      
+  let rec fold_left f a = function
+    | []     -> return a
+    | h :: t -> bind (fun a -> fold_left f a t) (f a h) 
 
-let rec list_fold f a = function
-  | []     -> return a
-  | h :: t -> bind (fun a -> list_fold f a t) (f h a) 
-
-let list_mfold f a l = bind (fun l -> list_fold (fun f a -> f a) a l) (list_map f l) 
+  let mfold f a l = bind (fold_left (fun a f -> f a) a) (map f l) 
 		       
-let list_iter f l = fun c emit -> 
-  if l = [] then emit () else 
-    let r = ref (List.length l) in
-    let emit () = 
-      decr r ; 
-      if !r = 0 then emit () else nop 
-    in
-    Do (lazy (List.map (fun x -> f x c emit) l))
-    
-let list_exists pred l = 
-  map (function None -> false | Some () -> true)
-    (list_find (fun x -> map (fun px -> if px then Some () else None) (pred x)) l)
+  let iter f l = fun c emit -> 
+    if l = [] then emit () else 
+      let r = ref (List.length l) in
+      let emit () = 
+	decr r ; 
+	if !r = 0 then emit () else nop 
+      in
+      Do (lazy (List.map (fun x -> f x c emit) l))
+	
+  let exists pred l = 
+    find (fun x -> pred x |>> (fun px -> if px then Some () else None)) l
+    |>> BatOption.is_some
 
-let opt_map f = function 
-  | None   -> (fun c emit -> emit None)
-  | Some x -> (fun c emit -> f x c (fun y -> emit (Some y)))
+end
 
-let opt_bind f = function
-  | None   -> (fun c emit -> emit None)
-  | Some x -> (fun c emit -> f x c emit)
+module ForOption = struct
+
+  let map f = function 
+    | None   -> (fun c emit -> emit None)
+    | Some x -> (fun c emit -> f x c (fun y -> emit (Some y)))
+      
+  let bind f = function
+    | None   -> (fun c emit -> emit None)
+    | Some x -> (fun c emit -> f x c emit)
+
+end
 
 let loop f = 
   let rec loop () = f (yield (of_call loop ())) in loop () 

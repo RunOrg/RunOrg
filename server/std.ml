@@ -35,7 +35,7 @@ module String = struct
       let rec cut i = 
 	if i = len then str else 
 	  let code = Char.code str.[i] in
-	  if code land 0x80 then cut (i+1) else String.sub str i 
+	  if 0 <> code land 0x80 then cut (i+1) else String.sub str 0 i 
       in cut size 
 
   (** Replace all french accents with their non-accented counterparts, and converts
@@ -83,6 +83,8 @@ end
 module List = struct
 
   include BatList
+
+  module M = Run.ForList
     
   (** Returns the last element of a list, [None] for an empty list. *)
   let rec last = function
@@ -133,7 +135,8 @@ module Sha1 = struct
   let hash_of_string str = 
     let hex = to_hex (string str) in
     let len = String.length hex in
-    String.init (len/2) (fun i -> Char.(base36_decode hex.[2*i] * 16 + base36_decode hex.[2*i+1]))
+    String.init (len/2) 
+      (fun i -> Char.(chr (base36_decode hex.[2*i] * 16 + base36_decode hex.[2*i+1])))
 
   (** Computes a SHA1 HMAC from the provided key and plaintext. Returned as a sequence of
       40 bytes.*)
