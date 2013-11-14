@@ -11,3 +11,11 @@ let role =
     if !reset then `Reset else `Web
     
 let log_prefix = "/var/log/runorg"
+
+module Database = struct
+  let host = "localhost" 
+  let port = 5432 
+  let database = "dev" 
+  let user = "dev" 
+  let password = "dev" 
+end

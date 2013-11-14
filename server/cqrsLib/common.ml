@@ -21,11 +21,11 @@ type result = string array array
    ========================== *)
 
 type config = {
-  cfg_host : string ;
-  cfg_port : int ;
-  cfg_database : string ;
-  cfg_user : string ;
-  cfg_password : string 
+  host : string ;
+  port : int ;
+  database : string ;
+  user : string ;
+  password : string 
 }
 
 exception ConnectionFailed of string
@@ -33,11 +33,11 @@ exception ConnectionFailed of string
 let connect config = 
   try 
     let sql = new Postgresql.connection 
-      ~host:config.cfg_host
-      ~port:(string_of_int config.cfg_port)
-      ~dbname:config.cfg_database
-      ~user:config.cfg_user 
-      ~password:config.cfg_password
+      ~host:config.host
+      ~port:(string_of_int config.port)
+      ~dbname:config.database
+      ~user:config.user 
+      ~password:config.password
       () in
     sql # set_nonblocking true ; 
     sql 
@@ -51,7 +51,7 @@ let connect config =
 let already_connected = Hashtbl.create 10 
 
 let is_first_connection config = 
-  let key = (config.cfg_host, config.cfg_port, config.cfg_database) in 
+  let key = (config.host, config.port, config.database) in 
   if Hashtbl.mem already_connected key then false else
     (Hashtbl.add already_connected key () ; true)
 

@@ -1,11 +1,11 @@
 type cqrs
 
 type config = {
-  cfg_host : string ;
-  cfg_port : int ;
-  cfg_database : string ;
-  cfg_user : string ;
-  cfg_password : string 
+  host : string ;
+  port : int ;
+  database : string ;
+  user : string ;
+  password : string 
 }
 
 exception ConnectionFailed of string

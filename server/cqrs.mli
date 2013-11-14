@@ -3,11 +3,11 @@ type cqrs
 
 (** Configuration object for connecting to a PostgreSQL database. *)
 type config = {
-  cfg_host : string ;
-  cfg_port : int ;
-  cfg_database : string ;
-  cfg_user : string ;
-  cfg_password : string 
+  host : string ;
+  port : int ;
+  database : string ;
+  user : string ;
+  password : string 
 }
 
 (** Exception raised when connecting to the database failed. *)
