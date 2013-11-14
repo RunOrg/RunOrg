@@ -14,3 +14,13 @@ type config = {
   max_body_size : int ; 
 }
 
+let ip ssl_socket = 
+  match Unix.getpeername (Ssl.file_descr_of_socket ssl_socket) with
+  | Unix.ADDR_UNIX str -> "local:" ^ str
+  | Unix.ADDR_INET (addr,_) -> Unix.string_of_inet_addr addr
+
+let verb = function
+  | `GET -> "GET"
+  | `POST -> "POST"
+  | `PUT -> "PUT"
+  | `DELETE -> "DELETE"    

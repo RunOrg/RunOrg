@@ -139,10 +139,7 @@ let parse config ssl_socket =
     let first_line, headers = String.split head "\r\n" in
     let verb, rest = String.split first_line " " in
     let uri, version = String.split rest " " in
-    let ip = match Unix.getpeername (Ssl.file_descr_of_socket ssl_socket) with
-      | Unix.ADDR_UNIX str -> "local:" ^ str
-      | Unix.ADDR_INET (addr,_) -> Unix.string_of_inet_addr addr
-    in
+    let ip = ip ssl_socket in 
     let uri, params = try String.split uri "?" with _ -> uri, "" in 
     verb, uri, params, version, parse_headers headers, body, ip 
   in  

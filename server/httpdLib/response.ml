@@ -1,12 +1,20 @@
 (* © 2013 RunOrg *)
 
 open Std
+open Common
 
 type status = 
   [ `OK 
   | `BadRequest
   | `RequestEntityTooLarge 
   | `NotImplemented ]
+
+type t = {
+  headers : (string * string) list ;
+  body : string ; 
+  status : status ;
+  request : Request.t option ; 
+}
 
 (* The names of the status codes. *)
 let status = function
@@ -16,30 +24,38 @@ let status = function
   | `NotImplemented -> "501 Not Implemented"
 
 (* Raw response function, merely formats the individual lines for output. *)
-let string ssl_socket code headers body = 
+let send ssl_socket response = 
 
-  let content_length = String.length body in 
-  let headers = ("Content-Length", string_of_int content_length) :: headers in 
+  let content_length = String.length response.body in 
+  let headers = ("Content-Length", string_of_int content_length) :: response.headers in 
+
+  (match response.request with None -> () | Some request -> 
+    Log.trace "%s /%s %s %d"
+      (verb (request # verb))
+      (String.concat "/" (request # path))
+      (fst (String.split (status response.status) " "))
+      (content_length)) ;
 
   let b = Buffer.create 1024 in 
-  Buffer.add_string b (!! "HTTP/1.1 %s\r\n" (status code)) ;
+  Buffer.add_string b (!! "HTTP/1.1 %s\r\n" (status response.status)) ;
   List.iter (fun (k,v) -> Buffer.add_string b (!! "%s: %s\r\n" k v)) headers ;
   Buffer.add_string b "\r\n" ;
-  Buffer.add_string b body ;
+  Buffer.add_string b response.body ;
   Ssl.output_string ssl_socket (Buffer.contents b) ;
-  Log.trace "%s" (Buffer.contents b) ; 
   Unix.shutdown (Ssl.file_descr_of_socket ssl_socket) Unix.SHUTDOWN_ALL 
 
 (* Response function that adds a content-type header and formats the output as
    JSON. *)
 
-let json ssl_socket code headers body = 
-  string ssl_socket code ( ("Content-Type","application/json") :: headers ) 
-    (Json.serialize body) 
+let json status body = {
+  status ;
+  request = None ;
+  body = Json.serialize body ;  
+  headers = [ "Content-Type", "application/json" ]
+}
 
-(* Response function that adds a content-type header and formats the output as
-   MSGPACK (from a JSON block of data) *)
+let error status error = 
+  json status (Json.Object [ "error", Json.String error ]) 
 
-let json_msgpack ssl_socket code headers body = 
-  string ssl_socket code ( ("Content-Type","application/x-msgpack") :: headers )
-    (Pack.to_string Json.pack body) 
+let for_request request response = 
+  { response with request = Some request }
