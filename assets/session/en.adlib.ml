@@ -1,7 +1,0 @@
-| `Session_Welcome_Title -> "Sign in with RunOrg"
-| `Session_Welcome_Head -> "Sign in with your RunOrg account"
-| `Session_Welcome_Head_Sub -> "You must sign in to view the private pages of your groups and organizations."
-| `Session_Welcome_Email -> "E-mail address"
-| `Session_Welcome_Password -> "Password"
-| `Session_Welcome_Button_Login -> "Sign in"
-| `Session_Welcome_Button_Signup -> "Create account"
