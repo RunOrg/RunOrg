@@ -2,7 +2,9 @@
 .bot/
 runorg
 server/main.byte
+server/_build
 *~
 *.cmo
 *.cmi
 *.byte
+*.out
