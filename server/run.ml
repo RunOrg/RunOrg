@@ -395,7 +395,10 @@ let eval ctx m =
 let start ctx ms = 
 
   let retry m = fun ctx _ ok -> 
-    let rec bad exn = Yield (m ctx bad ok) in
+    let rec bad exn = 
+      Log.error "Run.start: %s" (Printexc.to_string exn) ; 
+      Yield (m ctx bad ok) 
+    in
     m ctx bad ok 
   in
   
