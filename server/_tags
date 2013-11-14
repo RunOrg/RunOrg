@@ -1,2 +1,2 @@
-<*> or <**/*>: package(camlp4), syntax(camlp4o), custom-pp, package(batteries), package(sha), package(netstring), package(postgresql), thread
+<*> or <**/*>: package(camlp4), syntax(camlp4o), custom-pp, package(batteries), package(sha), package(postgresql), thread
 

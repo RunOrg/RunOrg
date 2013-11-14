@@ -38,10 +38,10 @@ let file role error =
 	(* TODO: catch exceptions below *)
 
 	let folder = folder_path t in
-	Unix.mkdir folder 0o644 ; 	
+	( try Unix.mkdir folder 0o755 with Unix.Unix_error (Unix.EEXIST, _, _) -> () ) ; 	
 
 	let path = Filename.concat folder (file_name rolename error) in 
-	let channel = open_out_gen [Open_append] 0o644 path in
+	let channel = open_out_gen [Open_append;Open_creat] 0o644 path in
 
 	chanref := Some channel ;
 	channel

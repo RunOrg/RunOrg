@@ -1,6 +1,9 @@
 all: runorg
 	./runorg reset
 
+depend: 
+	opam install postgresql-ocaml ssl sha batteries
+
 toolchain:
 	make -C syntax
 
