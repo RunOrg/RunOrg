@@ -5,7 +5,10 @@ open BatResult
 (* Types, both public and private 
    ============================== *)
 
-type thr             = Do of thr list Lazy.t 
+type thr = 
+  | Fork of thr list Lazy.t 
+  | Wait of thr Event.event
+  | Yield of thr 
 
 (* A thread is evaluated using: 
    - a context 
@@ -34,7 +37,7 @@ type 'ctx          thread = ('ctx,unit) t
 (* Monad usage 
    =========== *)
 
-let return x = fun ctx bad ok -> Do (lazy [try ok x with exn -> bad exn])   
+let return x = fun ctx bad ok -> Fork (lazy [try ok x with exn -> bad exn])   
 
 let bind f m = fun ctx bad ok -> 
   m ctx bad (fun x -> 
@@ -54,7 +57,7 @@ let (|>>) m f = map f m
 (* Context manipulation 
    ==================== *)
 
-let context = fun ctx bad ok -> Do (lazy [try ok ctx with exn -> bad exn]) 
+let context = fun ctx bad ok -> Fork (lazy [try ok ctx with exn -> bad exn]) 
 
 let with_context ctx m = fun _ bad ok -> m ctx bad ok
 
@@ -66,9 +69,9 @@ let edit_context f m = fun ctx bad ok ->
 (* Concurrency manipulation 
    ======================== *)
 
-let nop = Do (lazy [])
+let nop = Fork (lazy [])
 
-let yield m = fun ctx bad ok -> Do (lazy [nop ; m ctx bad ok]) 
+let yield m = fun ctx bad ok -> Yield (Fork (lazy [m ctx bad ok]))
 
 let join a b f = fun ctx bad ok -> 
 
@@ -86,10 +89,10 @@ let join a b f = fun ctx bad ok ->
     | Some xa -> finish xa xb
   in
 
-  Do (lazy [a ctx bad ok_a ; b ctx bad ok_b]) 
+  Fork (lazy [a ctx bad ok_a ; b ctx bad ok_b]) 
 
 let fork a b = fun ctx bad ok -> 
-  Do (lazy [b ctx bad ok ; a ctx (fun _ -> nop) (fun _ -> nop)])
+  Fork (lazy [b ctx bad ok ; a ctx (fun _ -> nop) (fun _ -> nop)])
 
 class ['ctx] joiner = object (self) 
 
@@ -111,7 +114,7 @@ class ['ctx] joiner = object (self)
         | Some (bad,ok) -> ( after <- None ; try ok () with exn -> bad exn )
       else nop
     in
-    fun ctx bad ok -> Do (lazy [ (try ok () with exn -> bad exn) ; m ctx bad emit_if_zero ]) 
+    fun ctx bad ok -> Fork (lazy [ (try ok () with exn -> bad exn) ; m ctx bad emit_if_zero ]) 
       
 end
 
@@ -130,7 +133,7 @@ class mutex = object (self)
 	ok r 
       end else begin
 	let next = Queue.take waiting in
-	Do (lazy [ next () ; (try ok r with exn -> bad exn) ])
+	Fork (lazy [ next () ; (try ok r with exn -> bad exn) ])
       end
     in
       
@@ -150,19 +153,23 @@ end
 
 let memo m = 
   let r = ref None in 
-  fun c bad ok -> Do (lazy [(
+  fun c bad ok -> Fork (lazy [(
     match !r with 
     | Some (c',v) when c' == c -> (try ok v with exn -> bad exn) 
     | _ -> m c bad (fun x -> r := Some (c,x) ; ok x) 
   )])
 
-let of_lazy l = fun _ bad ok -> Do (lazy [try ok (Lazy.force l) with exn -> bad exn])
-let of_func f = fun _ bad ok -> Do (lazy [try ok (f ()) with exn -> bad exn])
+let of_lazy l = fun _ bad ok -> Fork (lazy [try ok (Lazy.force l) with exn -> bad exn])
+let of_func f = fun _ bad ok -> Fork (lazy [try ok (f ()) with exn -> bad exn])
 
 let of_call f a = fun ctx bad ok -> 
   match catch f a with 
   | Ok  m   -> m ctx bad ok
   | Bad exn -> bad exn
+
+let of_channel c = fun ctx bad ok ->
+  let ev = Event.receive c in
+  Wait (Event.wrap ev (fun v -> Fork (lazy [try ok v with exn -> bad exn])))
 
 (* List functions 
    ============== *)
@@ -189,7 +196,7 @@ module ForList = struct
 	end
       in
 
-      Do (lazy (List.map begin fun (x,r) -> 
+      Fork (lazy (List.map begin fun (x,r) -> 
 	match catch f x with 
 	| Ok  m   -> m ctx bad (ok r)
 	| Bad exn -> bad exn
@@ -221,7 +228,7 @@ module ForList = struct
 	if !failed then nop else ( decr r ; if !r = 0 then ok () else nop) 
       in
 
-      Do (lazy (List.map begin fun x -> 
+      Fork (lazy (List.map begin fun x -> 
 	match catch f x with 
 	| Ok  m   -> m ctx bad ok
 	| Bad exn -> bad exn
@@ -259,35 +266,105 @@ let sleep t =
 (* Evaluation 
    ========== *)
 
-exception Timeout 
+let eval ctx m = 
 
-let eval ?timeout ctx m = 
-  let queue   = Queue.create () in 
   let r       = ref None in 
   let ok  x   = r := Some x ; nop in 
   let bad exn = raise exn in
 
-  let timeout = match timeout with 
-    | Some f -> f
-    | None   -> (fun () -> false) 
+  (* All active items (those returned by a [Fork]) are stored in this queue.
+     This is where the main loop queries for new tasks to perform. *)
+  let active  = Queue.create () in 
+
+  let to_active = List.iter (fun task -> Queue.push task active) in 
+
+  (* All delayed items (those returned by a [Yield]) are stored in this
+     queue. The main loop will grab all tasks from this queue when the 
+     active queue is empty. *)
+  let delayed = Queue.create () in
+
+  (* A list of all events (those returned by a [Wait]). The main loop
+     will grab available tasks from this queue when the active queue is
+     empty, and will block on this set when there is nothing left to 
+     do (in order to save processing time). 
+
+     These events are paired with an integer identifier (used for 
+     removing them after querying them once), and return their 
+     identifier in addition to the [thr].
+  *)
+  let events  = ref [] in
+
+  (* The number of events handled so far (used for attributing identifiers
+     to events. *)
+  let eventCount = ref 0 in
+  
+  let add_event ev = 
+    let id = !eventCount in 
+    events := (id, Event.wrap ev (fun thr -> id, thr)) :: !events ;
+    incr eventCount 
   in
 
-  let rec loop = function Do step -> 
-    if timeout () then raise Timeout ;
-    match Lazy.force step with 
-    | h :: t -> List.iter (fun x -> Queue.push x queue) t ; loop h
-    | []     -> match try Some (Queue.pop queue) with Queue.Empty -> None with
-      | Some thread -> loop thread
-      | None        -> () 
+  (* The last time events were polled. *)
+  let last_event_poll = ref 0.0 in
+
+  (* Never stay more than 500ms without polling events, unless the
+     queues are getting to large. *)
+  let should_poll_events () = 
+    !events <> [] 
+    && Queue.length active + Queue.length delayed < 100
+    && Unix.gettimeofday () -. !last_event_poll > 500.
   in
 
-  loop (m ctx bad ok) ;
+  (* Processing a specific task, then processing whatever is left. *)
+  let rec process = function   
+    | Yield task -> Queue.push task delayed ; continue () 
+    | Wait ev -> (match Event.poll ev with 
+      | Some task -> process task 
+      | None -> add_event ev ; continue ())
+    | Fork tasks -> (match Lazy.force tasks with 
+      | h :: t -> to_active t ; process h 
+      | []     -> continue ())
+
+  (* Looks for a task to be executed, because the current processing 
+     chain was broken. *) 
+  and continue () = 
+    if should_poll_events () then
+      (ignore (poll_events ~block:false) ; continue ()) 
+    else if not (Queue.is_empty active) then
+      process (Queue.pop active)
+    else if poll_events ~block:false then
+      continue () 
+    else if not (Queue.is_empty delayed) then
+      (Queue.transfer delayed active ; continue ())
+    else if poll_events ~block:true then 
+      continue () 
+    else
+      () 
+
+  (* Poll for any available events, remove them from the list. *)
+  and poll_events ~block = 
+    if !events = [] then false else 
+      let rec extract accRead accWait = function 
+	| [] -> events := accWait ; accRead
+	| (k,h) :: t -> match Event.poll h with 
+	  | None -> extract accRead ((k,h) :: accWait) t
+	  | Some (_,thr) -> extract (thr :: accRead) accWait t 
+      in
+      match extract [] [] !events with
+      | [] when block -> let k, thr = Event.select (List.map snd !events) in 
+			 events := List.filter (fun (id,_) -> id <> k) !events ;
+			 to_active ( thr :: extract [] [] !events ) ; 
+			 true
+      | list -> to_active list ; list <> []
+  in
+
+  process (m ctx bad ok) ;
   match !r with None -> assert false | Some result -> result
 
 let start ctx ms = 
 
   let retry m = fun ctx _ ok -> 
-    let rec bad exn = Do (lazy [nop ; m ctx bad ok]) in
+    let rec bad exn = Yield (m ctx bad ok) in
     m ctx bad ok 
   in
   

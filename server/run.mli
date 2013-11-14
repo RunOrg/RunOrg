@@ -85,12 +85,8 @@ val edit_context : ('ca -> 'cb) -> ('cb,'any) t -> ('ca,'any) t
 
 (** {2 Evaluation} *)
 
-(** Thrown when the time allotted to {!eval} has run out. *)
-exception Timeout
-
 (** Evaluates a thread in a context. Runs until all threads 
-    spawned by the original thread have completed, or the timeout
-    function returns [true]. 
+    spawned by the original thread have completed.
 
     If an exception is raised by a thread, all threads immediately 
     stop and the exception escapes [eval]. Note that forked threads
@@ -98,7 +94,7 @@ exception Timeout
 
     {[ assert( 10 = eval 5 (let! n = context in return (n * 2)) ) ]}
 *)
-val eval : ?timeout:(unit -> bool) -> 'ctx -> ('ctx,'a) t -> 'a 
+val eval : 'ctx -> ('ctx,'a) t -> 'a 
 
 (** Start several long-running operations in parallel. 
 
@@ -186,6 +182,10 @@ val of_func  : (unit -> 'value) -> ('ctx,'value) t
 
 (** [of_lazy l] forces [l] every time it is evaluated. *)
 val of_lazy  :    'value Lazy.t -> ('ctx,'value) t
+
+(** [of_channel c] attempts to read a value from channel [c] every time it
+    is evaluated. *)
+val of_channel : 'value Event.channel -> ('ctx,'value) t
 
 (** [loop (fun continue -> ...)] runs its body and returns the
     result. The body may return [continue] to have the loop 
