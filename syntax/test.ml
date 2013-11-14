@@ -48,9 +48,15 @@ module Pack = struct
 
 end
 
-type & t = [ `A 
-	   | `B of int 
-	   | `C of int * int 
-	   | `D of < a : int ; b : string ; c : float ; d : bool > 
-	   | `E of string option 
-	   | `F of unit ]
+module Fmt = struct
+  module Extend = functor(T:sig end) -> struct end
+end
+
+module T = type module 
+    [ `A 
+    | `B of int 
+    | `C of int * int 
+    | `D of < a : int ; b : string ; c : float ; d : bool > 
+    | `E of string option 
+    | `F of unit ]
+      

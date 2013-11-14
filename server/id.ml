@@ -2,7 +2,7 @@
 
 open Std
 
-include Fmt.Make(struct type & t = string end)
+include type module string
 
 let compare = compare
 

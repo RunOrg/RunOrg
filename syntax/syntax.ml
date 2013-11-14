@@ -906,11 +906,11 @@ let generate_constructors _loc (def:typexpr) =
     end tlist) 
   in
 
-  let variant_builder tlist = 
+  let poly_builder tlist = 
     variant (fun name -> <:expr< `$name$ >>) tlist 
   in
 
-  let poly_builder tlist = 
+  let variant_builder tlist = 
     variant (fun name -> <:expr< $uid:name$ >>) tlist
   in
 
@@ -1037,16 +1037,17 @@ let generate _loc def =
   let pack = Pack.generate_pack _loc def in 
   let unpack = Pack.generate_unpack _loc def in 
   let constructors = generate_constructors _loc def in 
-  <:str_item< $typedef$ ; $to_json$ ; $of_json$ ; $pack$ ; $unpack$ ; $constructors$ >>
+  let core = <:str_item< $typedef$ ; $to_json$ ; $of_json$ ; $pack$ ; $unpack$ ; $constructors$ >> in
+  <:module_expr< struct module T = struct $core$ end ; include T ; include Fmt.Extend(T) ; end >>
 
 (* Grammar rules for parsing
    ========================= *)
 
 EXTEND Gram 
-  GLOBAL: str_item ;
+  GLOBAL: module_expr ;
 
-  str_item: LEVEL "top" [
-    [ "type"; "&"; loc = [ LIDENT "t" -> _loc ]; "="; def = typedef -> 
+  module_expr: LEVEL "top" [
+    [ "type"; loc = [ "module" -> _loc ]; def = typedef -> 
       generate loc def ]      
   ];
 

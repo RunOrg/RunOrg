@@ -29,9 +29,7 @@ end) -> struct
   let name = Event.name 
   let dbname = Names.stream name
 
-  module Data = struct
-    type & t = ( Time.t * Event.t )
-  end
+  module Data = type module ( Time.t * Event.t )  
 
   class wrapper id n time event = object
 

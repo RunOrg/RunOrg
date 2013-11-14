@@ -1,4 +1,4 @@
-(* Ohm is © 2013 Victor Nicollet *)
+(* © 2013 RunOrg *)
 
 module type FMT = sig
   type t 
@@ -65,10 +65,3 @@ end) -> sig
   val of_json_string_safe : string -> t option 
   val unpack : t Pack.unpacker
 end
-
-module Unit   : FMT with type t = unit
-module Float  : FMT with type t = float
-module Int    : FMT with type t = int
-module Bool   : FMT with type t = bool
-module Json   : FMT with type t = Json.t
-

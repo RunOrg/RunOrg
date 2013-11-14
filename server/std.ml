@@ -9,7 +9,6 @@ include BatPervasives
 module String = struct
 
   include BatString
-  include Fmt.Make(struct type & t = string end)
 
   (** Replace all typical french accents with their non-accented letter counterparts. *)
   let fold_accents str = 

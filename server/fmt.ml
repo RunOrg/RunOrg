@@ -89,27 +89,3 @@ end) -> struct
   let pack t p = Json.pack (json_of_t t) p
   let unpack u = t_of_json (Json.unpack u)
 end
-
-module Int = Make(struct
-  type & t = int
-end)
-
-module Bool = Make(struct
-  type & t = bool
-end)
-
-module Unit = Make(struct
-  type & t = unit
-end)
-
-module Float = Make(struct
-  type & t = float
-end)
-
-module Json = Make(struct
-  type t = Json.t
-  let t_of_json x = x
-  let json_of_t x = x
-  let pack = Json.pack
-  let unpack = Json.unpack
-end)
