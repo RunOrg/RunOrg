@@ -138,6 +138,8 @@ let (!!) = Printf.sprintf
     [(fun a b -> compare (f a) (f b)] *)
 let by f a b = compare (f a) (f b)
 
+let return x = Run.return x
+
 (* Include the SHA1 module with some minor extensions. *)
 module Sha1 = struct
 
