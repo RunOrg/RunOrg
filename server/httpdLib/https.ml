@@ -52,15 +52,21 @@ let read_request config ssl_socket =
     clean_header, Some (Buffer.contents body)
 
   end else
-
+    
     clean_header, None
 
 let parse context socket config handler = 
-  let ssl_socket = Ssl.embed_socket socket context in
-  Ssl.accept ssl_socket ; 
-  let head, body = read_request config ssl_socket in
-  Log.trace "HEAD: %s" head ; 
-  Ssl.shutdown ssl_socket ;
-  return () 
+  try
+    let ssl_socket = Ssl.embed_socket socket context in
+    Ssl.accept ssl_socket ;   
+    let head, body = read_request config ssl_socket in
+    Log.trace "HEAD: %s" head ;   
+    let () = Ssl.output_string ssl_socket "HTTP/1.1 200 OK\r\n\r\n" in
+    let () = Ssl.output_string ssl_socket "OK!" in
+    Unix.shutdown socket Unix.SHUTDOWN_ALL ; 
+    return () 
+  with exn -> 
+    (* TODO: deal with errors properly. *)
+    return () 
 
   

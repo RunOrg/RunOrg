@@ -79,3 +79,7 @@ let trace fmt =
 
 let error fmt = 
   write error_channel (Time.now ()) fmt
+
+let exn exn backtrace =
+  error "%s\n%s" (Printexc.to_string exn) backtrace ;
+
