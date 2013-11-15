@@ -52,15 +52,60 @@ module Clock : sig
     
 end
 
-(** Event wrappers. *)
-type 'a event_wrapper = <
-  clock : Clock.t ;
-  event : 'a ;
-  time  : Time.t ; 
->
+module Names : sig
 
-(** Resumable event streams *)
-type ('ctx, 'a) stream = Clock.t -> ( 'ctx, 'a event_wrapper ) Seq.t 
+  (** A name prefix, used by projection-dependent structures to create tables in the
+      database. *)
+  type prefix 
+
+end
+
+(** Each projection has a name and version number. Several projections 
+    with the same name but different version numbers may exist in the database.
+    
+    Once the projection with the latest version number has caught up 
+    with all its underlying streams, the previous version numbers may be 
+    deleted to save space. 
+    
+    Inside the database, tables involved in the projection will be prefixed with 
+    'proj:{thename}:{theversion}' 
+*)
+module Projection : sig 
+
+  (** An individual projection *)
+  type t
+
+  (** A view, following a projection. *)
+  type view
+
+  (** Create a projection from a name and a projection function. *)
+  val make : string -> (unit -> ctx) -> t
+
+  (** [register kind name version] registers an view of type [kind] called
+      [name] at version number [version]. 
+
+      This is used to automatically 
+      increment the projection version number based on its contents. *)
+  val view : t -> string -> string -> int -> view
+    
+  (** The name of a projection. *)
+  val name : t -> string
+
+  (** The current clock of this projection. *)
+  val clock : t -> (#ctx, Clock.t) Run.t
+
+  (** Runs all registered projections in parallel, until a reset is requested
+      using [Cqrs.Running.reset ()] from another process. *)
+  val run : unit -> unit Run.thread 
+
+  (** The prefix of a view, used to create the corresponding tables in the 
+      database. *)
+  val prefix : view -> Names.prefix
+
+  (** The projection from which a view was created. *)
+  val of_view : view -> t
+
+end
 
 (** A stream is a persistent sequence of events.  *)
 module type STREAM = sig
@@ -79,15 +124,11 @@ module type STREAM = sig
 
   (** The current clock for this stream. *)
   val clock : unit -> ( #ctx, Clock.t ) Run.t
+
+  (** Have a view track events from this stream, running an effect for every
+      one of them. *)
+  val track : Projection.view -> (event -> ctx Run.effect) -> unit
     
-  (** Reads events from the stream, starting at the specified position. This is
-      a finite sequence, which ends at the last event currently in the store. *)
-  val read : ( #ctx, event ) stream 
-
-  (** Reads events from the stream, starting at the specified position. This is
-      an infinite sequence, which waits for new events to appear in the stream. *)
-  val follow : ( #ctx, event ) stream 
-
 end
 
 (** Creates a new stream with the specified name and (packable) event type. *)
@@ -95,51 +136,6 @@ module Stream : functor(Event:sig
   include Fmt.FMT 
   val name : string 
 end) -> STREAM with type event = Event.t
-
-module Names : sig
-
-  (** A name prefix, used by projection-dependent structures to create tables in the
-      database. *)
-  type prefix 
-
-end
-
-(** Create a new projection with a name and version number. Several projections 
-    with the same name but different version numbers may exist in the database.
-    
-    Once the projection with the latest version number has caught up 
-    with all its underlying streams, the previous version numbers may be 
-    deleted to save space. 
-    
-    Inside the database, tables involved in the projection will be prefixed with 
-    'proj:{thename}:{theversion}' 
-*)
-
-class ['ctx] projection : (#ctx as 'ctx) Lazy.t -> string -> object 
-
-  (** [p # register kind name version] registers an object of kind [kind] called
-      [name] at version number [version]. This is used to automatically 
-      increment the projection version number based on its contents. *)
-    
-  method register : string -> string -> int -> Names.prefix
-
-  (** The current clock of this projection. *)
-
-  method clock : ('ctx, Clock.t) Run.t
-
-  (** Start tracking a new event stream, perform the specified action for 
-      every event. Actions will be executed as part of a transaction, in the
-      same order as they were in the stream, and only once. *)
-    
-  method on : 'event. ('ctx,'event) stream -> ('event -> 'ctx Run.effect) -> unit 
-
-end
-
-(** Runs all registered projections in parallel. If any projections use infinite event
-    streams such as [Stream.follow], this function runs unitil a reset is requested
-    using [Cqrs.Running.reset ()] from another process. *)
-
-val run_projections : unit -> unit Run.thread
 
 (** Maps bind values to keys. *)
 
@@ -150,9 +146,16 @@ module MapView : sig
   type ('key, 'value) t 
 
   (** Create a map from a key type and a value type. Both types must support 
-      packing. A map always has a name, and may be placed inside a projection 
-      (if it is updated by a projection). *)
-  val make : ?projection:('any projection) -> string -> int -> 
+      packing. A map always has a name, and is placed inside a projection. *)
+  val make : Projection.t -> string -> int -> 
+    (module Fmt.FMT with type t = 'key) ->
+    (module Fmt.FMT with type t = 'value) ->
+    Projection.view * ('key, 'value) t
+
+  (** A standalone map, outside of a projection. Take care when manipulating, 
+      as there is no possibility of replaying an event stream if things go
+      wrong. *)
+  val standalone : string -> int -> 
     (module Fmt.FMT with type t = 'key) ->
     (module Fmt.FMT with type t = 'value) ->
     ('key, 'value) t

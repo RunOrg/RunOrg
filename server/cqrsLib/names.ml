@@ -47,11 +47,7 @@ let projection_prefix name version =
     
 let maps = Hashtbl.create 10 
 
-let map ?projection name version = 
-
-  let prefix = match projection with 
-    | Some p -> p # register "map" name version 
-    | None -> (None, Run.return ":") in
+let map ?(prefix=(None, Run.return ":")) name version = 
 
   let surname  = match fst prefix with None -> name | Some p -> p ^ "." ^ name in
 

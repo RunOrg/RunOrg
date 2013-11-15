@@ -1,7 +1,13 @@
+(* © 2013 RunOrg *)
 
 type ('key, 'value) t 
 
-val make : ?projection:('any Projection.projection) -> string -> int -> 
+val make : Projection.t -> string -> int -> 
+  (module Fmt.FMT with type t = 'key) ->
+  (module Fmt.FMT with type t = 'value) ->
+  Projection.view * ('key, 'value) t
+
+val standalone : string -> int -> 
   (module Fmt.FMT with type t = 'key) ->
   (module Fmt.FMT with type t = 'value) ->
   ('key, 'value) t

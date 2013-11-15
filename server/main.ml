@@ -20,7 +20,7 @@ let bot_loop () =
   try 
     Run.start () [
       Cqrs.Running.heartbeat (mkctx ()) ;	
-      Cqrs.run_projections () ;
+      Cqrs.Projection.run () ;
     ]
   with Cqrs.Running.Shutdown -> () 
   

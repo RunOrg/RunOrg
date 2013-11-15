@@ -1,3 +1,5 @@
+(* © 2013 RunOrg *)
+
 open Common
 
 module Names = Names
@@ -13,9 +15,7 @@ type ('key, 'value) t = {
 (* Creating a new map 
    ================== *)
 
-let make (type k) (type v) ?projection name version key value = 
-
-  let dbname = Names.map ?projection name version in
+let create (type k) (type v) name dbname key value = 
 
   let module Key = (val key : Fmt.FMT with type t = k) in
   let module Value = (val value : Fmt.FMT with type t = v) in 
@@ -30,6 +30,19 @@ let make (type k) (type v) ?projection name version key value =
   end in
 
   { name ; dbname ; kpack = Key.pack ; vpack = Value.pack ; vupack = Value.unpack }
+
+let make projection name version key value = 
+  
+  let view = Projection.view projection "map" name version in 
+  let dbname = Names.map ~prefix:(Projection.prefix view) name version in
+
+  let map = create name dbname key value in
+  view, map 
+
+let standalone name version key value = 
+
+  let dbname = Names.map name version in
+  create name dbname key value
 
 (* Reading a value from the map
    ============================ *)

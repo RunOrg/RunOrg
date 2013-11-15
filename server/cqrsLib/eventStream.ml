@@ -1,4 +1,7 @@
+(* © 2013 RunOrg *)
+
 open Common
+open Std
 
 type ('ctx, 'a) event_writer = 'a list -> ( 'ctx, unit ) Run.t
 
@@ -16,8 +19,7 @@ module type STREAM = sig
   val append : ( #ctx, event ) event_writer
   val count : unit -> ( #ctx, int ) Run.t
   val clock : unit -> ( #ctx, Clock.t ) Run.t
-  val read : ( #ctx, event ) stream 
-  val follow : ( #ctx, event ) stream 
+  val track : Projection.view -> (event -> ctx Run.effect) -> unit
 end
 
 module Stream = functor(Event:sig 
@@ -134,18 +136,6 @@ end) -> struct
     let! id = id () in 
     Run.return (match Clock.get clock id with None -> 0 | Some n -> n + 1)
 
-  let read clock =     
-    Seq.of_finite_cursor begin fun start_opt -> 
-
-      let! start = match start_opt with 
-	| Some start -> Run.return start 
-	| None       -> start_revision clock in 
-      
-      let! list, next = read_batch start 100 in
-      Run.return (if list = [] then [], None else list, Some next)
-
-    end None 
-
   let follow clock = 
     Seq.of_infinite_cursor begin fun start_opt -> 
       
@@ -156,6 +146,33 @@ end) -> struct
       read_batch start 100
 
     end None 
+
+  (* Tracking events within a projection 
+     =================================== *)
+
+  let trackers = Hashtbl.create 10
+
+  let track view action = 
+
+    let name = Projection.name (Projection.of_view view) in
+
+    let stream clock =
+      (* No need to try for exceptions: we will add a value to the
+	 hash table before this function is called. *)
+      let actions = Hashtbl.find trackers name in
+      Seq.map begin fun wrap -> 
+	let ev = wrap # event and clock = wrap # clock in 
+	(* TODO: set context time to wrap # time *)
+	List.M.iter (fun action -> action ev) actions, clock 
+      end (follow clock)
+    in
+
+    let actions = 
+      try Hashtbl.find trackers name with Not_found -> 
+	Projection.register view stream ; []
+    in
+
+    Hashtbl.add trackers name (action :: actions)
 
 end
 
