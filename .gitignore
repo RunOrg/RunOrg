@@ -8,3 +8,4 @@ server/_build
 *.cmi
 *.byte
 *.out
+*.pem
