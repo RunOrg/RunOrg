@@ -48,7 +48,7 @@ end) -> struct
 
   let () = 
     
-    query_on_first_connection begin 
+    Sql.query_on_first_connection begin 
       "CREATE TABLE IF NOT EXISTS \"" ^ dbname ^ "\" ( " 
       ^ "\"n\" SERIAL, "
       ^ "\"event\" BYTEA, "
@@ -67,7 +67,7 @@ end) -> struct
 
     if packs = [] then Run.return () else 
 
-      safe_command begin 
+      Sql.safe_command begin 
 	"INSERT INTO \"" ^ dbname ^ "\" ( \"event\" ) VALUES " ^ 
 	  (String.concat ", " (BatList.mapi (fun i _ -> "($" ^ string_of_int (i+1) ^ ")") packs))
       end packs 
@@ -77,7 +77,7 @@ end) -> struct
 
   let count () = 
     
-    let! result = query ("SELECT COUNT(*) FROM \"" ^ dbname ^ "\"") [] in
+    let! result = Sql.query ("SELECT COUNT(*) FROM \"" ^ dbname ^ "\"") [] in
     Run.return (int_of_string (result.(0).(0))) 
      
   (* Identifier management 
@@ -86,9 +86,9 @@ end) -> struct
   let id_cache : (ctx, int) Run.t = 
     Run.memo begin 
       let rec recurse () = 
-	let! result = query ("SELECT \"id\" FROM \"meta:streams\" WHERE \"name\" = $1") [ `String name ] in
+	let! result = Sql.query ("SELECT \"id\" FROM \"meta:streams\" WHERE \"name\" = $1") [ `String name ] in
 	if Array.length result < 1 then 
-	  let! () = safe_command ("INSERT INTO \"meta:streams\" (\"name\") VALUES ($1)") [ `String name ] in 
+	  let! () = Sql.safe_command ("INSERT INTO \"meta:streams\" (\"name\") VALUES ($1)") [ `String name ] in 
 	  recurse () 
 	else
 	  Run.return (int_of_string result.(0).(0))
@@ -106,7 +106,7 @@ end) -> struct
 
   let clock () = 
     
-    let! result = query ("SELECT MAX(\"n\") FROM \"" ^ dbname ^ "\"") [] in
+    let! result = Sql.query ("SELECT MAX(\"n\") FROM \"" ^ dbname ^ "\"") [] in
     let! id = id () in
     Run.return (Clock.at id (int_of_string (result.(0).(0)))) 
 
@@ -116,7 +116,7 @@ end) -> struct
   let read_batch start count = 
 
     let! id = id () in 
-    let! result = query 
+    let! result = Sql.query 
       ("SELECT \"n\", \"event\" from \"" ^ dbname ^ "\" WHERE \"n\" >= $1 "
 	  ^ "ORDER BY \"n\" LIMIT " ^ string_of_int count) 
       [ `Int start ] in
@@ -178,7 +178,7 @@ end
 
 let () = 
   
-  query_on_first_connection begin 
+  Sql.query_on_first_connection begin 
     "CREATE TABLE IF NOT EXISTS \"meta:streams\" ( " 
     ^ "\"id\" SERIAL, "
     ^ "\"name\" VARCHAR(64), "

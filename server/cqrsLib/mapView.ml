@@ -20,9 +20,9 @@ let create (type k) (type v) name dbname key value =
   let module Key = (val key : Fmt.FMT with type t = k) in
   let module Value = (val value : Fmt.FMT with type t = v) in 
 
-  let () = run_on_first_connection begin 
+  let () = Sql.run_on_first_connection begin 
     let! dbname = dbname in 
-    command ("CREATE TABLE IF NOT EXISTS \"" ^ dbname ^ "\" ( " 
+    Sql.command ("CREATE TABLE IF NOT EXISTS \"" ^ dbname ^ "\" ( " 
 	     ^ "\"key\" BYTEA, "
 	     ^ "\"value\" BYTEA, "
 	     ^ "PRIMARY KEY (\"key\") "
@@ -52,7 +52,7 @@ let full_get map k =
   let  k = Pack.to_string map.kpack k in
 
   let! dbname = Run.edit_context (fun ctx -> (ctx :> ctx)) map.dbname in 
-  let! result = query 
+  let! result = Sql.query 
     ("SELECT \"value\" FROM \"" ^ dbname ^ "\" WHERE \"key\" = $1") [ `Binary k ] in
 
   let value = (if Array.length result = 0 then None else 
@@ -74,13 +74,13 @@ let mupdate map k f =
   match r with 
   | `Keep   -> Run.return () 
   | `Put v' -> let v' = Pack.to_string map.vpack v' in
-	       if v = None then command
+	       if v = None then Sql.command
 		 ("INSERT INTO \"" ^ dbname ^ "\" (\"key\",\"value\") VALUES ($1,$2)")
 		 [ `Binary k ; `Binary v' ]
-	       else command 
+	       else Sql.command 
 		 ("UPDATE \"" ^ dbname ^ "\" SET \"value\" = $1 WHERE \"key\" = $2")
 		 [ `Binary v' ; `Binary k ]
-  | `Delete -> command ("DELETE FROM \"" ^ dbname ^ "\" WHERE \"key\" = $1") [ `Binary k ]
+  | `Delete -> Sql.command ("DELETE FROM \"" ^ dbname ^ "\" WHERE \"key\" = $1") [ `Binary k ]
 
 let update map k f = mupdate map k (fun v -> Run.return (f v))		 
 		   

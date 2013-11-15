@@ -14,7 +14,7 @@ let start () =
       if Array.length addrs > 0 then Unix.string_of_inet_addr addrs.(0) else ""
     in
 
-    let! result = query begin
+    let! result = Sql.query begin
       "INSERT INTO \"meta:runs\" (\"type\", \"version\", \"host\", \"pid\", \"started\", \"heartbeat\") " 
       ^ "VALUES ($1, $2, $3, $4, 'now', 'now') " 
       ^ "RETURNING \"id\""
@@ -34,7 +34,7 @@ let start () =
 
 let reset ctx =
   Run.eval ctx 
-    (command "UPDATE \"meta:runs\" SET \"shutdown\" = 'now' WHERE \"shutdown\" IS NULL" []) 
+    (Sql.command "UPDATE \"meta:runs\" SET \"shutdown\" = 'now' WHERE \"shutdown\" IS NULL" []) 
 	
 (* Stay alive 
    ========== *)
@@ -49,7 +49,7 @@ let heartbeat ctx =
 	
 	let! () = Run.sleep 10000.0 in
 
-	let! result = query begin
+	let! result = Sql.query begin
 	  "UPDATE \"meta:runs\" SET \"heartbeat\" = 'now' WHERE \"id\" = $1 "
 	  ^ "RETURNING \"shutdown\" IS NOT NULL"
 	end [ `Int id ] in
@@ -66,7 +66,7 @@ let heartbeat ctx =
 
 let () = 
 
-  query_on_first_connection begin
+  Sql.query_on_first_connection begin
     "CREATE TABLE IF NOT EXISTS \"meta:runs\" ( "
     ^ "\"id\" SERIAL, "
     ^ "\"type\" CHAR(3) NOT NULL, " 

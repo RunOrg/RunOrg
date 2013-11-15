@@ -190,3 +190,44 @@ module Running : sig
   val heartbeat : #ctx -> unit Run.thread
 
 end
+
+(** Module for running SQL queries directly. *)
+module Sql : sig
+
+  (** The type of parameters to raw queries. *)
+  type param = [ `Binary of string
+	       | `String of string 
+	       | `Int of int ] 
+
+  (** The type of raw results. *)
+  type raw_result = string array array
+
+  (** Runs a query asynchronously. Queries are sequential (that is, 
+      they are executed in the order they are provided in), but the
+      asynchronous interface lets the program perform other operations
+      while queries are running. *)
+
+  val query : string -> param list -> ( #ctx, raw_result ) Run.t 
+
+  (** A command is like a query, but returns no results, and will
+      block if a transaction is active (until the transaction ends). *)
+
+  val safe_command : string -> param list -> #ctx Run.effect
+
+  (** Like [safe_command] but does not block when part of a transaction. *)
+
+  val command : string -> param list -> #ctx Run.effect
+
+  (** Runs a specific query on the first connection. *)
+
+  val query_on_first_connection : string -> param list -> unit
+
+  (** Runs specific code on the first connection. *)
+
+  val run_on_first_connection : ctx Run.effect -> unit
+
+  (** Executes an operation inside a transaction *)
+
+  val transaction : (#ctx as 'ctx, 'a) Run.t -> ( 'ctx, 'a ) Run.t
+
+end

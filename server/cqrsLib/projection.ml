@@ -79,7 +79,7 @@ let get_id_and_version t =
     
     if Array.length r = 0 then 
       
-      let! () = command begin
+      let! () = Sql.command begin
 	"INSERT INTO \"meta:projections\" (\"name\", \"hash\", \"version\", \"clock\")"
 	^ "SELECT $1, $2, 1 + COALESCE(MAX(\"version\"),0), $3 FROM \"meta:projections\" "
 	^ "WHERE \"name\" = $1 AND \"hash\" = $2"
@@ -133,13 +133,13 @@ let view t kind name version =
    prevents more views from being registered. *)
 let clock t = 
   let! id = id t in 
-  let! result = query ("SELECT \"clock\" FROM \"meta:projections\" WHERE \"id\" = $1") [ `Int id ] in
+  let! result = Sql.query ("SELECT \"clock\" FROM \"meta:projections\" WHERE \"id\" = $1") [ `Int id ] in
   Run.return (Pack.of_string Clock.unpack (Postgresql.unescape_bytea result.(0).(0)))
 
 (* Save the clock. This is exclusively called internally to save checkpoints. *)
 let save_clock t clock = 
   let! id = id t in 
-  command ("UPDATE \"meta:projections\" SET \"clock\" = $1 WHERE \"id\" = $2")
+  Sql.command ("UPDATE \"meta:projections\" SET \"clock\" = $1 WHERE \"id\" = $2")
     [ `Binary (Pack.to_string Clock.pack clock) ; `Int id ]
 
 (* Runs a projection. Forever. *)
@@ -160,7 +160,7 @@ let run t =
       
       else 
 	
-	let! () = transaction begin 
+	let! () = Sql.transaction begin 
 	  
 	  let! c = clock t in 	  
 	  
@@ -218,7 +218,7 @@ let run () =
 
 let () = 
   
-  query_on_first_connection begin 
+  Sql.query_on_first_connection begin 
     "CREATE TABLE IF NOT EXISTS \"meta:projections\" ( " 
     ^ "\"id\" SERIAL, "
     ^ "\"name\" VARCHAR(64), "

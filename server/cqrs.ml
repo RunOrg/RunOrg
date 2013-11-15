@@ -6,3 +6,4 @@ module Clock = CqrsLib.Clock
 module Names = CqrsLib.Names
 module MapView = CqrsLib.MapView
 module Running = CqrsLib.Running
+module Sql = CqrsLib.Sql
