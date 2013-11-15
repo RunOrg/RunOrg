@@ -54,8 +54,18 @@ let json status body = {
   headers = [ "Content-Type", "application/json" ]
 }
 
-let error status error = 
-  json status (Json.Object [ "error", Json.String error ]) 
-
 let for_request request response = 
   { response with request = Some request }
+
+(* Response builders
+   ================= *)
+
+module Make = struct
+
+  let error status error = 
+    json status (Json.Object [ "error", Json.String error ]) 
+
+  let json ?(status=`OK) body = 
+    json status body 
+
+end

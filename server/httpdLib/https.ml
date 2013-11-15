@@ -19,25 +19,25 @@ let parse context socket config handler =
     Ssl.accept ssl_socket ;   
     let! response = 
       try 
-	let request = Request.parse config ssl_socket in
-	return (Response.for_request request 
-		  (Response.json `OK (Json.Object [ "ok", Json.Bool true ])))
+	let  request = Request.parse config ssl_socket in
+	let! response = handler request in 
+	return (Response.for_request request response)
       with 
 
       | Request.HeaderTooLong -> 
-	return (Response.error `RequestEntityTooLarge
+	return (Response.Make.error `RequestEntityTooLarge
 		  (!! "Header may not exceed %d bytes" config.max_header_size)) ;
 
       | Request.BodyTooLong -> 
-	return (Response.error `RequestEntityTooLarge
+	return (Response.Make.error `RequestEntityTooLarge
 		  (!! "Body may not exceed %d bytes" config.max_body_size)) ;
 
       | Request.SyntaxError reason ->
-	return (Response.error `BadRequest 
+	return (Response.Make.error `BadRequest 
 		  ("Could not parse HTTP request: " ^ reason)) ;
 
       | Request.NotImplemented verb -> 
-	return (Response.error `NotImplemented 
+	return (Response.Make.error `NotImplemented 
 		  ("Method " ^ verb ^ " is not supported.")) ;	
     in
 

@@ -3,6 +3,8 @@
 open Std
 open Common
 
+type 'ctx handler = Request.t -> ('ctx, Response.t) Run.t
+
 let start config handler = 
 
   Https.init () ;
@@ -34,22 +36,17 @@ let start config handler =
   let _ = Thread.create begin fun socket ->     
     while true do       
       (* This line blocks while waiting for a new connection. *)
-      send (Unix.accept socket)
+      let socket, client = Unix.accept socket in
+      send socket
     done 
   end socket in 
-
-  (* This code handles an incoming connection, as part of the main
-     thread. *)
-  let handle socket caller = 
-    Https.parse https socket config handler
-  in
 
   (* This code runs in the main thread, as part of the scheduler's loop.
      It receives new connections from the HTTP daemon thread, processes them 
      (using the provided handler), and sends back the response. *)
   let rec accept () =    
-    let! socket, caller = Run.of_channel connections in
-    Run.fork (handle socket caller) (accept ()) 
+    let! socket = Run.of_channel connections in
+    Run.fork (Https.parse https socket config handler) (accept ()) 
   in
 
   accept ()

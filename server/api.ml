@@ -12,4 +12,4 @@ let config = Httpd.(Configuration.Httpd.({
 })) 
 
 let run () = 
-  Httpd.start config (fun req res -> return res) 
+  Httpd.start config (fun req -> return (Httpd.json (Json.Object [ "ok", Json.Bool true ])))
