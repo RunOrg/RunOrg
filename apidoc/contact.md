@@ -78,8 +78,8 @@ Requires an [avatar](avatar.md) [token](token.md).
 
     rights: post
 
-Creates one or more new contacts. At least one field among [lastname], 
-[email] and [cell] is required for each one of them. 
+Creates one or more new contacts. At least one field among `lastname`, 
+`email` and `cell` is required for each one of them. 
 
 Requires an [avatar](avatar.md) [token](token.md) with the `post` 
 [right](right.md).
