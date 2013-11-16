@@ -17,7 +17,7 @@ server for that contact.
     rights: get
 
 Retrieves all contacts of the specified [site](site.md). Requires a 
-[site avatar](siteAdmin.md) [token](token.md) with the `get` 
+[site user](siteAdmin.md) [token](token.md) with the `get` 
 [right](right.md).
 
     GET /<id>/contact/<id>?token
@@ -48,7 +48,7 @@ rights may view the email address of contacts. The corresponding
 
 A contact may always view their own full profile, regardless of rights. 
 
-Requires an [avatar](avatar.md) [token](token.md).
+Requires an [user](user.md) [token](token.md).
 
 <a name="mini-profile"></a>
 
@@ -62,7 +62,7 @@ the non-short version above.
 
 Uses the same [right](right.md) `get` as the non-short version.
 
-Requires an [avatar](avatar.md) [token](token.md).
+Requires an [user](user.md) [token](token.md).
 
     POST /<id>/contact/create?token
 
