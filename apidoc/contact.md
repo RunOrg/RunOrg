@@ -50,11 +50,12 @@ A contact may always view their own full profile, regardless of rights.
 
 Requires an [avatar](avatar.md) [token](token.md).
 
+<a name="mini-profile"></a>
+
     GET /<id>/contact/<id*>/short?token
 
     > 200 { <id>: { name: <string>, pic? <url> } }
     
-<a name="mini-profile"></a>
 Grabs the **mini-profile** (shortened contact information) for one or
 more contacts. The returned fields `name` and `pic` are the same as
 the non-short version above.
@@ -81,7 +82,7 @@ Requires an [avatar](avatar.md) [token](token.md).
 Creates one or more new contacts. At least one field among `lastname`, 
 `email` and `cell` is required for each one of them. 
 
-Requires an [avatar](avatar.md) [token](token.md) with the `post` 
+Requires an [user](user.md) [token](token.md) with the `post` 
 [right](right.md).
 
     PUT /<id>/contact/<id>?token
@@ -104,4 +105,4 @@ not updated.
 
 Token must have the `put` [right](right.md) or own the contact. 
 
-Requires an [avatar](avatar.md) [token](token.md). 
+Requires an [user](user.md) [token](token.md). 
