@@ -2,6 +2,8 @@
 
 open Std
 
+include ApiLib
+
 let config = Httpd.(Configuration.Httpd.({ 
   port ; 
   key_path ; 
@@ -12,4 +14,4 @@ let config = Httpd.(Configuration.Httpd.({
 })) 
 
 let run () = 
-  Httpd.start config (fun req -> return (Httpd.json (Json.Object [ "ok", Json.Bool true ])))
+  Httpd.start config (fun req -> Run.with_context (new O.ctx) (Endpoint.dispatch req))

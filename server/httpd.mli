@@ -53,10 +53,13 @@ type status =
   [ `OK 
   | `BadRequest
   | `RequestEntityTooLarge 
-  | `NotImplemented ]
+  | `NotImplemented 
+  | `NotFound 
+  | `Forbidden 
+  | `MethodNotAllowed ]
 
 (** Responds with some JSON. Default status is [`OK]. *)
-val json : ?status:status -> Json.t -> response
+val json : ?headers:(string * string) list -> ?status:status -> Json.t -> response
 
 (** A handler is a function that responds to HTTP requests. 
     Handlers are run-tasks and are executed by the scheduler in the 

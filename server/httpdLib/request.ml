@@ -63,10 +63,24 @@ let urldecode str =
    ============================= *)
 
 let read_request config ssl_socket = 
+
+  let bufsize = 1024 in
+  let buffer = String.create 1024 in 
   
-  (* Read the entire header in one go. *)
-  let header = String.create config.max_header_size in 
-  let l = Ssl.read ssl_socket header 0 config.max_header_size in
+  (* Read the entire header with a loop. *)
+  let header = Buffer.create 1024 in
+
+  let rec read_more () = 
+    let l = Ssl.read ssl_socket buffer 0 bufsize in
+    Buffer.add_substring header buffer 0 l ;
+    if Buffer.length header <= config.max_header_size 
+       && not (String.exists (Buffer.contents header) "\r\n\r\n") 
+       && l > 0 then read_more ()    
+  in
+
+  read_more () ; 
+
+  let header = Buffer.contents header in 
 
   (* Look for a header termination... *)
   let pos = try String.find header "\r\n\r\n" with _ -> raise HeaderTooLong in
@@ -76,8 +90,6 @@ let read_request config ssl_socket =
   if String.starts_with clean_header "POST" || String.starts_with clean_header "PUT" then begin
 
     let body = Buffer.create 1024 in
-    let bufsize = 1024 in
-    let buffer = String.create 1024 in
 
     let rec read_more () = 
       if Buffer.length body <= config.max_body_size then begin
@@ -88,9 +100,9 @@ let read_request config ssl_socket =
     in
 
     (* For some reason, there was a little bit of body at the end of the header... *)
-    if l - pos > 4 then ( 
-      Buffer.add_string body (String.sub header (pos + 4) (l - pos + 4)) ;
-      if l = config.max_header_size then read_more ()) 
+    if String.length header - pos > 4 then ( 
+      Buffer.add_string body (String.sub header (pos + 4) (String.length header - pos + 4)) ;
+      if String.length header = config.max_header_size then read_more ()) 
     else
       read_more () ;
 

@@ -7,7 +7,10 @@ type status =
   [ `OK 
   | `BadRequest
   | `RequestEntityTooLarge 
-  | `NotImplemented ]
+  | `NotImplemented 
+  | `NotFound
+  | `Forbidden
+  | `MethodNotAllowed ]
 
 (** A response. *)
 type t
@@ -27,6 +30,6 @@ module Make : sig
   val error : status -> string -> t
 
   (** A response with a JSON payload. *)
-  val json : ?status:status -> Json.t -> t
+  val json : ?headers:(string*string) list -> ?status:status -> Json.t -> t
 
 end

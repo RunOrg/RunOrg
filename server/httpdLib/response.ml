@@ -7,7 +7,10 @@ type status =
   [ `OK 
   | `BadRequest
   | `RequestEntityTooLarge 
-  | `NotImplemented ]
+  | `NotImplemented 
+  | `NotFound
+  | `Forbidden
+  | `MethodNotAllowed ]
 
 type t = {
   headers : (string * string) list ;
@@ -20,6 +23,9 @@ type t = {
 let status = function
   | `OK -> "200 OK"
   | `BadRequest -> "400 Bad Request" 
+  | `Forbidden -> "403 Forbidden"
+  | `NotFound -> "404 Not Found"
+  | `MethodNotAllowed -> "405 Method Not Allowed"
   | `RequestEntityTooLarge -> "413 Request Entity Too Large"
   | `NotImplemented -> "501 Not Implemented"
 
@@ -47,11 +53,11 @@ let send ssl_socket response =
 (* Response function that adds a content-type header and formats the output as
    JSON. *)
 
-let json status body = {
+let json headers status body = {
   status ;
   request = None ;
   body = Json.serialize body ;  
-  headers = [ "Content-Type", "application/json" ]
+  headers = ( "Content-Type", "application/json" ) :: headers
 }
 
 let for_request request response = 
@@ -63,9 +69,9 @@ let for_request request response =
 module Make = struct
 
   let error status error = 
-    json status (Json.Object [ "error", Json.String error ]) 
+    json [] status (Json.Object [ "error", Json.String error ]) 
 
-  let json ?(status=`OK) body = 
-    json status body 
+  let json ?(headers=[]) ?(status=`OK) body = 
+    json headers status body 
 
 end
