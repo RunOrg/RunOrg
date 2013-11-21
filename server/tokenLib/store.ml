@@ -26,7 +26,7 @@ let () =
   (* 2 days is longer than the actual session life : this is a cleanup function, 
      not an invalidation function. Invalidation happens when loading data. *)
   Cqrs.Sql.on_first_connection (Cqrs.Sql.command begin 
-    "DELETE FROM \"" ^ dbname ^ "\" WHERE \"created\" < 'now' - interval '2 days'"
+    "DELETE FROM \"" ^ dbname ^ "\" WHERE \"created\" < timestamp 'now' - interval '2 days'"
   end [])
 
 (* Creating new sessions 
@@ -46,7 +46,7 @@ let session_life = "interval '1 hour'"
 let load id = 
   let! result = Cqrs.Sql.query begin 
     "SELECT \"payload\" FROM \"" ^ dbname ^ "\" "
-    ^ "WHERE \"token\" = $1 AND \"created\" < 'now' - " ^ session_life
+    ^ "WHERE \"token\" = $1 AND \"created\" < timestamp 'now' - " ^ session_life
   end [ `String (I.to_string id) ] in
   return (Cqrs.Result.unpack result Owner.unpack)
 
