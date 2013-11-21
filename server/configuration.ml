@@ -28,3 +28,5 @@ module Httpd = struct
   let max_header_size = 4096
   let max_body_size = min Sys.max_string_length (1024*1024)
 end
+
+let token_key = "6>0R@>VTlhnVSUZ`9&&'S918VpKPtO"

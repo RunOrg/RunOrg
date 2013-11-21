@@ -28,3 +28,6 @@ module Httpd : sig
   val max_header_size : int
   val max_body_size : int
 end
+
+(** The crypto key used to generate session values *)
+val token_key : string
