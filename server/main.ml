@@ -1,3 +1,10 @@
+module OpenHack = struct
+  (* Open a few modules because they are only used by internal libraries, 
+     and the ocamlbuild depencency solver does not build them. *)
+  open Seq
+  open Token
+end
+
 let () = Printexc.record_backtrace true
 
 let mkctx () = new O.ctx
