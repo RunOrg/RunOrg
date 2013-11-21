@@ -183,5 +183,41 @@ module Get = functor(A:GET_ARG) -> struct
 
 end
 
+(* POST JSON endpoints
+   =================== *)
+
+module type POST_ARG = sig
+  module Arg  : Fmt.FMT
+  module Post : Fmt.FMT
+  module Out  : Fmt.FMT
+  val path : string
+  val response : Httpd.request -> Arg.t -> Post.t -> (O.ctx, Out.t write_response) Run.t
+end
+
+module Post = functor(A:POST_ARG) -> struct
+
+  let path = split A.path
+  let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+
+  let json req =
+    match req # body with Some (`JSON json) -> Some json | _ -> None
+
+  let action req =     
+    match argparse req with None -> return (bad_request "Could not parse parameters") | Some args ->
+      match Option.bind (json req) A.Post.of_json_safe with 
+      | None -> return (bad_request "Could not parse body") 
+      | Some post -> let! out = A.response req args post in 
+		     match out with 
+		     | `Forbidden error -> return (forbidden error)
+		     | `NotFound error -> return (not_found error) 
+		     | `OK out -> return (Httpd.json (A.Out.to_json out))
+		     | `Accepted out -> return (Httpd.json ~status:`Accepted (A.Out.to_json out))
+
+  let () = Dictionary.add (snd Dictionary.post action) path
+
+end
+
+
+
 let dispatch req = 
   Dictionary.dispatch req
