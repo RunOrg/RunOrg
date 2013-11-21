@@ -5,6 +5,34 @@
 (* All pervasive values from Batteries are available by default. *)
 include BatPervasives
 
+(* Extend the char module from batteries with a few helper functions. *)
+module Char = struct
+
+  include BatChar
+
+  (** Parses a case-insensitive digit in base 36 and returns the corresponding 
+      integer value. *)
+  let base36_decode = function
+    | ('0' .. '9') as c -> code c - code '0' 
+    | ('a' .. 'z') as c -> 10 + (code c - code 'a')
+    | ('A' .. 'Z') as c -> 10 + (code c - code 'A')
+    | _ -> 0
+
+  (** Parses a case-sensitive digit in base 62 and returns the corresponding
+      integer value. *)
+  let base62_decode = function
+    | ('0' .. '9') as c -> code c - code '0' 
+    | ('A' .. 'Z') as c -> 10 + (code c - code 'A')
+    | ('a' .. 'z') as c -> 36 + (code c - code 'a')
+    | _ -> 0
+
+  (** Encodes an integer in range [0..61] as a character in base 62. *)
+  let base62_encode =
+    let chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" in
+    fun i -> chars.[i]
+    
+end
+
 (* Extend the string module from Batteries with a few helper functions. *)
 module String = struct
 
@@ -47,37 +75,31 @@ module String = struct
   let replace_all ~pattern ~by str = 
     concat by (nsplit str pattern)
 
+  (** Pseudo-encode a byte sequence in base62. This is not an actual base change. 
+      Rather, individual sequences of 32 bits are turned into their corresponding
+      base62 representation. *)
+  let base62_encode bytes = 
+    let n_blocks = length bytes + (if (length bytes) mod 4 = 0 then 0 else 1) in
+    let output = String.create (n_blocks * 6) in
+    let i62 = Int32.of_int 62 in
+    for i = 0 to n_blocks - 1 do 
+      let n = ref Int32.zero in
+      for j = 3 downto 0 do
+	n := Int32.add 
+	  (Int32.shift_left !n 8) 
+	  (Int32.of_int (if (i * 4 + j > length bytes) then 0 else Char.code (bytes.[i * 4 + j]))) 
+      done ;
+      for j = 0 to 6 do 
+	let c = Int32.to_int (Int32.rem !n i62) in
+	n := Int32.div !n i62 ;
+	output.[i * 6 + j] <- Char.base62_encode c
+      done
+    done ;
+    output
+    
 end
 
 module Map = BatMap
-
-(* Extend the char module from batteries with a few helper functions. *)
-module Char = struct
-
-  include BatChar
-
-  (** Parses a case-insensitive digit in base 36 and returns the corresponding 
-      integer value. *)
-  let base36_decode = function
-    | ('0' .. '9') as c -> code c - code '0' 
-    | ('a' .. 'z') as c -> 10 + (code c - code 'a')
-    | ('A' .. 'Z') as c -> 10 + (code c - code 'A')
-    | _ -> 0
-
-  (** Parses a case-sensitive digit in base 62 and returns the corresponding
-      integer value. *)
-  let base62_decode = function
-    | ('0' .. '9') as c -> code c - code '0' 
-    | ('A' .. 'Z') as c -> 10 + (code c - code 'A')
-    | ('a' .. 'z') as c -> 36 + (code c - code 'a')
-    | _ -> 0
-
-  (** Encodes an integer in range [0..61] as a character in base 62. *)
-  let base62_encode =
-    let chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" in
-    fun i -> chars.[i]
-    
-end
 
 (* Extend the option module from batteries with a few helper functions. *)
 module Option = struct
