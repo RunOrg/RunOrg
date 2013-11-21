@@ -9,3 +9,5 @@ server/_build
 *.byte
 *.out
 *.pem
+admin/script.js
+admin/style.css

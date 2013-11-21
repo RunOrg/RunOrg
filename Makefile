@@ -9,6 +9,7 @@ toolchain:
 
 runorg: toolchain
 	make -C server
+	make -C admin
 	cp server/main.byte runorg
 	chmod a+x runorg
 
