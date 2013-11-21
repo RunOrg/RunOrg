@@ -13,6 +13,10 @@ let context socket config =
   ignore (Ssl.embed_socket socket ctx) ;
   ctx 
 
+let send500 req exn = 
+  Log.error "In /%s: %s" (String.concat "/" (req # path)) (Printexc.to_string exn) ;
+  return (Response.Make.error `InternalServerError "Server encountered an unexpected error")
+
 let parse context socket config handler = 
   try
     let ssl_socket = Ssl.embed_socket socket context in
@@ -20,7 +24,7 @@ let parse context socket config handler =
     let! response = 
       try 
 	let  request = Request.parse config ssl_socket in
-	let! response = handler request in 
+	let! response = Run.on_failure (send500 request) (handler request) in 
 	return (Response.for_request request response)
       with 
 
