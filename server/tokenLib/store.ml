@@ -47,8 +47,11 @@ let load id =
   let! result = Cqrs.Sql.query begin 
     "SELECT \"payload\" FROM \"" ^ dbname ^ "\" "
     ^ "WHERE \"token\" = $1 AND \"created\" < 'now' - " ^ session_life
-  end [ `String (Id.to_string id) ] in
+  end [ `String (I.to_string id) ] in
   return (Cqrs.Result.unpack result Owner.unpack)
 
-let is_server_admin id = assert false
+let is_server_admin id = 
+  let! owner = load id in 
+  return (if (owner = Some `ServerAdmin) then Some (I.Assert.server_admin id) else None)
+
 
