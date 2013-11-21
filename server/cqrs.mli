@@ -86,7 +86,7 @@ module Projection : sig
 
       This is used to automatically 
       increment the projection version number based on its contents. *)
-  val view : t -> string -> string -> int -> view
+  val view : t -> string -> int -> view
     
   (** The name of a projection. *)
   val name : t -> string

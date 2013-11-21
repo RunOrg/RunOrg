@@ -45,25 +45,25 @@ let projection_prefix name version =
 (* Map names 
    ========= *)
     
-let maps = Hashtbl.create 10 
+let views = Hashtbl.create 10 
 
-let map ?(prefix=(None, Run.return ":")) name version = 
+let view ?(prefix=(None, Run.return ":")) name version = 
 
   let surname  = match fst prefix with None -> name | Some p -> p ^ "." ^ name in
 
   if version < 0 then 
-    failwith ("For map '" ^ surname ^ "': versions should be positive" ) ;
+    failwith ("For view '" ^ surname ^ "': versions should be positive" ) ;
   
-  if Hashtbl.mem maps surname then 
-    failwith ("A map named '" ^ surname ^ "' already exists") ;
+  if Hashtbl.mem views surname then 
+    failwith ("A view named '" ^ surname ^ "' already exists") ;
 
   if not (is_alphanumeric name) then
-    failwith ("Invalid map name '" ^ surname ^ "'") ;
+    failwith ("Invalid view name '" ^ surname ^ "'") ;
 
-  Hashtbl.add maps surname () ;
+  Hashtbl.add views surname () ;
   
   ( let! prefix = snd prefix in 
-    Run.return ("map" ^ prefix ^ name) )
+    Run.return ("view" ^ prefix ^ name) )
 
 (* Version identifier generation 
    ============================= *)
@@ -78,7 +78,7 @@ let version () =
     
   let names = List.fold_left (fun acc f -> f acc) proj [
     fold (fun n () l -> ("stream:" ^ n) :: l) streams ; 
-    fold (fun n () l -> ("map:" ^ n) :: l) maps ;    
+    fold (fun n () l -> ("view:" ^ n) :: l) views ;    
   ] in
 
   let names = List.sort compare names in 

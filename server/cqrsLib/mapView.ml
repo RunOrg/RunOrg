@@ -33,15 +33,15 @@ let create (type k) (type v) name dbname key value =
 
 let make projection name version key value = 
   
-  let view = Projection.view projection "map" name version in 
-  let dbname = Names.map ~prefix:(Projection.prefix view) name version in
+  let view = Projection.view projection name version in 
+  let dbname = Names.view ~prefix:(Projection.prefix view) name version in
 
   let map = create name dbname key value in
   view, map 
 
 let standalone name version key value = 
 
-  let dbname = Names.map name version in
+  let dbname = Names.view name version in
   create name dbname key value
 
 (* Reading a value from the map

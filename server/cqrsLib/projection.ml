@@ -28,7 +28,7 @@ type t = {
 
   (* A list of all views (kind, name and version number) that
      were registered in this projection. *)
-  mutable contents : (string * string * int) list ;
+  mutable contents : (string * int) list ;
 
   (* These values are computed once all the views have been 
      registered (because they expect ALL the views to be 
@@ -56,7 +56,7 @@ type view = t
 let hash t = 
   match t.hash with Some h -> h | None -> 
     let blob = String.concat ";" 
-      (List.map (fun (k,n,v) -> k ^ ":" ^ n ^ "@" ^ string_of_int v) 
+      (List.map (fun (n,v) -> n ^ "@" ^ string_of_int v) 
 	 (List.sort compare t.contents)) in
     let h = Sha1.to_hex (Sha1.string blob) in
    t. hash <- Some h ; h 
@@ -120,12 +120,12 @@ let prefix t =
     t.prefix <- Some p ; p
 
 (* Register a new view. *)
-let view t kind name version = 
+let view t name version = 
 
   if t.hash <> None then 
     failwith (!! "Cannot register %s, projection %s is already compiled" name t.name) ;
     
-  t.contents <- (kind,name,version) :: t.contents ;
+  t.contents <- (name,version) :: t.contents ;
   
   ( t : view ) (* Sneaky *)
 

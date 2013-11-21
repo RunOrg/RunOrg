@@ -9,7 +9,7 @@ val projection_prefix : string -> (Common.ctx, int) Run.t -> prefix
 
 (** Returns the full database name for a map. Only call this once for
     a given map name. *)
-val map : ?prefix:prefix -> string -> int -> ( Common.ctx, string ) Run.t
+val view : ?prefix:prefix -> string -> int -> ( Common.ctx, string ) Run.t
 
 (** Current version identifier, computed based on all the registered names
     so far. *)
