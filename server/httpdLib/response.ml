@@ -12,7 +12,8 @@ type status =
   | `Forbidden
   | `MethodNotAllowed 
   | `Accepted 
-  | `NotModified ]
+  | `NotModified
+  | `InternalServerError ]
 
 type t = {
   headers : (string * string) list ;
@@ -31,6 +32,7 @@ let status = function
   | `NotFound -> "404 Not Found"
   | `MethodNotAllowed -> "405 Method Not Allowed"
   | `RequestEntityTooLarge -> "413 Request Entity Too Large"
+  | `InternalServerError -> "500 Internal Server Error"
   | `NotImplemented -> "501 Not Implemented"
 
 (* Raw response function, merely formats the individual lines for output. *)

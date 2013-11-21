@@ -58,7 +58,8 @@ type status =
   | `Forbidden 
   | `MethodNotAllowed 
   | `Accepted 
-  | `NotModified ]
+  | `NotModified 
+  | `InternalServerError ]
 
 (** Responds with some raw data. *)
 val raw : ?headers:(string * string) list -> ?status:status -> string -> response

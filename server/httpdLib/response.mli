@@ -12,7 +12,8 @@ type status =
   | `Forbidden
   | `MethodNotAllowed 
   | `Accepted
-  | `NotModified ]
+  | `NotModified 
+  | `InternalServerError ]
 
 (** A response. *)
 type t
