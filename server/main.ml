@@ -1,3 +1,5 @@
+(* © 2013 RunOrg *)
+
 module OpenHack = struct
   (* Open a few modules because they are only used by internal libraries, 
      and the ocamlbuild depencency solver does not build them. *)
