@@ -728,7 +728,7 @@ module Pack = struct
 	let value = fresh() in
 	let r = recurse <:expr< $lid:value$ >> t in
 	let e_fun = <:expr< fun $lid:value$ $lid:packer$ -> $r$ >> in
-	<:expr< Pack.Pack.list $e_fun$ $src$ >> 
+	<:expr< Pack.Pack.list $e_fun$ $src$ $lid:packer$ >> 
       end
 	
       | `array t -> begin
