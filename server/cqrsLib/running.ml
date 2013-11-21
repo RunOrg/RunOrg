@@ -66,7 +66,7 @@ let heartbeat ctx =
 
 let () = 
 
-  Sql.query_on_first_connection begin
+  Sql.on_first_connection (Sql.command begin
     "CREATE TABLE IF NOT EXISTS \"meta:runs\" ( "
     ^ "\"id\" SERIAL, "
     ^ "\"type\" CHAR(3) NOT NULL, " 
@@ -78,5 +78,5 @@ let () =
     ^ "\"shutdown\" TIMESTAMP NULL, "
     ^ "PRIMARY KEY (\"id\")"
     ^ ")"
-  end []
+  end [])
 

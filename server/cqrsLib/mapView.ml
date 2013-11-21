@@ -20,7 +20,7 @@ let create (type k) (type v) name dbname key value =
   let module Key = (val key : Fmt.FMT with type t = k) in
   let module Value = (val value : Fmt.FMT with type t = v) in 
 
-  let () = Sql.run_on_first_connection begin 
+  let () = Sql.on_first_connection begin 
     let! dbname = dbname in 
     Sql.command ("CREATE TABLE IF NOT EXISTS \"" ^ dbname ^ "\" ( " 
 	     ^ "\"key\" BYTEA, "

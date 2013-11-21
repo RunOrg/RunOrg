@@ -218,7 +218,7 @@ let run () =
 
 let () = 
   
-  Sql.query_on_first_connection begin 
+  Sql.on_first_connection (Sql.command begin 
     "CREATE TABLE IF NOT EXISTS \"meta:projections\" ( " 
     ^ "\"id\" SERIAL, "
     ^ "\"name\" VARCHAR(64), "
@@ -228,4 +228,4 @@ let () =
     ^ "PRIMARY KEY (\"id\"), "
     ^ "UNIQUE (\"name\",\"version\") "
     ^ ");" 
-  end []
+  end [])

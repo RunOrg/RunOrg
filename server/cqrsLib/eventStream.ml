@@ -48,13 +48,13 @@ end) -> struct
 
   let () = 
     
-    Sql.query_on_first_connection begin 
+    Sql.on_first_connection (Sql.command begin 
       "CREATE TABLE IF NOT EXISTS \"" ^ dbname ^ "\" ( " 
       ^ "\"n\" SERIAL, "
       ^ "\"event\" BYTEA, "
       ^ "PRIMARY KEY (\"n\") "
       ^ ");" 
-    end []
+    end [])
 
   (* Appending events to the stream 
      ============================== *)
@@ -178,11 +178,11 @@ end
 
 let () = 
   
-  Sql.query_on_first_connection begin 
+  Sql.on_first_connection (Sql.command begin 
     "CREATE TABLE IF NOT EXISTS \"meta:streams\" ( " 
     ^ "\"id\" SERIAL, "
     ^ "\"name\" VARCHAR(64), "
     ^ "PRIMARY KEY (\"id\"), "
     ^ "UNIQUE (\"name\") "
     ^ ");" 
-  end []
+  end [])

@@ -218,13 +218,9 @@ module Sql : sig
 
   val command : string -> param list -> #ctx Run.effect
 
-  (** Runs a specific query on the first connection. *)
-
-  val query_on_first_connection : string -> param list -> unit
-
   (** Runs specific code on the first connection. *)
 
-  val run_on_first_connection : ctx Run.effect -> unit
+  val on_first_connection : ctx Run.effect -> unit
 
   (** Executes an operation inside a transaction *)
 

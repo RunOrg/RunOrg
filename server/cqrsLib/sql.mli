@@ -24,13 +24,9 @@ val safe_command : string -> param list -> #Common.ctx Run.effect
 
 val command : string -> param list -> #Common.ctx Run.effect
 
-(** Runs a specific query on the first connection. *)
-
-val query_on_first_connection : string -> param list -> unit
-
 (** Runs specific code on the first connection. *)
 
-val run_on_first_connection : Common.ctx Run.effect -> unit
+val on_first_connection : Common.ctx Run.effect -> unit
 
 (** Executes an operation inside a transaction *)
 

@@ -12,12 +12,9 @@ let command q p = let! _ = query q p in Run.return ()
 (* Registering for first connection. 
    ================================= *)
 
-let run_on_first_connection what =
+let on_first_connection what =
   let current = !Common.on_first_connection in 
   Common.on_first_connection := (let! () = current in what)
-
-let query_on_first_connection query params =
-  run_on_first_connection (command query params)
 
 (* Transactions 
    ============ *)
