@@ -58,6 +58,15 @@ module Names : sig
       database. *)
   type prefix 
 
+  (** Returns the full database name for a view. Only call this once for
+      a given view name. *)
+  val view : ?prefix:prefix -> string -> int -> ( ctx, string ) Run.t
+
+  (** Same as {!view}, but creates an independent view and does not require
+      a database read to generate (because there is no need to query for a 
+      projection version). *)
+  val independent : string -> int -> string
+
 end
 
 (** Each projection has a name and version number. Several projections 

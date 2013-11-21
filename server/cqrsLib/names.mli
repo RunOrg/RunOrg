@@ -11,6 +11,11 @@ val projection_prefix : string -> (Common.ctx, int) Run.t -> prefix
     a given map name. *)
 val view : ?prefix:prefix -> string -> int -> ( Common.ctx, string ) Run.t
 
+(** Same as {!view}, but creates an independent view and does not require
+    a database read to generate (because there is no need to query for a 
+    projection version). *)
+val independent : string -> int -> string
+
 (** Current version identifier, computed based on all the registered names
     so far. *)
 val version : unit -> ( Common.ctx, string ) Run.t

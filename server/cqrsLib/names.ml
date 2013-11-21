@@ -63,8 +63,23 @@ let view ?(prefix=(None, Run.return ":")) name version =
   Hashtbl.add views surname () ;
   
   ( let! prefix = snd prefix in 
-    Run.return ("view" ^ prefix ^ name) )
+    Run.return ("view" ^ prefix ^ name ^ ":" ^ string_of_int version) )
 
+let independent name version = 
+
+  if version < 0 then 
+    failwith ("For view '" ^ name ^ "': versions should be positive" ) ;
+  
+  if Hashtbl.mem views name then 
+    failwith ("A view named '" ^ name ^ "' already exists") ;
+
+  if not (is_alphanumeric name) then
+    failwith ("Invalid view name '" ^ name ^ "'") ;
+
+  Hashtbl.add views name () ;
+  
+  "view:" ^ name ^ ":" ^ string_of_int version
+  
 (* Version identifier generation 
    ============================= *)
 
