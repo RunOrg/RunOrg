@@ -1,10 +1,10 @@
 /* The home (/admin) route displays a list of all administrators. 
  */
 
-"/admin".route(function(r){
+"/admin".route(function(R){
     
     $.get('/admin/all',{token:token},function(r){
-	r.esc(JSON.stringify(r)).show();
+	R.div().esc(JSON.stringify(r)).show();
     });
 
 });

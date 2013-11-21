@@ -93,8 +93,8 @@ R.prototype = {
 
     function tag(sc,t){
 	R.prototype[t] = sc 
-	    ? function(a,f) { this.tag(t, a, f); }
-	    : function(a,f) { this.open(t, a, f); };
+	    ? function(a,f) { return this.tag(t, a, f); }
+	    : function(a,f) { return this.open(t, a, f); };
     }
 
     var tags = [ 
