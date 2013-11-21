@@ -236,3 +236,12 @@ module Sql : sig
   val transaction : (#ctx as 'ctx, 'a) Run.t -> ( 'ctx, 'a ) Run.t
 
 end
+
+module Result : sig
+    
+  (** If the returned result contains a top-left cell, unpack that 
+    cell with the provided unpacker. Otherwise, return [None]. *)
+  val unpack : Sql.raw_result -> 'a Pack.unpacker -> 'a option
+    
+end
+
