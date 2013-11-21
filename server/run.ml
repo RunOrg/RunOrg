@@ -210,6 +210,13 @@ let of_channel c = fun ctx bad ok ->
   let ev = Event.receive c in
   Wait (Event.wrap ev (fun v -> Fork (lazy [try ok v with exn -> bktrc bad exn])))
 
+let background f x = 
+  let c = Event.new_channel () in
+  let _ = Thread.create (fun x -> Event.sync (Event.send c (try Ok (f x) with exn -> Bad exn))) x in
+  of_channel c |>> function 
+  | Ok result -> result
+  | Bad exn -> raise exn
+
 (* List functions 
    ============== *)
 

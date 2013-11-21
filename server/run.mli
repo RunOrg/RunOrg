@@ -177,6 +177,11 @@ class ['ctx] semaphore : object
 
 end 
 
+(** Call a function in a background thread, return a task that waits
+    for the result of that function. *)
+
+val background : ('a -> 'b) -> 'a -> ('ctx, 'b) t 
+
 (** {2 Utilities} *)
 
 (** If [memo t] is executed several times in the same context, then it may 
