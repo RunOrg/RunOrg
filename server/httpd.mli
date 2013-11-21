@@ -57,7 +57,11 @@ type status =
   | `NotFound 
   | `Forbidden 
   | `MethodNotAllowed 
-  | `Accepted ]
+  | `Accepted 
+  | `NotModified ]
+
+(** Responds with some raw data. *)
+val raw : ?headers:(string * string) list -> ?status:status -> string -> response
 
 (** Responds with some JSON. Default status is [`OK]. *)
 val json : ?headers:(string * string) list -> ?status:status -> Json.t -> response

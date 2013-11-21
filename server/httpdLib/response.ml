@@ -11,7 +11,8 @@ type status =
   | `NotFound
   | `Forbidden
   | `MethodNotAllowed 
-  | `Accepted ]
+  | `Accepted 
+  | `NotModified ]
 
 type t = {
   headers : (string * string) list ;
@@ -24,6 +25,7 @@ type t = {
 let status = function
   | `OK -> "200 OK"
   | `Accepted -> "202 Accepted"
+  | `NotModified -> "304 Not Modified" 
   | `BadRequest -> "400 Bad Request" 
   | `Forbidden -> "403 Forbidden"
   | `NotFound -> "404 Not Found"
@@ -75,5 +77,12 @@ module Make = struct
 
   let json ?(headers=[]) ?(status=`OK) body = 
     json headers status body 
+
+  let raw ?(headers=[]) ?(status=`OK) body = {
+    status ;
+    request = None ;
+    body ;
+    headers ; 
+  }
 
 end

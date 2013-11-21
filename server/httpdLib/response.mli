@@ -11,7 +11,8 @@ type status =
   | `NotFound
   | `Forbidden
   | `MethodNotAllowed 
-  | `Accepted ]
+  | `Accepted
+  | `NotModified ]
 
 (** A response. *)
 type t
@@ -32,5 +33,8 @@ module Make : sig
 
   (** A response with a JSON payload. *)
   val json : ?headers:(string*string) list -> ?status:status -> Json.t -> t
+
+  (** A responwe with raw payload. *)
+  val raw : ?headers:(string*string) list -> ?status:status -> string -> t
 
 end
