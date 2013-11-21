@@ -63,6 +63,10 @@ end
 (** Create a post endpoint. *)
 module Post : functor(A:POST_ARG) -> sig end
 
+(** Create a static endpoint. [static url mimetype path] responds to GET requests with 
+    data loaded from the specified path, with the provided mime-type. *)
+val static : string -> string -> string -> unit
+
 (** Dispatch a request, generate a response. *)
 val dispatch : Httpd.request -> (O.ctx, Httpd.response) Run.t
 

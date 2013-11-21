@@ -217,7 +217,29 @@ module Post = functor(A:POST_ARG) -> struct
 
 end
 
+(* Static content 
+   ============== *)
+let static path mime file =
 
+  let content =
+    let open Pervasives in 
+    let channel = open_in file in 
+    let buffer  = String.create (in_channel_length channel) in
+    really_input channel buffer 0 (String.length buffer) ;
+    close_in channel ;
+    buffer 
+  in
+  
+  let hash = String.base62_encode (Sha1.hash_of_string content) in
 
+  let action req = 
+    return (Httpd.raw ~headers:[
+      "Content-Type", mime ;
+      "ETag", !! "%S" hash ;      
+    ] content)
+  in
+    
+  Dictionary.add (snd Dictionary.get action) (split path) 
+  
 let dispatch req = 
   Dictionary.dispatch req
