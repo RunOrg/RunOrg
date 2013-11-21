@@ -13,7 +13,7 @@ runorg: toolchain
 	chmod a+x runorg
 
 clean: 
-	rm runorg
+	rm -f runorg
 	make -C server clean
 
 start:
