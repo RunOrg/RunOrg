@@ -5,6 +5,9 @@
 (** The type of a token string. *)
 module I : sig
   include Id.PHANTOM
+  module Assert : sig
+    val server_admin : 'a id -> [`ServerAdmin] id 
+  end
 end
 
 (** The owner of a token. Determines what the token is allowed to 

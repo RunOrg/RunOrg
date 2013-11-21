@@ -20,6 +20,8 @@ end
 
 let admins = [ "vnicollet@runorg.com" ]
 
+let admin_audience = "https://runorg.local:4443"
+
 module Httpd = struct
   let port = 4443 
   let key_path = "key.pem" 

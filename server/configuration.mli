@@ -20,6 +20,9 @@ end
 (** The list of all super-administrator emails loaded from configuration. *)
 val admins : string list
 
+(** The full domain audience on which the admin UI runs. *)
+val admin_audience : string
+
 module Httpd : sig
   val port : int
   val key_path : string 
@@ -31,3 +34,4 @@ end
 
 (** The crypto key used to generate session values *)
 val token_key : string
+
