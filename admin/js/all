@@ -1,2 +1,5 @@
 js/jquery-1.10.2.min.js
 js/persona.js
+js/renderer.js
+js/route.js
+js/home.js
