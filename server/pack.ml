@@ -179,7 +179,7 @@ module Unpack = struct
     | 0xDC -> fwd i 3 ; long (u16 b (p+1)) [] 
     | 0xDD -> fwd i 5 ; long (u32 b (p+1)) []
     | x when x >= 0x90 && x <= 0x9F -> fwd i 1 ; short (x - 0x90)
-    | _ -> fail "Expected list"
+    | x -> fail (Printf.sprintf "Expected list and found %x" x)
     
   let bool i =     
     match code i.i_buf.[i.i_pos] with 
@@ -232,7 +232,7 @@ module Unpack = struct
       else if c = 0xCA || c = 0xCB then
 	apply "float" float (_float i)
       else	
-	fail "Unexpected code"
+	fail (Printf.sprintf "Unexpected code %x" c)
     in
     aux i
 
@@ -246,7 +246,7 @@ module Unpack = struct
     | 0xDC -> fwd i 3 ; u16 b (p+1)
     | 0xDD -> fwd i 5 ; u32 b (p+1)
     | x when x >= 0x90 && x <= 0x9F -> fwd i 1 ; x - 0x90
-    | _ -> fail "Expected list"
+    | x -> fail (Printf.sprintf "Expected list and found %x" x)
 
   let size_was exp len = 
     if len <> exp then fail ("Incorrect list length, expected " ^ string_of_int exp 
