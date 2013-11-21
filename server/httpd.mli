@@ -56,7 +56,8 @@ type status =
   | `NotImplemented 
   | `NotFound 
   | `Forbidden 
-  | `MethodNotAllowed ]
+  | `MethodNotAllowed 
+  | `Accepted ]
 
 (** Responds with some JSON. Default status is [`OK]. *)
 val json : ?headers:(string * string) list -> ?status:status -> Json.t -> response

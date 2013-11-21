@@ -10,7 +10,8 @@ type status =
   | `NotImplemented 
   | `NotFound
   | `Forbidden
-  | `MethodNotAllowed ]
+  | `MethodNotAllowed 
+  | `Accepted ]
 
 (** A response. *)
 type t

@@ -10,7 +10,8 @@ type status =
   | `NotImplemented 
   | `NotFound
   | `Forbidden
-  | `MethodNotAllowed ]
+  | `MethodNotAllowed 
+  | `Accepted ]
 
 type t = {
   headers : (string * string) list ;
@@ -22,6 +23,7 @@ type t = {
 (* The names of the status codes. *)
 let status = function
   | `OK -> "200 OK"
+  | `Accepted -> "202 Accepted"
   | `BadRequest -> "400 Bad Request" 
   | `Forbidden -> "403 Forbidden"
   | `NotFound -> "404 Not Found"
