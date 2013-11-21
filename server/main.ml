@@ -3,6 +3,7 @@ module OpenHack = struct
      and the ocamlbuild depencency solver does not build them. *)
   open Seq
   open Token
+  open Persona
 end
 
 let () = Printexc.record_backtrace true
