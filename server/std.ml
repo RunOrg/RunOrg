@@ -79,19 +79,19 @@ module String = struct
       Rather, individual sequences of 32 bits are turned into their corresponding
       base62 representation. *)
   let base62_encode bytes = 
-    let n_blocks = length bytes + (if (length bytes) mod 4 = 0 then 0 else 1) in
+    let n_blocks = (length bytes / 4) + (if (length bytes) mod 4 = 0 then 0 else 1) in
     let output = String.create (n_blocks * 6) in
-    let i62 = Int32.of_int 62 in
+    let i62 = Int64.of_int 62 in
     for i = 0 to n_blocks - 1 do 
-      let n = ref Int32.zero in
+      let n = ref Int64.zero in
       for j = 3 downto 0 do
-	n := Int32.add 
-	  (Int32.shift_left !n 8) 
-	  (Int32.of_int (if (i * 4 + j > length bytes) then 0 else Char.code (bytes.[i * 4 + j]))) 
+	n := Int64.add 
+	  (Int64.shift_left !n 8) 
+	  (Int64.of_int (if (i * 4 + j >= length bytes) then 0 else Char.code (bytes.[i * 4 + j]))) 
       done ;
-      for j = 0 to 6 do 
-	let c = Int32.to_int (Int32.rem !n i62) in
-	n := Int32.div !n i62 ;
+      for j = 0 to 5 do 
+	let c = Int64.to_int (Int64.rem !n i62) in
+	n := Int64.div !n i62 ;
 	output.[i * 6 + j] <- Char.base62_encode c
       done
     done ;

@@ -115,6 +115,7 @@ module Dictionary = struct
       end  
     in
     let n = List.length path in 
+    assert (n >= 0 && n < maximum_path_size) ;
     dictionary.(n) <- insert (Some dictionary.(n)) path 
 
   (* Querying the dictionary must take into account wildcards (represented
@@ -132,7 +133,7 @@ module Dictionary = struct
       end 
     in
     let n = List.length segs in     
-    find [] dictionary.(n) segs
+    if n >= maximum_path_size then [] else find [] dictionary.(n) segs
 
   (* Dispatches a request, returns a response. *)
   let dispatch req = 
@@ -224,10 +225,15 @@ let static path mime file =
   let content =
     let open Pervasives in 
     let channel = open_in file in 
-    let buffer  = String.create (in_channel_length channel) in
-    really_input channel buffer 0 (String.length buffer) ;
-    close_in channel ;
-    buffer 
+    let length  = in_channel_length channel in
+    if length > 0 then
+      let buffer  = String.create length in 
+      ( really_input channel buffer 0 length ;
+	close_in channel ;
+	buffer ) 
+    else
+      ( close_in channel ; 
+	"" )
   in
   
   let hash = String.base62_encode (Sha1.hash_of_string content) in
