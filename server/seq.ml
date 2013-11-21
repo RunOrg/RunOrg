@@ -174,6 +174,7 @@ let join list =
     let! n = next () in  
     match n with `End -> return None | `Next x -> return (Some x) | `Blocked -> 
       Run.fork 
+	(fun exn -> return ())
 	(List.M.iter (fun (blocked, source) -> 
 	  if !blocked then return () else (
 	    let () = blocked := true in
@@ -217,7 +218,7 @@ let of_finite_cursor fetch cursor =
     if !e then 
       return `End 
     else if semaphore # count <= 0 then
-      Run.fork (run ()) (return `Blocked)
+      Run.fork (fun exn -> return ()) (run ()) (return `Blocked)
     else
       let! () = semaphore # take in 
       return (`Next (Queue.take q))
@@ -260,7 +261,7 @@ let of_infinite_cursor fetch cursor =
 
   let rec next () = 
     if semaphore # count <= 0 then
-      Run.fork (run ()) (return `Blocked)
+      Run.fork (fun exn -> return ()) (run ()) (return `Blocked)
     else
       let! () = semaphore # take in 
       return (`Next (Queue.take q))

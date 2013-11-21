@@ -211,7 +211,15 @@ let register t stream =
    ======================= *)
 
 let run () = 
-  List.fold_left (fun acc task -> Run.fork (task ()) acc) (Run.return ()) !projection_run_functions
+
+  let restart task exn = 
+    Log.error "While running projection: %s" (Printexc.to_string exn) ;
+    task ()
+  in
+
+  List.fold_left 
+    (fun acc task -> Run.fork (restart task) (task ()) acc) 
+    (Run.return ()) !projection_run_functions
 
 (* Meta tables
    =========== *)

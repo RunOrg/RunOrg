@@ -119,7 +119,7 @@ val yield  : ('ctx,'a) t -> ('ctx,'a) t
 val join   : ('ctx,'a) t -> ('ctx,'b) t -> ('a -> 'b -> ('ctx,'c) t) ->  ('ctx,'c) t
 
 (** [fork x a] will run [x] at some point in the future, and returns [a]. *)
-val fork   : 'ctx effect -> ('ctx,'a) t -> ('ctx,'a) t 
+val fork   : (exn -> 'ctx effect) -> 'ctx effect -> ('ctx,'a) t -> ('ctx,'a) t 
 
 (** A thread joiner is used to wait for an arbitrary number of threads to finish. 
 
@@ -204,6 +204,10 @@ val of_lazy  :    'value Lazy.t -> ('ctx,'value) t
 (** [of_channel c] attempts to read a value from channel [c] every time it
     is evaluated. *)
 val of_channel : 'value Event.channel -> ('ctx,'value) t
+
+(** [on_failure f m] attempts to run [m], and calls [f exn] if an exception
+    occurred while running [m]. *)
+val on_failure : (exn -> ('ctx,'a) t) -> ('ctx,'a) t -> ('ctx,'a) t
 
 (** [loop (fun continue -> ...)] runs its body and returns the
     result. The body may return [continue] to have the loop 

@@ -37,26 +37,31 @@ type 'ctx          thread = ('ctx,unit) t
 (* Exception handling 
    ================== *)
 
-let bktrc bad exn = 
-  bad exn (Printexc.get_backtrace ()) 
+let trace n bad exn trace = 
+  Log.trace "trace %s: %s" n (Printexc.to_string exn) ; bad exn trace 
 
-let catch f x = 
+let bktrc n bad exn = 
+  trace n bad exn (Printexc.get_backtrace ()) 
+
+let catch n f x = 
   try Ok (f x) with exn -> let trace = Printexc.get_backtrace () in
+			   Log.trace "catch %s: %s\n%s" n (Printexc.to_string exn) trace ; 
 			   Bad (fun bad -> bad exn trace)
+
 
 (* Monad usage 
    =========== *)
 
-let return x = fun ctx bad ok -> Fork (lazy [try ok x with exn -> bktrc bad exn])   
+let return x = fun ctx bad ok -> Fork (lazy [try ok x with exn -> bktrc "return" bad exn])   
 
 let bind f m = fun ctx bad ok -> 
   m ctx bad (fun x -> 
-    match catch f x with 
+    match catch "bind" f x with 
     | Ok  m -> m ctx bad ok 
     | Bad f -> f bad) 
 
 let map  f m = fun ctx bad ok ->
-  m ctx bad (fun x -> try ok (f x) with exn -> bktrc bad exn)
+  m ctx bad (fun x -> try ok (f x) with exn -> bktrc "map" bad exn)
 
 let unwrap m = fun ctx bad ok -> 
   m ctx bad (fun m -> m ctx bad ok) 
@@ -67,12 +72,12 @@ let (|>>) m f = map f m
 (* Context manipulation 
    ==================== *)
 
-let context = fun ctx bad ok -> Fork (lazy [try ok ctx with exn -> bktrc bad exn]) 
+let context = fun ctx bad ok -> Fork (lazy [try ok ctx with exn -> bktrc "context" bad exn]) 
 
 let with_context ctx m = fun _ bad ok -> m ctx bad ok
 
 let edit_context f m = fun ctx bad ok -> 
-  match catch f ctx with 
+  match catch "edit_context" f ctx with 
   | Ok  ctx -> m ctx bad ok
   | Bad f   -> f bad
 
@@ -85,7 +90,7 @@ let yield m = fun ctx bad ok -> Yield (Fork (lazy [m ctx bad ok]))
 
 let join a b f = fun ctx bad ok -> 
 
-  let finish xa xb = match catch (f xa) xb with 
+  let finish xa xb = match catch "join:finish" (f xa) xb with 
     | Bad f -> f bad 
     | Ok  m -> m ctx bad ok 
   in
@@ -101,8 +106,11 @@ let join a b f = fun ctx bad ok ->
 
   Fork (lazy [a ctx bad ok_a ; b ctx bad ok_b]) 
 
-let fork a b = fun ctx bad ok -> 
-  Fork (lazy [b ctx bad ok ; a ctx (fun _ _ -> nop) (fun _ -> nop)])
+let fork onFail a b = fun ctx bad ok -> 
+  let rec fail exn trace = 
+    onFail exn ctx fail (fun () -> nop)
+  in
+  Fork (lazy [b ctx bad ok ; a ctx (trace "fork" fail) (fun _ -> nop)])
 
 class ['ctx] joiner = object (self) 
 
@@ -111,7 +119,7 @@ class ['ctx] joiner = object (self)
 
   method wait : ('ctx,unit) t = fun _ bad ok -> 
     if count = 0 then 
-      try ok () with exn -> bktrc bad exn 
+      try ok () with exn -> bktrc "joiner#wait" bad exn 
     else 
       ( after <- Some (bad,ok) ; nop )
 	
@@ -121,10 +129,11 @@ class ['ctx] joiner = object (self)
       count <- count - 1 ;
       if count = 0 then match after with 
         | None -> nop
-        | Some (bad,ok) -> ( after <- None ; try ok () with exn -> bktrc bad exn )
+        | Some (bad,ok) -> ( after <- None ; try ok () with exn -> bktrc "joiner#start:emit_if_zero" bad exn )
       else nop
     in
-    fun ctx bad ok -> Fork (lazy [ (try ok () with exn -> bktrc bad exn) ; m ctx bad emit_if_zero ]) 
+    fun ctx bad ok -> Fork (lazy [ (try ok () with exn -> bktrc "joiner#start" bad exn) ; 
+				   m ctx bad emit_if_zero ]) 
       
 end
 
@@ -143,7 +152,7 @@ class mutex = object (self)
 	ok r 
       end else begin
 	let next = Queue.take waiting in
-	Fork (lazy [ next () ; (try ok r with exn -> bktrc bad exn) ])
+	Fork (lazy [ next () ; (try ok r with exn -> bktrc "mutex#lock" bad exn) ])
       end
     in
       
@@ -168,8 +177,8 @@ class ['ctx] semaphore = object
 
   method take = fun (ctx : 'ctx) bad ok ->
     count <- count - 1 ;     
-    if count >= 0 then try ok () with exn -> bktrc bad exn else
-      ( Queue.add (fun () -> try ok () with exn -> bktrc bad exn) waiting ; nop )
+    if count >= 0 then try ok () with exn -> bktrc "semaphore#take" bad exn else
+      ( Queue.add (fun () -> try ok () with exn -> bktrc "semaphore#queue" bad exn) waiting ; nop )
     
   method give n = fun (ctx : 'ctx) bad ok ->
     count <- count + n ;
@@ -183,7 +192,7 @@ class ['ctx] semaphore = object
     let next = list n in
     count <- count - (List.length next) ;
     
-    Fork (lazy ((try ok () with exn -> bktrc bad exn) :: List.map (fun f -> f ()) next))
+    Fork (lazy ((try ok () with exn -> bktrc "semaphore#give" bad exn) :: List.map (fun f -> f ()) next))
 
 end 
 
@@ -194,21 +203,29 @@ let memo m =
   let r = ref None in 
   fun c bad ok -> Fork (lazy [(
     match !r with 
-    | Some (c',v) when c' == c -> (try ok v with exn -> bktrc bad exn) 
-    | _ -> m c bad (fun x -> r := Some (c,x) ; try ok x with exn -> bktrc bad exn) 
+    | Some (c',v) when c' == c -> (try ok v with exn -> bktrc "memo:hit" bad exn) 
+    | _ -> m c bad (fun x -> r := Some (c,x) ; try ok x with exn -> bktrc "memo:miss" bad exn) 
   )])
 
-let of_lazy l = fun _ bad ok -> Fork (lazy [try ok (Lazy.force l) with exn -> bktrc bad exn])
-let of_func f = fun _ bad ok -> Fork (lazy [try ok (f ()) with exn -> bktrc bad exn])
+let of_lazy l = fun _ bad ok -> Fork (lazy [try ok (Lazy.force l) with exn -> bktrc "of_lazy" bad exn])
+let of_func f = fun _ bad ok -> Fork (lazy [try ok (f ()) with exn -> bktrc "of_func" bad exn])
 
 let of_call f a = fun ctx bad ok -> 
-  match catch f a with 
+  match catch "of_call" f a with 
   | Ok  m -> m ctx bad ok
   | Bad f -> f bad
 
 let of_channel c = fun ctx bad ok ->
   let ev = Event.receive c in
-  Wait (Event.wrap ev (fun v -> Fork (lazy [try ok v with exn -> bktrc bad exn])))
+  Wait (Event.wrap ev (fun v -> Fork (lazy [try ok v with exn -> bktrc "of_channel" bad exn])))
+
+let on_failure f m = fun ctx bad ok -> 
+  let bad exn _ = 
+    match catch "on_failure" f exn with 
+    | Ok  m -> m ctx bad ok
+    | Bad f -> f bad
+  in
+  m ctx bad ok 
 
 let background f x = 
   let c = Event.new_channel () in
@@ -223,7 +240,7 @@ let background f x =
 module ForList = struct
 
   let map f l = fun ctx bad ok -> 
-    if l = [] then try ok [] with exn -> bktrc bad exn else 
+    if l = [] then try ok [] with exn -> bktrc "ForList.map" bad exn else 
 
       let failed = ref false in
       let bad exn trace = if !failed then nop else (failed := true ; bad exn trace) in 
@@ -243,7 +260,7 @@ module ForList = struct
       in
 
       Fork (lazy (List.map begin fun (x,r) -> 
-	match catch f x with 
+	match catch "ForList.map:map" f x with 
 	| Ok  m -> m ctx bad (ok r)
 	| Bad f -> f bad
       end list))
@@ -264,7 +281,7 @@ module ForList = struct
   let mfold f a l = bind (fold_left (fun a f -> f a) a) (map f l) 
 		       
   let iter f l = fun ctx bad ok -> 
-    if l = [] then try ok () with exn -> bktrc bad exn else 
+    if l = [] then try ok () with exn -> bktrc "ForList.iter" bad exn else 
 
       let failed = ref false in
       let bad exn trace = if !failed then nop else (failed := true ; bad exn trace) in
@@ -275,7 +292,7 @@ module ForList = struct
       in
 
       Fork (lazy (List.map begin fun x -> 
-	match catch f x with 
+	match catch "ForList.iter:map" f x with 
 	| Ok  m -> m ctx bad ok
 	| Bad f -> f bad
       end l))
@@ -289,14 +306,14 @@ end
 module ForOption = struct
 
   let map f = function 
-    | None   -> (fun ctx bad ok -> try ok None with exn -> bktrc bad exn)
-    | Some x -> (fun ctx bad ok -> match catch f x with 
+    | None   -> (fun ctx bad ok -> try ok None with exn -> bktrc "ForOption.map" bad exn)
+    | Some x -> (fun ctx bad ok -> match catch "ForOption.map" f x with 
       | Bad f -> f bad
       | Ok  m -> m ctx bad (fun y -> ok (Some y)))
       
   let bind f = function
-    | None   -> (fun ctx bad ok -> try ok None with exn -> bktrc bad exn)
-    | Some x -> (fun ctx bad ok -> match catch f x with 
+    | None   -> (fun ctx bad ok -> try ok None with exn -> bktrc "ForOption.bind" bad exn)
+    | Some x -> (fun ctx bad ok -> match catch "ForOption.bind" f x with 
       | Bad f -> f bad
       | Ok  m -> m ctx bad ok)
 

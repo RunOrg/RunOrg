@@ -46,7 +46,10 @@ let start config handler =
      (using the provided handler), and sends back the response. *)
   let rec accept () =    
     let! socket = Run.of_channel connections in
-    Run.fork (Https.parse https socket config handler) (accept ()) 
+    Run.fork 
+      (fun exn -> (try Unix.shutdown socket Unix.SHUTDOWN_ALL with _ -> ()) ; return ()) 
+      (Https.parse https socket config handler) 
+      (accept ()) 
   in
 
   accept ()
