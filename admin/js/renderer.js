@@ -72,7 +72,7 @@ R.prototype = {
     // Closes one (or several) previously opened tags.
 
     close: function() {
-	var n = argument.length == 0 ? 1 : arguments[0];
+	var n = arguments.length == 0 ? 1 : arguments[0];
 	while (n-- > 0) 
 	    this.h.push(this.e.shift());
 	return this;
@@ -101,7 +101,7 @@ R.prototype = {
 	"a", "span", "div", "td", "tr", "table", "button", 
 	"h1", "h2", "h3", "h4", "h5", "h6", 
 	"textarea", "label", "form", "p", 
-	"thead", "tbody", "strong" 
+	"thead", "tbody", "strong", 'ul', 'li' 
     ];
 
     for (var i = 0; i < tags.length; ++i) 
