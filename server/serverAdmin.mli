@@ -5,4 +5,6 @@
     server administrator) *)
 val auth_persona : string -> (# Cqrs.ctx, ([`ServerAdmin] Token.I.id * string) option) Run.t
 
- 
+(** The list of all adminstrators. [fromConfig] determines whether an administrator 
+    is present in the list because it is in the configuration file. *)
+val all : [`ServerAdmin] Token.I.id -> (# Cqrs.ctx, < email : string ; fromConfig : bool > list) Run.t
