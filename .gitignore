@@ -3,6 +3,8 @@
 runorg
 server/main.byte
 server/_build
+plang/plang.byte
+plang/_build
 *~
 *.cmo
 *.cmi
