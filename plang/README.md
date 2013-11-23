@@ -210,9 +210,8 @@ Compiles to:
 
 ### Internationalization
 
-Internalization files have a `.js` extension, can be found in one of
-the sub-folders of folder `i18n`. They follow a simple `key: binding`
-syntax similar to JSON:
+Internalization files are named `[lang].i18n.js`. They follow a simple
+`key: binding` syntax similar to JSON:
 
     i18n({
 	"page.edit.title": "Titre de la page",
