@@ -113,7 +113,6 @@ and expr = parse
 	| BeginBlock
 	| EndEcho
 	| EndI18n
-	| EndCall
 	| EndSub 
 	| Eof -> file
 

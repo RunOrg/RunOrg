@@ -21,14 +21,9 @@ type expr = [ `Var of string
 	    | `Lit of string 
 	    | `Null 
 	    | `Self 
-	    ]
-
-(** Conditions provide additional operators to turn expressions into 
-    booleans. *)
-type cond = [ `Expr of expr
-	    | `Not of cond
-	    | `And of cond * cond
-	    | `Or of cond * cond
+	    | `Not of expr
+	    | `And of expr * expr
+	    | `Or of expr * expr
 	    | `Compare of expr * expr * comparison
 	    ]
 
@@ -65,6 +60,6 @@ and block = [ `HTML of string
 	    | `Call of file call
 	    | `Sub  of expr  
 	    | `I18n of i18n 
-	    | `If   of cond * block * block option 
+	    | `If   of expr * block * block option 
 	    | `Each of expr * block 
 	    | `Id   of expr ]
