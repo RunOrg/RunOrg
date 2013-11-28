@@ -1,4 +1,6 @@
 {
+  (* © 2013 RunOrg *)
+
   (** Return the comparison operator that corresponds to the
       specified string. *)
   let comparison_of_string = function 
