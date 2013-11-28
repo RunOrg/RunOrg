@@ -2,7 +2,7 @@ all: runorg
 	./runorg reset
 
 depend: 
-	opam install postgresql-ocaml ssl sha batteries ocurl
+	opam install postgresql-ocaml ssl sha batteries ocurl menhir
 
 toolchain:
 	make -C syntax
