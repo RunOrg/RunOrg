@@ -41,6 +41,21 @@ Would be compiled into:
 If you need to use `data` itself (and not one of its members), use
 the variable `@`.
 
+### Sub-rendering
+
+Sometimes, instead of passing strings, we wish to pass rendering functions as
+variables: 
+
+    <div class="body">{( body )}</div>
+
+This will be compiled to: 
+
+    function(data) {
+      this.put('<div class="body">');
+      data.body.call(this);
+      this.put('</div>');
+    }
+
 ### Sub-templates
 
 A sub-template is a function that renders non-escaped HTML, whether 
@@ -72,7 +87,7 @@ Will be compiled to:
 
     function(data) {
       this.put('<div class=body>\n');
-      this.page.parts.body(data);
+      this.page.parts.body(data.body);
       this.put('\n</div>');
     }
 
@@ -93,7 +108,7 @@ Will be compiled to:
         data: data,
         args: [ data.user ],
         blocks: {
-          'first': function(data) { 
+          'first': function() { 
             this.put('<span>');
             this.escape(data.name);
             this.put('</span>');
@@ -118,12 +133,12 @@ Will be compiled to:
         data: data,
         args: [ data.user ],
         blocks: {
-          'first': function(data) { 
+          'first': function() { 
             this.put('<span>');
             this.escape(data.name);
             this.put('</span>');
           },
-          'pic': function(data) {
+          'pic': function() {
             this.put('<img src="');
 	    this.escape(data);
 	    this.put('"/>');
@@ -131,6 +146,12 @@ Will be compiled to:
         }
       });
     }
+
+Use sub-renderers to display the blocks, for instance: 
+
+    <div class="user">
+      <div class="pic">{( blocks.pic )}</div>
+      <div class="name">{( blocks.first )}</div>
 
 #### 'If' sub-template
 
