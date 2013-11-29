@@ -51,6 +51,7 @@ rule file = parse
   | "{:" { BeginI18n }
   | "{(" { BeginSub }
   | "{<" { BeginCall }
+  | "{$" { BeginId }
   | eof { Eof }
 
 and expr = parse
@@ -64,6 +65,7 @@ and expr = parse
   | ":}" { EndI18n }
   | ">}" { EndCall }
   | ")}" { EndSub }
+  | "$}" { EndId }
   | ident as name { Name name }
   | '.' { Dot }
   | '@' { Self }
@@ -88,11 +90,13 @@ and expr = parse
 	| EndCall
 	| BeginBlock
 	| EndEcho
+	| EndId
 	| EndI18n
 	| EndSub 
 	| Eof -> file
 
 	| BeginEcho
+	| BeginId
 	| BeginI18n
 	| BeginSub
 	| BeginCall

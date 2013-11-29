@@ -24,8 +24,8 @@
 %start <TplAst.file> file
 
 %token 
-  BeginBlock BeginCall BeginEcho BeginI18n BeginSub 
-  EndCall EndEcho EndI18n EndSub Eof
+  BeginBlock BeginCall BeginEcho BeginId BeginI18n BeginSub 
+  EndCall EndEcho EndId EndI18n EndSub Eof
   And Or Not Dot Self
   OpenBracket OpenParen CloseBracket CloseParen
        
@@ -47,6 +47,7 @@ block:
   | h = Html { `HTML h }
   | BeginEcho ; e = expr ; EndEcho { `Echo e }
   | BeginSub  ; e = expr ; EndSub { `Sub e }
+  | BeginId   ; e = expr ; EndId { `Id e }
   | BeginI18n ; p = path ; arg = option(expr) ; EndI18n {`I18n (new TplAst.i18n ?arg p) }
   | BeginCall ; p = path ; arg = option(expr) ; b = callBlocks ; EndCall { call p arg b }
 
@@ -87,3 +88,4 @@ expr5:
   | e = expr5 ; OpenBracket ; i = expr ; CloseBracket { `Nth (e,i) }
   | OpenParen ; e = expr ; CloseParen { e }
 
+    
