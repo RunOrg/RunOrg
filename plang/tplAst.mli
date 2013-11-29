@@ -60,6 +60,6 @@ and block = [ `HTML of string
 	    | `Call of file call
 	    | `Sub  of expr  
 	    | `I18n of i18n 
-	    | `If   of expr * block * block option 
-	    | `Each of expr * block 
+	    | `If   of expr * file * file option 
+	    | `Each of expr * file 
 	    | `Id   of expr ]
