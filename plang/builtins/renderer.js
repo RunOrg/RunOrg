@@ -33,9 +33,34 @@ R.prototype = {
     },
 
     // Render the HTML
-    out: function(s) { 
+    show: function(s) { 
+
+	// Don't render if cancellation happened
+	if (!this.$) return;
+
 	this.$.removeClass('load').html(this._.join(''));
-	for (var i in this._i) this._i[i](new R($('#' + i)));
+
+	if (this._i.length) {
+
+	    var sub = [], r, i;
+	    for (i in this._i) {
+		sub.push(r = new R($('#' + i)));
+		this._i[i](r);
+	    }
+	    
+	    // Propagate cancellation to the sub-elements.
+	    (function(t,s){ 
+		t.cancel = function() { while (s) s.shift().cancel(); } 
+	    })(this,sub);
+
+	}
+    }
+
+    // Cancel the rendering. Any elements that are not yet rendered will
+    // be prevented from appearing. User code may test 'r.$' to see if 
+    // rendering is still allowed.
+    cancel: function() {
+	this.$ = null;
     }
 
     /*{{ TEMPLATES }}*/
