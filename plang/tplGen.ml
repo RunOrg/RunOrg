@@ -33,8 +33,8 @@ module Js = struct
     sprintf "if(%s){%s}else{%s}" expr ifTrue ifFalse
 
   let call path arg blocks = 
-    sprintf "this.%s({data:__,args:[%s],blocks:{%s}})"
-      (String.concat "." path)
+    sprintf "this[%S]({data:__,args:[%s],blocks:{%s}})"
+      (String.concat "/" path)
       (match arg with None -> "" | Some expr -> expr)
       (String.concat "," (List.map (fun (k,v) -> sprintf "%S:function(__){%s}" k v) blocks))
 
@@ -85,16 +85,10 @@ and statement = function
 
 (* Compiles an individual template to the JavaScript code that defines it. *)
 let compile_template path ast = 
-  match path with [] -> assert false | h :: t ->
-    let prefixes, last = List.fold_left 
-      (fun (all,last) seg -> 
-	let more = last ^ "." ^ seg in
-	(last :: all, more)) 
-      ([],h) t in    
-    let prelude = String.concat ";" (List.map (fun p -> "r." ^ p ^ "=r." ^ p ^ "||{}") prefixes) in
-    prelude ^ ";r." ^ last ^ "=function(__){" ^ body ast ^ "}"
+  let name = String.concat "/" path in
+  Printf.sprintf ",%S:function(__){%s}" name (body ast)
 
+(* Generates the code that is inserted as "{{ TEMPLATES }}" into the builtins *)
 let compile templates = 
-  "(function(r){" 
-  ^ String.concat ";" (List.map (fun (path,ast) -> compile_template path ast) templates) 
-  ^ "})(R.prototype)"
+  String.concat "" (List.map (fun (path,ast) -> compile_template path ast) templates) 
+  
