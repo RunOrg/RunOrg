@@ -14,15 +14,21 @@ var Route = {
 	    var m = re.exec(path);
 	    if (m === null) return false;	    
 
-	    Route.R.cancel();
-
 	    m.shift();
-	    m.unshift(Route.R = new R($('body')));
+	    m.unshift(Route.replace());
 	    
 	    f.apply(o, m);
 
 	    return true;
 	});
+    },
+
+    // Replace the current page with another, but keep the URL. Returns
+    // the renderer
+    replace: function() {
+
+	Route.R.cancel();	
+	return Route.R = new R($('body'));
     },
 
     // The current renderer, to be cancelled when the route changes
