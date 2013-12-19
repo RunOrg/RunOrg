@@ -6,6 +6,7 @@ depend:
 
 toolchain:
 	make -C syntax
+	make -C plang
 
 runorg: toolchain
 	make -C server
