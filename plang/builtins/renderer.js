@@ -54,7 +54,7 @@ R.prototype = {
 	    })(this,sub);
 
 	}
-    }
+    },
 
     // Cancel the rendering. Any elements that are not yet rendered will
     // be prevented from appearing. User code may test 'r.$' to see if 
