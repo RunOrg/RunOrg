@@ -4,8 +4,9 @@
 
 (** The type of a result: the CSS and JS source code. *)
 type t = {
-  css : string ;
-  js  : string ; 
+  css  : string ;
+  js   : string ; 
+  i18n : (string * string) list ;
 }
 
 (** Build the output. Optionally provide a 'builtins' string, otherwise will use 

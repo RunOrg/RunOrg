@@ -1,8 +1,9 @@
 (* © 2013 RunOrg *)
 
 type t = { 
-  css : string ;
-  js  : string ; 
+  css  : string ;
+  js   : string ; 
+  i18n : (string * string) list ;
 }
 
 (* Read the contents of a file at the specified path relative to the 
@@ -31,19 +32,23 @@ let read_tpl_ast dir path =
 
 let build ?(builtins = "./plang/builtins") explored = 
 
-  let open Explore in 
-
-  let builtins = explore builtins in
+  let builtins = Explore.explore builtins in
 
   let scripts = 
-    List.map (read_file builtins.root) builtins.javascript 
-    @ List.map (read_file explored.root) explored.javascript in
+    List.map (read_file builtins.Explore.root) builtins.Explore.javascript 
+    @ List.map (read_file explored.Explore.root) explored.Explore.javascript in
 
-  let templates = List.map (read_tpl_ast explored.root) explored.templates in 
+  let templates = List.map (read_tpl_ast explored.Explore.root) explored.Explore.templates in 
+  
+  let i18n = 
+    List.map 
+      (fun (lang,files) -> lang, String.concat "" (List.map (read_file explored.Explore.root) files))
+      explored.Explore.i18n
+  in
 
   let vars = [ 
     "TEMPLATES", TplGen.compile templates ;
   ] in
   
-  { js = JsGen.compile scripts vars ; css = "" }
+  { js = JsGen.compile scripts vars ; css = "" ; i18n }
 
