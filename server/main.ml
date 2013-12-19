@@ -13,12 +13,17 @@ let () = Printexc.record_backtrace true
 
 let mkctx () = new O.ctx
   
+(* Interrupt the program if a "shutdown" exception is raised. *)
+let exn_handler = function 
+  | Cqrs.Running.Shutdown -> false
+  | _ -> true
+
 let web_loop () = 
   Log.trace "Starting web server %s" RunorgVersion.version_string ;
   let respond = Api.run () in 
   begin 
     try 
-      Run.start () [
+      Run.start ~exn_handler () [
 	Cqrs.Running.heartbeat (mkctx ()) ;
 	respond
       ] 
@@ -29,7 +34,7 @@ let web_loop () =
 let bot_loop () = 
   Log.trace "Starting background process %s" RunorgVersion.version_string ;
   try 
-    Run.start () [
+    Run.start ~exn_handler () [
       Cqrs.Running.heartbeat (mkctx ()) ;	
       Cqrs.Projection.run () ;
     ]

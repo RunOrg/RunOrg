@@ -98,15 +98,18 @@ val eval : 'ctx -> ('ctx,'a) t -> 'a
 
 (** Start several long-running operations in parallel. 
 
-    If an exception is raised by a thread, then that thread is killed
-    and all threads which were dependent on it are aborted, then the
-    root thread is restarted. 
+    If an exception is raised by a thread, and [exn_handler] returns 
+    true, then that thread is killed and all threads which were 
+    dependent on it are aborted, then the root thread is restarted. 
+    
+    If [exn_handler] returns false, the exception bubbles up. 
+    By default, [exn_handler] always returns true. 
 
     For instance, after calling [start ctx [a;b]], if the evaluation 
     of thread [a] (or one of the sub-threads on which it is dependent)
     causes an exception, then [a] will be re-started from scratch. 
 *)
-val start : 'ctx -> 'ctx thread list -> unit
+val start : ?exn_handler:(exn -> bool) -> 'ctx -> 'ctx thread list -> unit
 
 (** {2 Concurrency manipulation} *)
 

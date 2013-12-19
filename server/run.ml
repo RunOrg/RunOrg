@@ -8,6 +8,7 @@ open BatResult
 type thr = 
   | Fork of thr list Lazy.t 
   | Wait of thr Event.event
+  | Raise of exn 
   | Yield of thr 
 
 (* A thread is evaluated using: 
@@ -329,7 +330,7 @@ let eval ctx m =
 
   let r       = ref None in 
   let ok  x   = r := Some x ; nop in 
-  let bad exn trc = raise exn in
+  let bad exn trc = Raise exn in
 
   (* All active items (those returned by a [Fork]) are stored in this queue.
      This is where the main loop queries for new tasks to perform. *)
@@ -383,6 +384,7 @@ let eval ctx m =
     | Fork tasks -> (match Lazy.force tasks with 
       | h :: t -> to_active t ; process h 
       | []     -> continue ())
+    | Raise exn -> raise exn 
 
   (* Looks for a task to be executed, because the current processing 
      chain was broken. *) 
@@ -421,13 +423,16 @@ let eval ctx m =
   process (m ctx bad ok) ;
   match !r with None -> assert false | Some result -> result
 
-let start ctx ms = 
+let start ?(exn_handler=(fun _ -> true)) ctx ms = 
 
-  let retry m = fun ctx _ ok -> 
+  let retry m = fun ctx fail ok -> 
     let rec bad exn backtrace = 
       Log.error "Exception occurred in Run.start" ;
       Log.exn exn backtrace ;
-      Yield (m ctx bad ok) 
+      if exn_handler exn then 
+	Yield (m ctx bad ok) 
+      else
+	fail exn backtrace
     in
     m ctx bad ok 
   in
