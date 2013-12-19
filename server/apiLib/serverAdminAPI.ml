@@ -9,10 +9,10 @@ let bad_auth  = `Forbidden "Could not log in as server administrator"
    ================= *)
 
 let () = 
-  Endpoint.static "admin" "text/html" "admin/index.html" ;
+  Endpoint.static "admin" "text/html" "static/admin/index.html" ;
   Endpoint.static "admin/script.js" "text/javascript" "_assets/admin/all.js" ;
   Endpoint.static "admin/style.css" "text/css" "_assets/admin/all.css" ;
-  Endpoint.static "admin/logo.png" "image/png" "admin/logo-runorg-50x50.png"
+  Endpoint.static "admin/logo.png" "image/png" "static/admin/logo-runorg-50x50.png"
 
 (* Authenticate as a server administrator 
    ====================================== *)
