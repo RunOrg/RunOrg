@@ -42,7 +42,8 @@ let build ?(builtins = "./plang/builtins") explored =
   
   let i18n = 
     List.map 
-      (fun (lang,files) -> lang, String.concat "" (List.map (read_file explored.Explore.root) files))
+      (fun (lang,files) -> lang, String.concat "" 
+	("i18n.clear();" :: (List.map (read_file explored.Explore.root) files)))
       explored.Explore.i18n
   in
 
