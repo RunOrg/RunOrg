@@ -8,8 +8,9 @@ type path = string list
 
 (** The type of an exploration result. Lists all the files found in 
     each category: i18n (per language), templates and javascript 
-    source. *)
+    source. Paths are relative to the root path. *)
 type result = {
+  root : string ; 
   i18n : (string * path list) list ;
   templates : path list ;
   javascript : path list ; 

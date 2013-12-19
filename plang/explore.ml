@@ -2,6 +2,7 @@
 
 type path = string list
 type result = {
+  root : string ; 
   i18n : (string * path list) list ;
   templates : path list ;
   javascript : path list ; 
@@ -21,7 +22,7 @@ let to_string result =
   ]
 
 (* An empty result. *)
-let empty = { i18n = [] ; templates = [] ; javascript = [] }
+let empty root = { root ; i18n = [] ; templates = [] ; javascript = [] }
 
 (* Extract the language name from an i18n file name. *)
 let language_of_i18n_filename filename = 
@@ -101,4 +102,4 @@ let build_result path filename result =
 
 (* Explore a directory. *)
 let explore path = 
-  fold_all_files build_result path empty
+  fold_all_files build_result path (empty path)
