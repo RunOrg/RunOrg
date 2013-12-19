@@ -1,22 +1,18 @@
-/* Authenticating with Persona.
- * 
- * Initially, the user is not authenticated. After login, function onLogin is called
- * by this file with the token.
- */
+/* Authenticating with Persona. */
 
-$('#persona-button')[0].onclick = function() {
-
-    navigator.id.get(function(assertion){
-	
-	console.log("Received assertion: %s", assertion);
-	API.AUTH('/admin/auth/persona', {assertion:assertion}, function(r){
-	    console.log("Assertion verified: %o", r);
-	    onLogin();
+API.onLoginRequired = function() {
+    var R = Route.replace();
+    R["persona/page"]({ button: function(R) {
+	R.$.click(function() {
+	    navigator.id.get(function(assertion){
+		API.AUTH('/admin/auth/persona', {assertion:assertion}, function(r){
+		    Route.dispatch();
+		});		
+	    },{
+		siteName: 'RunOrg Server Administration',
+		siteLogo: 'https://' + document.location.host + '/admin/logo.png'
+	    });
 	});
-	
-    },{
-	siteName: 'RunOrg Server Administration',
-	siteLogo: 'https://' + document.location.host + '/admin/logo.png'
-    });
-    
+    }});
+    R.show();
 };
