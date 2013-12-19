@@ -1,1 +1,2 @@
+<*>: package(batteries)
 true: use_menhir

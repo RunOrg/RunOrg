@@ -1,5 +1,5 @@
 all:
-	ocamlbuild plang.byte
+	ocamlbuild -use-ocamlfind plang.byte
 
 clean: 
 	rm -f plang.byte
