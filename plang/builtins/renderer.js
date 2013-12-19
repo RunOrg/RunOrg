@@ -40,14 +40,14 @@ R.prototype = {
 
 	this.$.removeClass('load').html(this._.join(''));
 
-	if (this._i.length) {
+	var sub = [], r, i;
+	for (i in this._i) {
+	    sub.push(r = new R($('#' + i)));
+	    this._i[i](r);
+	}
+	
+	if (sub.length > 0) {
 
-	    var sub = [], r, i;
-	    for (i in this._i) {
-		sub.push(r = new R($('#' + i)));
-		this._i[i](r);
-	    }
-	    
 	    // Propagate cancellation to the sub-elements.
 	    (function(t,s){ 
 		t.cancel = function() { while (s) s.shift().cancel(); } 
