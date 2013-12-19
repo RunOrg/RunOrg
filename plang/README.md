@@ -152,6 +152,7 @@ Use sub-renderers to display the blocks, for instance:
     <div class="user">
       <div class="pic">{( blocks.pic )}</div>
       <div class="name">{( blocks.first )}</div>
+    </div>
 
 #### 'If' sub-template
 
