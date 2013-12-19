@@ -9,15 +9,9 @@ $('#persona-button')[0].onclick = function() {
     navigator.id.get(function(assertion){
 	
 	console.log("Received assertion: %s", assertion);
-	$.ajax({
-	    method: 'POST',
-	    contentType: 'application/json',
-	    url: '/admin/auth/persona',
-	    data: JSON.stringify({assertion:assertion}),
-	    success: function(r){
-		console.log("Assertion verified: %o", r);
-		onLogin(r.token);
-	    }
+	API.AUTH('/admin/auth/persona', {assertion:assertion}, function(r){
+	    console.log("Assertion verified: %o", r);
+	    onLogin();
 	});
 	
     },{
