@@ -4,5 +4,5 @@ open TplToken
 open TplGen
 
 let result = 
-  print_endline (Build.build (Explore.explore Cli.source_directory)).Build.js
+  Output.write Cli.output_directory (Build.build (Explore.explore Cli.source_directory))
 
