@@ -10,4 +10,4 @@ type t = {
 
 (** Build the output. Optionally provide a 'builtins' string, otherwise will use 
     [./plang/builtins] as the source for built-in javascript and CSS. *)
-val build : ?builtins:string -> Explore.t -> t
+val build : ?builtins:string -> Explore.result -> t

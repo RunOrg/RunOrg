@@ -24,7 +24,7 @@ let read_file dir path =
    (path, ast) pair. *)
 let read_tpl_ast dir path = 
   let contents = read_file dir path in 
-  let lexbuf = Lexing.of_string contents in 
+  let lexbuf = Lexing.from_string contents in 
   let token = TplToken.make () in 
   let ast = TplParse.file token lexbuf in
   path, ast 
@@ -37,7 +37,7 @@ let build ?(builtins = "./plang/builtins") explored =
 
   let scripts = 
     List.map (read_file builtins.root) builtins.javascript 
-    :: List.map (read_file explored.root) explored.javascript in
+    @ List.map (read_file explored.root) explored.javascript in
 
   let templates = List.map (read_tpl_ast explored.root) explored.templates in 
 
