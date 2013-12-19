@@ -27,4 +27,6 @@ let write_file path contents =
 let write dir build = 
   mkdir dir ;
   write_file (Filename.concat dir "all.js") build.Build.js ; 
-  write_file (Filename.concat dir "all.css") build.Build.css 
+  write_file (Filename.concat dir "all.css") build.Build.css ;
+  List.iter (fun (lang,script) -> write_file (Filename.concat dir (lang ^ ".js")) script)
+    build.Build.i18n
