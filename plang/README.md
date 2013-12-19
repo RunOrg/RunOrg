@@ -230,6 +230,22 @@ Compiles to:
       }
     }
 
+### Callbacks 
+
+It is possible to call user-provided functions on pieces of the DOM once they
+have been created. For example: 
+
+    <ul {$ fill $}></ul>
+
+This will create the `<ul></ul>` element, then call function `data.fill` on a brand
+new renderer that draws to that element. For example: 
+
+   { fill: function(R) {
+     API.GET("/items",{},function(response) {
+       R.listItems(response.items).show();
+     })
+   } }
+
 ### Internationalization
 
 Internalization files are named `[lang].i18n.js`. They follow a simple
