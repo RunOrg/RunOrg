@@ -51,7 +51,7 @@ let compare = function
   | `NotTypeEqual -> "!=="
 
 let rec expression = function 
-  | `Var s -> "this." ^ s
+  | `Var s -> "__." ^ s
   | `Dot (e,s) -> "(" ^ expression e ^ ")." ^ s
   | `Nth (e,v) -> "(" ^ expression e ^ ")[" ^ expression v ^ "]"
   | `Int i -> string_of_int i 
