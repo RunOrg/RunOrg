@@ -5,7 +5,7 @@ let compile scripts vars =
   (* TODO: a regexp-based solution would be faster *) 
   List.fold_left 
     (fun source (replace,by) -> 
-      let replace = "/*{{ " ^ replace ^ "}}*/" in
+      let replace = "/*{{ " ^ replace ^ " }}*/" in
       if BatString.exists source replace then
 	String.concat by (BatString.nsplit source replace)
       else
