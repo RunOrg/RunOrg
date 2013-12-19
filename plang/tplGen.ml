@@ -85,7 +85,7 @@ and statement = function
 
 (* Compiles an individual template to the JavaScript code that defines it. *)
 let compile_template path ast = 
-  let name = String.concat "/" path in
+  let name = Filename.chop_extension (String.concat "/" path) in
   Printf.sprintf ",%S:function(__){%s}" name (body ast)
 
 (* Generates the code that is inserted as "{{ TEMPLATES }}" into the builtins *)
