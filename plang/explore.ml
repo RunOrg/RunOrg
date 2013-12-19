@@ -6,12 +6,15 @@ type result = {
   i18n : (string * path list) list ;
   templates : path list ;
   javascript : path list ; 
+  css : path list ; 
 }
 
 (* A string representation of a result. *)
 let to_string result = 
   String.concat "" [
-    "i18n:\n  " ;
+    "in: " ; 
+    result.root ; 
+    "\ni18n:\n  " ;
     String.concat "\n  " (List.map (fun (lang, paths) ->
       lang ^ ":\n    " ^
 	String.concat "\n    " (List.map (String.concat "/") paths)) result.i18n) ;       
@@ -19,10 +22,12 @@ let to_string result =
     String.concat "\n  " (List.map (String.concat "/") result.templates) ;
     "\njavascript:\n  " ;
     String.concat "\n  " (List.map (String.concat "/") result.javascript) ;
+    "\ncss:\n  " ;
+    String.concat "\n  " (List.map (String.concat "/") result.css) ; 
   ]
 
 (* An empty result. *)
-let empty root = { root ; i18n = [] ; templates = [] ; javascript = [] }
+let empty root = { root ; i18n = [] ; templates = [] ; javascript = [] ; css = [] }
 
 (* Extract the language name from an i18n file name. *)
 let language_of_i18n_filename filename = 
@@ -97,6 +102,8 @@ let build_result path filename result =
     add_i18n path filename result
   else if has_extension filename [".js"] then
     { result with javascript = path :: result.javascript }
+  else if has_extension filename [".css"] then
+    { result with css = path :: result.css }
   else
     result
 

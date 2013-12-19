@@ -14,6 +14,7 @@ type result = {
   i18n : (string * path list) list ;
   templates : path list ;
   javascript : path list ; 
+  css : path list ;
 }
 
 (** A printable representation of an exploration result. *)

@@ -47,9 +47,11 @@ let build ?(builtins = "./plang/builtins") explored =
       explored.Explore.i18n
   in
 
+  let css = List.map (read_file explored.Explore.root) explored.Explore.css in
+
   let vars = [ 
     "TEMPLATES", TplGen.compile templates ;
   ] in
   
-  { js = JsGen.compile scripts vars ; css = "" ; i18n }
+  { js = JsGen.compile scripts vars ; css = String.concat "" css ; i18n }
 
