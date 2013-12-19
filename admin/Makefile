@@ -1,3 +1,2 @@
 all:
-	cat `cat js/all` > script.js
-	cat `cat css/all` > style.css 
+	(cd .. ; plang/plang.byte admin _assets/admin)
