@@ -13,7 +13,7 @@ var API = (function(){
 
 	    // The token is a ready-to-use session authentication digest.
 	    beforeSend: function(xhr) {
-		if (token) xhr.setRequestHeader('Authorization','RUNORG tok="' + token + '"');
+		if (token) xhr.setRequestHeader('Authorization','RUNORG token="' + token + '"');
 	    },
 
 	    dataType: 'json',
