@@ -1,6 +1,6 @@
 /* Home controller */
 
-Route.add(/^\/$/, function(R) {
+Route.add(/^\/admin$/, function(R) {
     R["home/page"]();
     R.show();
 });
