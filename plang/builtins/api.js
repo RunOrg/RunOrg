@@ -63,7 +63,7 @@ var API = (function(){
 	AUTH: function(p,d,f) { ajax("POST",p,d,function(data) {
 	    if ('token' in data) token = data.token;
 	    f(data);
-	}),
+	},
 
 	GET: function(p,d,f) { ajax("GET",p,d,f) },
 	POST: function(p,d,f) { ajax("POST",p,d,f) },
