@@ -79,6 +79,7 @@ type config = {
   certificate_path : string ; 
   max_header_size : int ;
   max_body_size : int ; 
+  max_duration : float ; 
 }
 
 (** Start the server. Return a thread that executes all 

@@ -5,8 +5,14 @@ open Common
 
 exception HeaderTooLong
 exception BodyTooLong
+exception Timeout
 exception SyntaxError of string
 exception NotImplemented of string
+
+(* Request parser logging 
+   ====================== *)
+
+let log_enabled = true 
 
 (* A parsed HTTP request
    ===================== *)
@@ -59,61 +65,131 @@ let urldecode str =
   else
     str
 
+(* Low-level header parsing 
+   ======================== *)
+
+let expects_body header = 
+  String.starts_with header "POST" || String.starts_with header "PUT" 
+
+let content_length_regexp = Str.regexp "Content-Length: +\\([0-9]+\\)"
+
+let expected_body_size header = 
+  try 
+    let _ = Str.search_forward content_length_regexp header 0 in
+    let group = Str.matched_group 1 header in 
+    try int_of_string group with _ -> 0 
+  with Not_found -> 0
+
 (* Reading requests from sockets
    ============================= *)
 
 let read_request config ssl_socket = 
 
-  let bufsize = 1024 in
-  let buffer = String.create 1024 in 
+  let timeout = Unix.gettimeofday () +. config.max_duration in 
   
-  (* Read the entire header with a loop. *)
-  let header = Buffer.create 1024 in
+  (* Read the entire header, plus any additional data after the end of the
+     header. *)
+  let read_header () = 
+    let buffer = String.create 1024 in
+    let header = Buffer.create 1024 in
+    let rec more () =       
 
-  (* Returns true if there is more data to read *)
-  let rec read_more () = 
-    let l = Ssl.read ssl_socket buffer 0 bufsize in
-    Buffer.add_substring header buffer 0 l ;
-    if Buffer.length header <= config.max_header_size 
-       && not (String.exists (Buffer.contents header) "\r\n\r\n") 
-       && l > 0 
-    then read_more ()
-    else l = bufsize
+      let l  = try Ssl.read ssl_socket buffer 0 1024 with Ssl.Read_error Ssl.Error_want_read -> 0 in
+      let () = Buffer.add_substring header buffer 0 l in
+
+      if log_enabled then 
+	Log.trace "Read header %d (total %d/%d): \n%s" l (Buffer.length header) (config.max_header_size)
+	  (String.sub buffer 0 l) ;
+
+      if Buffer.length header = config.max_header_size then 
+	raise HeaderTooLong 
+      else if String.exists (Buffer.contents header) "\r\n\r\n" then 
+	return ()
+      else if l = 0 then 
+	let now = Unix.gettimeofday () in 
+	if now > timeout then raise Timeout else 
+	  let! () = Run.sleep (min 0.05 ((timeout -. now) /. 2.)) in
+	  more () 
+      else 
+	more () 
+
+    in
+    let! () = more () in
+    let header = Buffer.contents header in 
+    
+    (* Look for a header termination... *)
+    let pos = try String.find header "\r\n\r\n" with _ -> raise HeaderTooLong in
+    let clean_header = String.sub header 0 pos in 
+    let body_start = 
+      if String.length header - pos <= 4 then "" else  
+	String.sub header (pos + 4) (String.length header - pos - 4)
+    in 
+    return (clean_header, body_start)
   in
 
-  let not_finished = read_more () in 
+  (* Read the entire body, up to the specified size, with a start size *)
+  let read_body start size = 
+    if size = 0 then return "" else 
 
-  let header = Buffer.contents header in 
+      let i = String.length start in 
 
-  (* Look for a header termination... *)
-  let pos = try String.find header "\r\n\r\n" with _ -> raise HeaderTooLong in
-  let clean_header = String.sub header 0 pos in 
+      if log_enabled && i > 0 then 
+	Log.trace "Initial body:\n%s" start ;
 
-  (* A body is expected if the header starts with POST or PUT. *)
-  if String.starts_with clean_header "POST" || String.starts_with clean_header "PUT" then begin
+      let body = String.create size in 
+      let () = String.blit start 0 body 0 i in
 
-    let body = Buffer.create 1024 in
+      let rec more i = 
 
-    let rec read_more () = 
-      if Buffer.length body <= config.max_body_size then begin
-	let l = Ssl.read ssl_socket buffer 0 bufsize in
-	Buffer.add_substring body buffer 0 l ;
-	if l = bufsize then read_more () 
-      end
-    in
+	let l = try Ssl.read ssl_socket body i (size - i) with Ssl.Read_error Ssl.Error_want_read -> 0 in
+	let i = i + l in
+	  
+	if log_enabled then 
+	  Log.trace "Read %d (total %d/%d): \n%s" l i size
+	    (String.sub body (i-l) l) ;
+	
+	  if i = size then return ()
+	  else if l = 0 then 
+	    let now = Unix.gettimeofday () in 
+	  if now > timeout then raise Timeout else 
+	    let! () = Run.sleep (min 0.05 ((timeout -. now) /. 2.)) in
+	    more i
+	else
+	  more i 
 
-    (* There was a little bit of body at the end of the header... *)
-    if String.length header - pos > 4 then 
-      Buffer.add_string body (String.sub header (pos + 4) (String.length header - pos - 4)) ;
+      in
 
-    if not_finished || Buffer.length body = 0 then read_more () ;
+      let! () = more i in
+      
+      ( if log_enabled then
+	  Log.trace "Body:\n%s" body ;
+		
+	return body )
 
-    clean_header, Some (Buffer.contents body)
+  in
+	  
+  let! header, body = read_header () in     
+
+  if expects_body header then begin 
+
+    let size = expected_body_size header in 
+
+    if log_enabled then 
+      Log.trace "Expecting header of size %d" size ; 
+
+    if size > config.max_body_size then raise BodyTooLong else 
+
+      let! body = read_body body size in 
+      
+      return (header, Some body) 
 
   end else
     
-    clean_header, None
-
+    ( if log_enabled then 
+	Log.trace "No header expected" ; 
+      
+      return (header, None) ) 
+  
 (* Request parsing
    =============== *)
 
@@ -146,10 +222,11 @@ let parse_params params =
 
 let parse config ssl_socket =   
 
+  let! head, body = read_request config ssl_socket in 
+
   (* Extract the main bits of information from the socket. *)
 
   let verb, uri, params, version, headers, body, ip = 
-    let head, body = read_request config ssl_socket in 
     let first_line, headers = String.split head "\r\n" in
     let verb, rest = String.split first_line " " in
     let uri, version = String.split rest " " in
@@ -218,7 +295,7 @@ let parse config ssl_socket =
 
   (* Pack everything in an object *)
 
-  (object
+  return (object
     method client_ip = ip 
     method host = host 
     method verb = verb

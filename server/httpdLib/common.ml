@@ -7,6 +7,7 @@ type config = {
   certificate_path : string ; 
   max_header_size : int ;
   max_body_size : int ; 
+  max_duration : float ; 
 }
 
 let ip ssl_socket = 

@@ -14,6 +14,9 @@ exception SyntaxError of string
 (** The method (the argument of the exception) is not supported. *)
 exception NotImplemented of string
 
+(** Maximum wait time for an individual connection was exceeded. *)
+exception Timeout
+
 (** An HTTP request, parsed. *)
 type t = <
 
@@ -56,4 +59,4 @@ type t = <
 
 > ;;
 
-val parse : Common.config -> Ssl.socket -> t
+val parse : Common.config -> Ssl.socket -> ('any, t) Run.t

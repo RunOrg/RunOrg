@@ -30,6 +30,7 @@ module Httpd : sig
   val key_password : string
   val max_header_size : int
   val max_body_size : int
+  val max_duration : float 
 end
 
 (** The crypto key used to generate session values *)

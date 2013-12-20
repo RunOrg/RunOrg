@@ -11,6 +11,7 @@ let config = Httpd.(Configuration.Httpd.({
   key_password ;
   max_header_size ;
   max_body_size ;
+  max_duration ; 
 })) 
 
 let run () = 
