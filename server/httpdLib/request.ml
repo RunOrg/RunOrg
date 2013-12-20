@@ -174,7 +174,14 @@ let parse config ssl_socket =
   
   let path = List.map urldecode (List.filter (fun s -> s <> "") (String.nsplit uri "/")) in 
 
-  let token = try Some (Map.find "token" params) with Not_found -> None in
+  let token = 
+    try let header = Map.find "AUTHORIZATION" headers in
+	let prefix = "RUNORG token=" in
+	if String.starts_with header prefix 
+	then Some (String.lchop ~n:(String.length prefix) header)
+	else None
+    with Not_found -> None 
+  in
 
   let limit = 
     try Some (int_of_string (Map.find "limit" params)) 
