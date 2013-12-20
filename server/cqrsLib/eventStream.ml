@@ -5,14 +5,6 @@ open Std
 
 type ('ctx, 'a) event_writer = 'a list -> ( 'ctx, unit ) Run.t
 
-type 'a event_wrapper = <
-  clock : Clock.t ;
-  event : 'a ;
-  time  : Time.t ; 
->
-
-type ('ctx, 'a) stream = Clock.t -> ( 'ctx, 'a event_wrapper ) Seq.t 
-
 module type STREAM = sig
   type event
   val name : string
