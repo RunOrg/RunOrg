@@ -70,15 +70,18 @@ let read_request config ssl_socket =
   (* Read the entire header with a loop. *)
   let header = Buffer.create 1024 in
 
+  (* Returns true if there is more data to read *)
   let rec read_more () = 
     let l = Ssl.read ssl_socket buffer 0 bufsize in
     Buffer.add_substring header buffer 0 l ;
     if Buffer.length header <= config.max_header_size 
        && not (String.exists (Buffer.contents header) "\r\n\r\n") 
-       && l > 0 then read_more ()    
+       && l > 0 
+    then read_more ()
+    else l = bufsize
   in
 
-  read_more () ; 
+  let not_finished = read_more () in 
 
   let header = Buffer.contents header in 
 
@@ -99,12 +102,11 @@ let read_request config ssl_socket =
       end
     in
 
-    (* For some reason, there was a little bit of body at the end of the header... *)
-    if String.length header - pos > 4 then ( 
-      Buffer.add_string body (String.sub header (pos + 4) (String.length header - pos + 4)) ;
-      if String.length header = config.max_header_size then read_more ()) 
-    else
-      read_more () ;
+    (* There was a little bit of body at the end of the header... *)
+    if String.length header - pos > 4 then 
+      Buffer.add_string body (String.sub header (pos + 4) (String.length header - pos - 4)) ;
+
+    if not_finished then read_more () ;
 
     clean_header, Some (Buffer.contents body)
 
@@ -170,7 +172,13 @@ let parse config ssl_socket =
     | _ -> raise (NotImplemented verb)
   in
 
-  let content_type = try Some (Map.find "CONTENT-TYPE" headers) with Not_found -> None in
+  let content_type = 
+    try let header = Map.find "CONTENT-TYPE" headers in
+	(* TODO: break if non-UTF8 payload *)
+	try Some (String.sub header 0 (String.index header ';'))
+	with Not_found -> Some header	  
+    with Not_found -> None 
+  in
   
   let path = List.map urldecode (List.filter (fun s -> s <> "") (String.nsplit uri "/")) in 
 
