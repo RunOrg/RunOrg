@@ -19,7 +19,7 @@ let () =
     "CREATE TABLE IF NOT EXISTS \"" ^ dbname ^ "\" ( "
     ^ "\"token\" CHAR(40) NOT NULL, "
     ^ "\"payload\" BYTEA NOT NULL, "
-    ^ "\"created\" TIMESTAMP NOT NULL DEFAULT('now'), "
+    ^ "\"created\" TIMESTAMP NOT NULL DEFAULT now(), "
     ^ "PRIMARY KEY(\"token\"))"
   end []) ;
 
