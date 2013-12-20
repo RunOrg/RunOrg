@@ -106,7 +106,7 @@ let read_request config ssl_socket =
     if String.length header - pos > 4 then 
       Buffer.add_string body (String.sub header (pos + 4) (String.length header - pos - 4)) ;
 
-    if not_finished then read_more () ;
+    if not_finished || Buffer.length body = 0 then read_more () ;
 
     clean_header, Some (Buffer.contents body)
 
