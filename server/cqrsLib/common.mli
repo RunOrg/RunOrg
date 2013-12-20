@@ -10,14 +10,18 @@ type config = {
 
 exception ConnectionFailed of string
 
-class type ctx = object
+class type ctx = object ('self)
   method cqrs : cqrs
   method time : Time.t 
+  method db : Id.t
+  method with_db : Id.t -> 'self
 end 
 
-class virtual cqrs_ctx : config -> object 
+class virtual cqrs_ctx : config -> object ('self)
   method cqrs : cqrs
   method virtual time : Time.t
+  method db : Id.t
+  method with_db : Id.t -> 'self
 end
 
 val on_first_connection : ctx Run.effect ref 

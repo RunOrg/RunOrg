@@ -14,16 +14,21 @@ type config = {
 exception ConnectionFailed of string
 
 (** A database context: all operations related to CQRS should be executed
-    while in this context. *)
-class type ctx = object
+    while in this context. By default, executes in the 'global' database
+    (id 00000000000). *)
+class type ctx = object ('self) 
   method cqrs : cqrs
   method time : Time.t 
+  method db   : Id.t
+  method with_db : Id.t -> 'self 
 end 
 
 (** A concrete implementation of the [cqrs] part of [ctx]. *)
-class virtual cqrs_ctx : config -> object 
+class virtual cqrs_ctx : config -> object ('self) 
   method cqrs : cqrs
   method virtual time : Time.t
+  method db : Id.t 
+  method with_db : Id.t -> 'self
 end
 
 (** An event writer is a function that writes events of the specified type to 
@@ -116,7 +121,12 @@ module Projection : sig
 
 end
 
-(** A stream is a persistent sequence of events.  *)
+(** A stream is a persistent sequence of events. Each object is a custom object (a type
+    serializer is required to create the stream). In the stream, it is attached to a 
+    creation time (used mostly for information purposes: the precision of the timestamp
+    is probably worse than 60 seconds) and a database identifier (because events from
+    multiple databases may be added to a single stream, and RunOrg needs to support
+    sharding or exporting databases). *)
 module type STREAM = sig
 
   (** The type of events stored in this stream. *)

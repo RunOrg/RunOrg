@@ -68,9 +68,11 @@ let make_cqrs config = {
   first = is_first_connection config ; 
 } 
   
-class type ctx = object
+class type ctx = object ('self)
   method cqrs : cqrs
   method time : Time.t 
+  method db : Id.t
+  method with_db : Id.t -> 'self
 end 
 
 class virtual cqrs_ctx config = object (self)
@@ -86,6 +88,11 @@ class virtual cqrs_ctx config = object (self)
 
   method virtual time : Time.t
       
+  val db = Id.of_string "00000000000"
+
+  method db = db
+  method with_db db = {< db = db >}
+
 end
 
 (* Running queries 
