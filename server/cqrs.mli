@@ -19,14 +19,16 @@ exception ConnectionFailed of string
 class type ctx = object ('self) 
   method cqrs : cqrs
   method time : Time.t 
+  method with_time : Time.t -> 'self
   method db   : Id.t
   method with_db : Id.t -> 'self 
 end 
 
 (** A concrete implementation of the [cqrs] part of [ctx]. *)
-class virtual cqrs_ctx : config -> object ('self) 
+class cqrs_ctx : config -> object ('self) 
   method cqrs : cqrs
-  method virtual time : Time.t
+  method time : Time.t
+  method with_time : Time.t -> 'self 
   method db : Id.t 
   method with_db : Id.t -> 'self
 end

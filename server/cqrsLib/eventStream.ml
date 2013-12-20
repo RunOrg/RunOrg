@@ -25,7 +25,7 @@ end) -> struct
 
   module Data = type module ( Time.t * Event.t )  
 
-  class wrapper id n time event = object
+  class wrapper id db n time event = object
 
     val clock = Clock.at id n 
     method clock = clock 
@@ -36,6 +36,9 @@ end) -> struct
     val time : Time.t = time
     method time = time
 
+    val db : Id.t = db
+    method db = db 
+
   end
 
   let () = 
@@ -43,6 +46,7 @@ end) -> struct
     Sql.on_first_connection (Sql.command begin 
       "CREATE TABLE IF NOT EXISTS \"" ^ dbname ^ "\" ( " 
       ^ "\"n\" SERIAL, "
+      ^ "\"db\" CHAR(11), "
       ^ "\"event\" BYTEA, "
       ^ "PRIMARY KEY (\"n\") "
       ^ ");" 
@@ -54,14 +58,15 @@ end) -> struct
   let append events = 
     
     let! ctx = Run.context in     
-    let  time = ctx # time in    
+    let  time = ctx # time and db = ctx # db in 
     let  packs = List.map (fun event -> `Binary (Pack.to_string Data.pack (time, event))) events in
 
     if packs = [] then Run.return () else 
 
+      let prefix = Printf.sprintf "('%s',$" (Id.to_string db) in
       Sql.safe_command begin 
-	"INSERT INTO \"" ^ dbname ^ "\" ( \"event\" ) VALUES " ^ 
-	  (String.concat ", " (BatList.mapi (fun i _ -> "($" ^ string_of_int (i+1) ^ ")") packs))
+	"INSERT INTO \"" ^ dbname ^ "\" ( \"db\", \"event\" ) VALUES " ^ 
+	  (String.concat ", " (BatList.mapi (fun i _ -> prefix ^ string_of_int (i+1) ^ ")") packs))
       end packs 
 
   (* Counting events 
@@ -109,7 +114,7 @@ end) -> struct
 
     let! id = id () in 
     let! result = Sql.query 
-      ("SELECT \"n\", \"event\" from \"" ^ dbname ^ "\" WHERE \"n\" >= $1 "
+      ("SELECT \"n\", \"db\", \"event\" from \"" ^ dbname ^ "\" WHERE \"n\" >= $1 "
 	  ^ "ORDER BY \"n\" LIMIT " ^ string_of_int count) 
       [ `Int start ] in
 
@@ -119,8 +124,9 @@ end) -> struct
 
     let list = List.map (fun line -> 
       let n = int_of_string line.(0) in
-      let time, event = Pack.of_string Data.unpack (Postgresql.unescape_bytea line.(1)) in 
-      new wrapper id n time event) (Array.to_list result) in
+      let db = Id.of_string line.(1) in
+      let time, event = Pack.of_string Data.unpack (Postgresql.unescape_bytea line.(2)) in 
+      new wrapper id db n time event) (Array.to_list result) in
 
     Run.return (list, next) 
 
@@ -153,9 +159,9 @@ end) -> struct
 	 hash table before this function is called. *)
       let actions = Hashtbl.find trackers name in
       Seq.map begin fun wrap -> 
-	let ev = wrap # event and clock = wrap # clock in 
-	(* TODO: set context time to wrap # time *)
-	List.M.iter (fun action -> action ev) actions, clock 
+	let ev = wrap # event and clock = wrap # clock and db = wrap # db and time = wrap # time in 
+	(Run.edit_context (fun ctx -> (ctx # with_time time) # with_db db)
+	   (List.M.iter (fun action -> action ev) actions)), clock
       end (follow clock)
     in
 

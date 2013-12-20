@@ -71,11 +71,12 @@ let make_cqrs config = {
 class type ctx = object ('self)
   method cqrs : cqrs
   method time : Time.t 
+  method with_time : Time.t -> 'self
   method db : Id.t
   method with_db : Id.t -> 'self
 end 
 
-class virtual cqrs_ctx config = object (self)
+class cqrs_ctx config = object (self)
 
   val cqrs = make_cqrs config
 
@@ -86,7 +87,10 @@ class virtual cqrs_ctx config = object (self)
     end ;
     cqrs
 
-  method virtual time : Time.t
+  val time = Time.now () 
+
+  method time = time
+  method with_time time = {< time = time >}
       
   val db = Id.of_string "00000000000"
 
