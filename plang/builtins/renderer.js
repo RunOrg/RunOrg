@@ -50,7 +50,7 @@ R.prototype = {
 
 	    // Propagate cancellation to the sub-elements.
 	    (function(t,s){ 
-		t.cancel = function() { while (s) s.shift().cancel(); } 
+		t.cancel = function() { while (s.length) s.shift().cancel(); } 
 	    })(this,sub);
 
 	}
