@@ -3,7 +3,7 @@
 open Common
 open Std
 
-type ('ctx, 'a) event_writer = 'a list -> ( 'ctx, unit ) Run.t
+type ('ctx, 'a) event_writer = 'a list -> ( 'ctx, Clock.t ) Run.t
 
 module type STREAM = sig
   type event
@@ -52,23 +52,6 @@ end) -> struct
       ^ ");" 
     end [])
 
-  (* Appending events to the stream 
-     ============================== *)
-
-  let append events = 
-    
-    let! ctx = Run.context in     
-    let  time = ctx # time and db = ctx # db in 
-    let  packs = List.map (fun event -> `Binary (Pack.to_string Data.pack (time, event))) events in
-
-    if packs = [] then Run.return () else 
-
-      let prefix = Printf.sprintf "('%s',$" (Id.to_string db) in
-      Sql.safe_command begin 
-	"INSERT INTO \"" ^ dbname ^ "\" ( \"db\", \"event\" ) VALUES " ^ 
-	  (String.concat ", " (BatList.mapi (fun i _ -> prefix ^ string_of_int (i+1) ^ ")") packs))
-      end packs 
-
   (* Counting events 
      =============== *)
 
@@ -85,7 +68,7 @@ end) -> struct
       let rec recurse () = 
 	let! result = Sql.query ("SELECT \"id\" FROM \"meta:streams\" WHERE \"name\" = $1") [ `String name ] in
 	if Array.length result < 1 then 
-	  let! () = Sql.safe_command ("INSERT INTO \"meta:streams\" (\"name\") VALUES ($1)") [ `String name ] in 
+	  let! _ = Sql.safe_query ("INSERT INTO \"meta:streams\" (\"name\") VALUES ($1)") [ `String name ] in 
 	  recurse () 
 	else
 	  Run.return (int_of_string result.(0).(0))
@@ -106,6 +89,27 @@ end) -> struct
     let! result = Sql.query ("SELECT MAX(\"n\") FROM \"" ^ dbname ^ "\"") [] in
     let! id = id () in
     Run.return (Clock.at id (int_of_string (result.(0).(0)))) 
+
+  (* Appending events to the stream 
+     ============================== *)
+
+  let append events = 
+    
+    let! ctx = Run.context in     
+    let  time = ctx # time and db = ctx # db in 
+    let  packs = List.map (fun event -> `Binary (Pack.to_string Data.pack (time, event))) events in
+
+    if packs = [] then clock () else 
+
+      let  prefix = Printf.sprintf "('%s',$" (Id.to_string db) in
+      let! result = Sql.safe_query begin 
+	"INSERT INTO \"" ^ dbname ^ "\" ( \"db\", \"event\" ) VALUES "
+	^ (String.concat ", " (BatList.mapi (fun i _ -> prefix ^ string_of_int (i+1) ^ ")") packs))
+	^ " RETURNING lastval()"
+      end packs in
+
+      let! id = id () in
+      Run.return (Clock.at id (int_of_string (result.(0).(0)))) 
 
   (* Reading events 
      ============== *)

@@ -21,8 +21,8 @@ let on_first_connection what =
 
 let mutex = new Run.mutex
 
-let safe_command q p = 
-  mutex # if_unlocked (command q p)
+let safe_query q p = 
+  mutex # if_unlocked (query q p)
 
 let transaction action = 
   mutex # lock begin 

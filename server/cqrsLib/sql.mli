@@ -15,12 +15,12 @@ type raw_result = string array array
 
 val query : string -> param list -> ( #Common.ctx, raw_result ) Run.t 
 
-(** A command is like a query, but returns no results, and will
-    block if a transaction is active (until the transaction ends). *)
+(** A safe query is like a query, but will block if a transaction is 
+    active (until the transaction ends).  *)
 
-val safe_command : string -> param list -> #Common.ctx Run.effect
+val safe_query : string -> param list -> ( #Common.ctx, raw_result ) Run.t
 
-(** Like [safe_command] but does not block when part of a transaction. *)
+(** A command is like a query, but does not results *)
 
 val command : string -> param list -> #Common.ctx Run.effect
 

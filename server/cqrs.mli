@@ -33,10 +33,6 @@ class cqrs_ctx : config -> object ('self)
   method with_db : Id.t -> 'self
 end
 
-(** An event writer is a function that writes events of the specified type to 
-    an underlying stream. *)
-type ('ctx, 'a) event_writer = 'a list -> ( 'ctx , unit ) Run.t
-
 module Clock : sig
 
   include Fmt.FMT
@@ -58,6 +54,10 @@ module Clock : sig
   val earlier_than_checkpoint : t -> t -> bool
     
 end
+
+(** An event writer is a function that writes events of the specified type to 
+    an underlying stream. *)
+type ('ctx, 'a) event_writer = 'a list -> ( 'ctx , Clock.t ) Run.t
 
 module Names : sig
 
@@ -230,12 +230,12 @@ module Sql : sig
 
   val query : string -> param list -> ( #ctx, raw_result ) Run.t 
 
-  (** A command is like a query, but returns no results, and will
-      block if a transaction is active (until the transaction ends). *)
+  (** A safe query will block if a transaction is active (until the 
+      transaction ends). *)
 
-  val safe_command : string -> param list -> #ctx Run.effect
+  val safe_query : string -> param list -> (#ctx, raw_result ) Run.t
 
-  (** Like [safe_command] but does not block when part of a transaction. *)
+  (** Like a query, but with no result expected. *)
 
   val command : string -> param list -> #ctx Run.effect
 

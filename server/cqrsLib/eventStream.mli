@@ -1,6 +1,6 @@
 open Common
 
-type ('ctx, 'a) event_writer = 'a list -> ( 'ctx, unit ) Run.t
+type ('ctx, 'a) event_writer = 'a list -> ( 'ctx, Clock.t ) Run.t
 
 module type STREAM = sig
   type event

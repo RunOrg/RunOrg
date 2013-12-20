@@ -7,6 +7,7 @@ module OpenHack = struct
   open Token
   open Persona
   open ServerAdmin
+  open Db
 end
 
 let () = Printexc.record_backtrace true
