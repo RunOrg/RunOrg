@@ -9,7 +9,7 @@ API.onLoginRequired = function() {
 		    Route.dispatch();
 		});		
 	    },{
-		siteName: 'RunOrg Server Administration',
+		siteName: i18n.title,
 		siteLogo: 'https://' + document.location.host + '/admin/logo.png'
 	    });
 	};
