@@ -4,6 +4,7 @@
 type 'a read_response = 
   [ `OK of 'a 
   | `Forbidden of string 
+  | `Unauthorized of string
   | `NotFound of string ]
 
 (** The type of an API POST, PUT or DELETE response. *)

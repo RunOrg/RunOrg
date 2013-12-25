@@ -7,7 +7,8 @@ type status =
   [ `OK 
   | `BadRequest
   | `RequestEntityTooLarge 
-  | `NotImplemented 
+  | `NotImplemented
+  | `Unauthorized 
   | `NotFound
   | `Forbidden
   | `MethodNotAllowed 

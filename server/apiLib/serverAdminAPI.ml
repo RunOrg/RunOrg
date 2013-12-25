@@ -2,7 +2,7 @@
 
 open Std
 
-let forbidden = `Forbidden "Token is not a server administrator"
+let forbidden = `Unauthorized "Token is not a server administrator"
 let bad_auth  = `Forbidden "Could not log in as server administrator"
 
 (* Administration UI 

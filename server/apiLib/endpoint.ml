@@ -34,6 +34,7 @@ let without_wildcards path_segs =
 type 'a read_response = 
   [ `OK of 'a 
   | `Forbidden of string 
+  | `Unauthorized of string
   | `NotFound of string ]
 
 type 'a write_response = 
@@ -44,6 +45,9 @@ let not_found error =
 
 let forbidden error = 
   Httpd.json ~status:`Forbidden (Json.Object [ "error", Json.String error ])
+
+let unauthorized error = 
+  Httpd.json ~status:`Unauthorized (Json.Object [ "error", Json.String error ])
 
 let method_not_allowed allowed = 
   Httpd.json ~headers:[ "Allowed", String.concat ", " allowed] ~status:`MethodNotAllowed
@@ -178,6 +182,7 @@ module Get = functor(A:GET_ARG) -> struct
       match out with 
       | `Forbidden error -> return (forbidden error)
       | `NotFound error -> return (not_found error) 
+      | `Unauthorized error -> return (unauthorized error) 
       | `OK out -> return (Httpd.json (A.Out.to_json out))
 
   let () = Dictionary.add (snd Dictionary.get action) path
@@ -210,6 +215,7 @@ module Post = functor(A:POST_ARG) -> struct
       | Some post -> let! out = A.response req args post in 
 		     match out with 
 		     | `Forbidden error -> return (forbidden error)
+		     | `Unauthorized error -> return (unauthorized error) 
 		     | `NotFound error -> return (not_found error) 
 		     | `OK out -> return (Httpd.json (A.Out.to_json out))
 		     | `Accepted out -> return (Httpd.json ~status:`Accepted (A.Out.to_json out))

@@ -58,6 +58,7 @@ type status =
   | `Forbidden 
   | `MethodNotAllowed 
   | `Accepted 
+  | `Unauthorized
   | `NotModified 
   | `InternalServerError ]
 

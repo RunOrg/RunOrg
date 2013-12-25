@@ -8,6 +8,7 @@ type status =
   | `BadRequest
   | `RequestEntityTooLarge 
   | `NotImplemented 
+  | `Unauthorized
   | `NotFound
   | `Forbidden
   | `MethodNotAllowed 
@@ -28,6 +29,7 @@ let status = function
   | `Accepted -> "202 Accepted"
   | `NotModified -> "304 Not Modified" 
   | `BadRequest -> "400 Bad Request" 
+  | `Unauthorized -> "401 Unauthorized"
   | `Forbidden -> "403 Forbidden"
   | `NotFound -> "404 Not Found"
   | `MethodNotAllowed -> "405 Method Not Allowed"
