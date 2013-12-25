@@ -53,3 +53,22 @@ module All = Endpoint.Get(struct
       return (`OK (Out.make ~admins))
 
 end)
+
+(* Create a new database 
+   ===================== *)
+
+module DbCreate = Endpoint.Post(struct
+
+  module Arg  = type module < token : Token.I.t >
+  module Post = type module < label : string >
+  module Out  = type module < id : Id.t ; at : Cqrs.Clock.t >
+
+  let path = "db/create"
+
+  let response req a p = 
+    let! token = Token.is_server_admin (a # token) in
+    match token with None -> return forbidden | Some token -> 
+      let! id, at = Db.create token (p # label) in
+      return (`Accepted (Out.make ~id ~at))
+
+end)
