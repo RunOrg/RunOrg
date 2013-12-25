@@ -29,7 +29,7 @@ type request = <
   params : (string, string) Map.t ;
 
   (** The token parameter value, if any. *)
-  token : string option ;
+  token : Token.I.t option ;
 
   (** The limit parameter value, if any. *)
   limit : int option ;

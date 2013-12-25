@@ -41,13 +41,13 @@ module All = Endpoint.Get(struct
 
   module Admin = type module < email : string ; fromConfig : bool >
 
-  module Arg = type module < token : Token.I.t >
+  module Arg = type module unit
   module Out = type module < admins : Admin.t list >
 
   let path = "admin/all" 
 
-  let response req a = 
-    let! token = Token.is_server_admin (a # token) in
+  let response req () = 
+    let! token = Option.M.bind Token.is_server_admin (req # token) in
     match token with None -> return forbidden | Some token -> 
       let! admins = ServerAdmin.all token in 
       return (`OK (Out.make ~admins))
@@ -59,14 +59,14 @@ end)
 
 module DbCreate = Endpoint.Post(struct
 
-  module Arg  = type module < token : Token.I.t >
+  module Arg  = type module unit
   module Post = type module < label : string >
   module Out  = type module < id : Id.t ; at : Cqrs.Clock.t >
 
   let path = "db/create"
 
-  let response req a p = 
-    let! token = Token.is_server_admin (a # token) in
+  let response req () p = 
+    let! token = Option.M.bind Token.is_server_admin (req # token) in
     match token with None -> return forbidden | Some token -> 
       let! id, at = Db.create token (p # label) in
       return (`Accepted (Out.make ~id ~at))

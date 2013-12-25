@@ -29,7 +29,7 @@ type t = <
   headers : (string, string) Map.t ;
   params : (string, string) Map.t ;
 
-  token : string option ;
+  token : Token.I.t option ;
   limit : int option ;
   offset : int option ; 
 
@@ -263,7 +263,7 @@ let parse config ssl_socket =
     try let header = Map.find "AUTHORIZATION" headers in
 	let prefix = "RUNORG token=" in
 	if String.starts_with header prefix 
-	then Some (String.lchop ~n:(String.length prefix) header)
+	then Some (Token.I.of_string (String.lchop ~n:(String.length prefix) header))
 	else None
     with Not_found -> None 
   in
