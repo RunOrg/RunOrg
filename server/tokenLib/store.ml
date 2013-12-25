@@ -46,7 +46,7 @@ let session_life = "interval '1 hour'"
 let load id = 
   let! result = Cqrs.Sql.query begin 
     "SELECT \"payload\" FROM \"" ^ dbname ^ "\" "
-    ^ "WHERE \"token\" = $1 AND \"created\" < timestamp 'now' - " ^ session_life
+    ^ "WHERE \"token\" = $1 AND \"created\" > timestamp 'now' - " ^ session_life
   end [ `String (I.to_string id) ] in
   return (Cqrs.Result.unpack result Owner.unpack)
 
