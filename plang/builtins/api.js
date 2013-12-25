@@ -3,6 +3,9 @@
 var API = (function(){
    
     var token = null,
+
+        // The clock is stored in JSON serialized format. The corresponding JSON
+        // is an array of [stream,pos] integer pairs. 
         clock = null;
 
     // Generic AJAX function used for sending requests
@@ -33,9 +36,17 @@ var API = (function(){
 		// 202 code indicates that the request was taken into account,
 		// and includes a clock value
 		202: function(data) {
-		    var c = clock ? JSON.parse(clock) : {}, k;
-		    for (k in data.at) c[k] = data.at[k];
-		    clock = JSON.serialize(c);
+		    var c = clock ? JSON.parse(clock) : [], i, j;
+
+		    // Merge the new clock value with the old one
+		    for (i = 0; i < data.at.length; ++i) {
+			for (j = 0; j < c.length; ++j) 
+			    if (c[j][0] == data.at[i][0]) { c[j][1] = data.at[i][1]; break; }
+			if (j == c.length) 
+			    c.push(data.at[i]);
+		    }
+
+		    clock = JSON.stringify(c);
 		    success();
 		},
 
