@@ -12,7 +12,7 @@ exception NotImplemented of string
 (* Request parser logging 
    ====================== *)
 
-let log_enabled = true 
+let log_enabled = false
 
 (* A parsed HTTP request
    ===================== *)
