@@ -55,9 +55,14 @@ end
    ======= *)
 
 let count _ = 
-  return 0 
+  Cqrs.MapView.count View.all 
 
 let all ~limit ~offset _ = 
-  let limit  = clamp 0 100000 limit in 
-  let offset = clamp 0 max_int offset in 
-  return []
+  let  limit  = clamp 0 100000 limit in 
+  let  offset = clamp 0 max_int offset in 
+  let! list = Cqrs.MapView.all ~limit ~offset View.all in
+  return (List.map (fun (id, db) -> (object 
+    method id = id
+    method created = db # created
+    method label = db # label
+  end)) list)
