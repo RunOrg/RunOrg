@@ -23,6 +23,34 @@ let create _ label =
   let! clock = Run.edit_context (fun ctx -> ctx # with_db id) (Stream.append [event]) in
   return (id, clock) 
 
+(* Projection and views
+   ==================== *)
+
+module View = struct
+
+  let projection = Cqrs.Projection.make "db" (fun () -> new O.ctx) 
+
+  (* A view of all databases *)
+  module Item = type module < created : Time.t ; label : string >
+  let all = 
+
+    let allV, all = Cqrs.MapView.make projection "all" 0 
+      (module Id : Fmt.FMT with type t = Id.t)
+      (module Item : Fmt.FMT with type t = Item.t) in
+
+    let () = Stream.track allV begin function 
+
+      | `DatabaseCreated label -> 
+	let! ctx  = Run.context in 
+	let  created = ctx # time and id = ctx # db in 
+	Cqrs.MapView.update all id (fun _ -> `Put (Item.make ~created ~label))
+
+    end in 
+
+    all
+    
+end
+
 (* Queries 
    ======= *)
 
