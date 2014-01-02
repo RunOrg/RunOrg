@@ -81,7 +81,7 @@ let get_id_and_version t =
       
       let! () = Sql.command begin
 	"INSERT INTO \"meta:projections\" (\"name\", \"hash\", \"version\", \"clock\")"
-	^ "SELECT $1, $2, 1 + COALESCE(MAX(\"version\"),0), $3 FROM \"meta:projections\" "
+	^ "SELECT CAST($1 as varchar), $2, 1 + COALESCE(MAX(\"version\"),0), $3 FROM \"meta:projections\" "
 	^ "WHERE \"name\" = $1 AND \"hash\" = $2"
       end [ `String t.name ; `String hash ; `Binary (Pack.to_string Clock.pack Clock.empty) ] in
       
