@@ -30,4 +30,6 @@ let count _ =
   return 0 
 
 let all ~limit ~offset _ = 
+  let limit  = clamp 0 100000 limit in 
+  let offset = clamp 0 max_int offset in 
   return []
