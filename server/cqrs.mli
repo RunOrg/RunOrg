@@ -194,6 +194,13 @@ module MapView : sig
   (** Grab a value from a map. *)
   val get : ('key, 'value) t -> 'key -> (# ctx, 'value option) Run.t
 
+  (** Grabs all values from the map, ordered by the binary representation of the key. *)
+  val all : ?limit:int -> ?offset:int -> ('key,'value) t ->
+    (# ctx, ('key * 'value) list) Run.t
+
+  (** Returns the number of key-value pairs in the map. *)
+  val count : ('key,'value) t -> (#ctx, int) Run.t
+
 end
 
 (** Keeping track of running instances. *)

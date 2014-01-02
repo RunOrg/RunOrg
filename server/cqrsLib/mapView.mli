@@ -22,3 +22,7 @@ val mupdate : ('key, 'value) t -> 'key ->
 
 val get : ('key, 'value) t -> 'key -> (# Common.ctx, 'value option) Run.t
 
+val all : ?limit:int -> ?offset:int -> ('key,'value) t ->
+  (#Common.ctx, ('key * 'value) list) Run.t
+
+val count : ('key,'value) t -> (#Common.ctx, int) Run.t

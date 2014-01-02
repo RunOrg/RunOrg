@@ -1,11 +1,13 @@
 (* © 2013 RunOrg *)
 
 open Common
+open Std
 
 module Names = Names
 
 type ('key, 'value) t = {
   kpack  : 'key Pack.packer ;
+  kupack : 'key Pack.unpacker ; 
   vpack  : 'value Pack.packer ; 
   vupack : 'value Pack.unpacker ; 
   name   : string ;
@@ -29,7 +31,7 @@ let create (type k) (type v) name dbname key value =
 	     ^ ");") []
   end in
 
-  { name ; dbname ; kpack = Key.pack ; vpack = Value.pack ; vupack = Value.unpack }
+  { name ; dbname ; kpack = Key.pack ; kupack = Key.unpack ; vpack = Value.pack ; vupack = Value.unpack }
 
 let make projection name version key value = 
   
@@ -84,4 +86,28 @@ let mupdate map k f =
 
 let update map k f = mupdate map k (fun v -> Run.return (f v))		 
 		   
-    
+(* Querying the map size
+   ===================== *)
+
+let count map = 
+
+  let! dbname = Run.edit_context (fun ctx -> (ctx :> ctx)) map.dbname in 
+  let! result = Sql.query ("SELECT COUNT(*) FROM \"" ^ dbname ^ "\"") [] in
+  Run.return (Option.default 0 (Result.int result))
+
+(* Querying all values 
+   =================== *)
+
+let all ?(limit=1000) ?(offset=0) map = 
+  
+  let! dbname = Run.edit_context (fun ctx -> (ctx :> ctx)) map.dbname in 
+  let! result = Sql.query 
+    (!! "SELECT \"key\", \"value\" FROM \"%s\" ORDER BY \"key\" LIMIT %d OFFSET %d" dbname limit offset) 
+    [] in
+  
+  Run.return 
+    (List.map 
+       (fun a -> let key = Pack.of_string map.kupack (Postgresql.unescape_bytea a.(0)) in
+		 let value = Pack.of_string map.vupack (Postgresql.unescape_bytea a.(1)) in
+		 (key, value))
+       (Array.to_list result))

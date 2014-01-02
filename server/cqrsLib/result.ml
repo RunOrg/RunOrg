@@ -12,3 +12,6 @@ let bytes r =
 
 let unpack r unpacker = 
   Option.map (Pack.of_string unpacker) (bytes r)
+
+let int r = 
+  Option.map int_of_string (string r)
