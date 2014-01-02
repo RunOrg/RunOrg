@@ -72,3 +72,27 @@ module Db_Create = Endpoint.Post(struct
       return (`Accepted (Out.make ~id ~at))
 
 end)
+
+(* List all available databases 
+   ============================ *)
+
+module Db_All = Endpoint.Get(struct
+
+  module Arg = type module < 
+   ?limit : int = 100 ; 
+   ?offset : int = 0
+  >
+
+  module Item = type module < id : Id.t ; label : string ; created : Time.t >
+  module Out  = type module < count : int ; list : Item.t list >
+
+  let path = "db/all"
+
+  let response req p = 
+    let! token = Option.M.bind Token.is_server_admin (req # token) in 
+    match token with None -> return forbidden | Some token ->      
+      let! list  = Db.all ~limit:(p # limit) ~offset:(p # offset) token in 
+      let! count = Db.count token in   
+      return (`OK (Out.make ~count ~list))
+
+end)
