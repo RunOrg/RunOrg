@@ -37,6 +37,36 @@
   let int i = 
     try Int (int_of_string i) with _ -> Int max_int
 
+  (** String representation of a token *)
+  let string_of_token = function
+    | Html h -> "Html(" ^ (if String.length h > 10 then String.sub h 0 10 ^ "..." else h) ^ ")"
+    | Block b -> "Block(" ^ b ^ ")" 
+    | EndCall -> "EndCall"
+    | BeginBlock -> "BeginBlock"
+    | EndEcho -> "EndEcho"
+    | EndId -> "EndId"
+    | EndI18n -> "EndI18n"
+    | EndSub -> "EndSub"
+    | Eof -> "Eof"
+    | BeginEcho -> "BeginEcho"
+    | BeginId -> "BeginId"
+    | BeginI18n -> "BeginI18n"
+    | BeginSub -> "BeginSub"
+    | BeginCall -> "BeginCall"
+    | Literal l -> "Literal(" ^ l ^ ")"
+    | Int i -> "Int(" ^ string_of_int i ^ ")"
+    | Name n -> "Name(" ^ n ^ ")"
+    | Comparison _ -> "Comparison"
+    | And -> "And"
+    | Or -> "Or"
+    | Not -> "Not"
+    | Self -> "Self"
+    | OpenBracket -> "OpenBracket"
+    | CloseBracket -> "CloseBracket"
+    | OpenParen -> "OpenParen"
+    | CloseParen -> "CloseParen"
+    | Dot -> "Dot"
+
 }
 
 let wsp = [ ' ' '\t' ] * 
