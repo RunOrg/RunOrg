@@ -57,7 +57,7 @@ end)
 (* Create a new database 
    ===================== *)
 
-module DbCreate = Endpoint.Post(struct
+module Db_Create = Endpoint.Post(struct
 
   module Arg  = type module unit
   module Post = type module < label : string >
