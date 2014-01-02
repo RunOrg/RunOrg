@@ -2,7 +2,5 @@ let config = Cqrs.(Configuration.Database.({ host ; port ; user ; database ; pas
 
 class ctx = object
   inherit Cqrs.cqrs_ctx config
-  val time = Time.now () 
-  method time = time 
 end 
 
