@@ -53,10 +53,10 @@ block:
 
 callBlocks:
   | { None }
-  | BeginBlock ; f = file ; l = list(namedCallBlock) { Some (f, l) }
+  | BeginBlock ; f = list(block) ; l = list(namedCallBlock) { Some (f, l) }
 
 namedCallBlock:
-  | n = Block ; f = file { (n,f) }
+  | n = Block ; f = list(block) { (n,f) }
 
 path: 
   | l = separated_nonempty_list(Dot,Name) { l }
