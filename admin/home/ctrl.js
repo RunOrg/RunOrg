@@ -1,6 +1,8 @@
 /* Home controller */
 
 Route.add(/^\/admin$/, function(R) {
-    R["home/page"]();
-    R.show();
+    API.GET("/db/all",{},function(data) {
+	R["home/page"](data);
+	R.show();
+    });
 });

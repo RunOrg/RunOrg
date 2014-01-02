@@ -1,1 +1,11 @@
-<div id="home"></div>
+<div id="home">
+  <table>
+    {< each list }
+      <tr> 
+	<td><code>{{ id }}</code></td>
+	<td>{{ label }}</td>
+	<td>{: date created :}</td>
+      </tr>
+    {>} 
+  </table>
+</div>
