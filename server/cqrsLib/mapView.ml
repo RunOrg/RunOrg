@@ -120,7 +120,7 @@ let all ?(limit=1000) ?(offset=0) map =
   let! ctx = Run.context in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   let! result = Sql.query 
-    (!! "SELECT \"key\", \"value\" FROM \"%s\" ORDER BY \"key\" WHERE \"db\" = $1 LIMIT %d OFFSET %d" 
+    (!! "SELECT \"key\", \"value\" FROM \"%s\" WHERE \"db\" = $1 ORDER BY \"key\" LIMIT %d OFFSET %d" 
 	dbname limit offset) 
     [ `Id (ctx # db) ] in
   
