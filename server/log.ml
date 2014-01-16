@@ -6,8 +6,8 @@ let folder_path prefix t =
   Filename.concat prefix (Printf.sprintf "%04d-%02d-%02d" y m d)
   
 (* Returns the file basename for a specified role name. *)
-let file_name rolename error = 
-  rolename ^ (if error then ".error.log" else ".log")
+let file_name error = 
+  if error then "error.log" else "trace.log"
 
 (* Creates a function that returns the opened channel for the specified time. 
    The file is kept open until the next day. *)
@@ -36,18 +36,15 @@ let file role error =
       (* Return the channel if it's opened. *)
       match !chanref with Some channel -> channel | None ->
 
-	let rolename = match role with 
-	  | `Bot -> "bot"
-	  | `Web -> "web"
-	  | `Reset -> assert false (* Should have returned STDOUT or STDERR above *)
-	in
+	(* Should have returned STDOUT or STDERR above *)
+	let () = assert (role <> `Reset) in
 
 	(* TODO: catch exceptions below *)
 
 	let folder = folder_path prefix t in
 	( try Unix.mkdir folder 0o755 with Unix.Unix_error (Unix.EEXIST, _, _) -> () ) ; 	
 
-	let path = Filename.concat folder (file_name rolename error) in 
+	let path = Filename.concat folder (file_name error) in 
 	let channel = open_out_gen [Open_append;Open_creat] 0o644 path in
 
 	chanref := Some channel ;

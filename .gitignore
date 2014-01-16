@@ -1,5 +1,4 @@
-.www/
-.bot/
+.server/
 runorg
 server/main.byte
 server/_build

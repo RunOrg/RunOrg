@@ -1,6 +1,6 @@
 (* © 2013 RunOrg *)
 
-type role = [ `Bot | `Web | `Reset ]
+type role = [ `Run | `Reset ]
 
 (** The role of this instance, as parsed from the command line. *)
 val role : role

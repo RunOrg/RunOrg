@@ -5,9 +5,9 @@ open Common
 
 let start () = 
 
-  let start typ = 
+  let start () = 
     
-    let! version = Run.edit_context (fun ctx -> (ctx :> ctx)) (Names.version ()) in 
+    let! hash = Run.edit_context (fun ctx -> (ctx :> ctx)) (Names.version ()) in 
     let pid = Unix.getpid () in
     let host = 
       let addrs = (Unix.gethostbyname (Unix.gethostname ())).Unix.h_addr_list in
@@ -15,18 +15,17 @@ let start () =
     in
 
     let! result = Sql.query begin
-      "INSERT INTO \"meta:runs\" (\"type\", \"version\", \"host\", \"pid\", \"started\", \"heartbeat\") " 
+      "INSERT INTO \"meta:runs\" (\"version\", \"hash\", \"host\", \"pid\", \"started\", \"heartbeat\") " 
       ^ "VALUES ($1, $2, $3, $4, 'now', 'now') " 
       ^ "RETURNING \"id\""
-    end [ `String typ ; `String version ; `String host ; `Int pid ] in 
+    end [ `String RunorgVersion.version_string ; `String hash ; `String host ; `Int pid ] in 
 
     Run.return (Some (int_of_string (result.(0).(0))))
 
   in
 
   match Configuration.role with
-  | `Web -> start "WEB"
-  | `Bot -> start "BOT"
+  | `Run -> start ()
   |  _   -> Run.return None
 
 (* Asking for a global shutdown
@@ -69,8 +68,8 @@ let () =
   Sql.on_first_connection (Sql.command begin
     "CREATE TABLE IF NOT EXISTS \"meta:runs\" ( "
     ^ "\"id\" SERIAL, "
-    ^ "\"type\" CHAR(3) NOT NULL, " 
-    ^ "\"version\" CHAR(40) NOT NULL, "
+    ^ "\"version\" VARCHAR(10) NOT NULL, "
+    ^ "\"hash\" CHAR(40) NOT NULL, "
     ^ "\"host\" VARCHAR(100) NOT NULL, "
     ^ "\"pid\" INTEGER NOT NULL, "
     ^ "\"started\" TIMESTAMP NOT NULL, "

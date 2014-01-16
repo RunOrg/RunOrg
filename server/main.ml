@@ -20,32 +20,23 @@ let exn_handler = function
   | Cqrs.Running.Shutdown -> false
   | _ -> true
 
-let web_loop () = 
-  Log.trace "Starting web server %s" RunorgVersion.version_string ;
-  let respond = Api.run () in 
+let run_loop () = 
+  Log.trace "Server background process %s" RunorgVersion.version_string ;
+  let respond = Api.run () in
   begin 
     try 
       Run.start ~exn_handler () [
-	Cqrs.Running.heartbeat (mkctx ()) ;
+	Cqrs.Running.heartbeat (mkctx ()) ;	
+	Cqrs.Projection.run () ;      
 	respond
-      ] 
+      ]
     with Cqrs.Running.Shutdown -> () 
   end ;
   exit 0
-
-let bot_loop () = 
-  Log.trace "Starting background process %s" RunorgVersion.version_string ;
-  try 
-    Run.start ~exn_handler () [
-      Cqrs.Running.heartbeat (mkctx ()) ;	
-      Cqrs.Projection.run () ;
-    ]
-  with Cqrs.Running.Shutdown -> () 
-  
+ 
 let () =   
   match Configuration.role with
-  | `Web   -> web_loop ()
-  | `Bot   -> bot_loop ()
+  | `Run -> run_loop ()
   | `Reset -> Log.trace "Starting global reset." ; Cqrs.Running.reset (mkctx ())
     
 

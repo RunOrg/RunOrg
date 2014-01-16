@@ -1,9 +1,7 @@
-type role = [ `Bot | `Web | `Reset ]
+type role = [ `Run | `Reset ]
 
 let role =
-  if BatArray.mem "bot" Sys.argv then `Bot 
-  else if BatArray.mem "reset" Sys.argv then `Reset 
-  else `Web
+  if BatArray.mem "reset" Sys.argv then `Reset else `Run
 
 let to_stdout = 
   BatArray.mem "-stdout" Sys.argv

@@ -19,17 +19,11 @@ clean:
 	make -C server clean
 
 start:
-	mkdir .bot 
-	echo "#!/bin/sh\ncd ..\n./runorg bot\n" > .bot/run 
-	chmod u+x .bot/run
-	supervise .bot & 
-	mkdir .www
-	echo "#!/bin/sh\ncd ..\n./runorg www\n" > .www/run 
-	chmod u+x .www/run
-	supervise .www & 
+	mkdir .server
+	echo "#!/bin/sh\ncd ..\n./runorg\n" > .server/run 
+	chmod u+x .server/run
+	supervise .server & 
 
 stop:
-	svc -d .bot || echo "bot was not running"
-	rm -rf .bot
-	svc -d .www || echo "web server was not running"
-	rm -rf .www
+	svc -d .server || echo "server was not running"
+	rm -rf .server
