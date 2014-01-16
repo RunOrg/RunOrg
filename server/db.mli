@@ -16,3 +16,6 @@ val all :
   [`ServerAdmin] Token.I.id ->
   (# Cqrs.ctx, < id : Id.t ; label : string ; created : Time.t > list) Run.t
 
+(** Returns a context for the specified database, after checking that the database
+    exists. *)
+val ctx : Id.t -> (# Cqrs.ctx as 'ctx, 'ctx option) Run.t

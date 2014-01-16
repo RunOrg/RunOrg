@@ -65,6 +65,16 @@ let full_get map k =
 let get map k =   
   let! _, _, r = full_get map k in Run.return r
 
+let exists map k = 
+  
+  let  k = Pack.to_string map.kpack k in
+
+  let! dbname = Run.edit_context (fun ctx -> (ctx :> ctx)) map.dbname in 
+  let! result = Sql.query 
+    ("SELECT 1 FROM \"" ^ dbname ^ "\" WHERE \"key\" = $1") [ `Binary k ] in
+
+  return (Array.length result > 0)
+
 (* Updating the map contents
    ========================= *)
 

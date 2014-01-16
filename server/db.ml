@@ -66,3 +66,11 @@ let all ~limit ~offset _ =
     method created = db # created
     method label = db # label
   end)) list)
+
+let ctx id = 
+  let! exists = Cqrs.MapView.exists View.all id in
+  if exists then 
+    let! ctx = Run.context in 
+    return (Some (ctx # with_db id))
+  else
+    return None

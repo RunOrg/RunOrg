@@ -194,6 +194,9 @@ module MapView : sig
   (** Grab a value from a map. *)
   val get : ('key, 'value) t -> 'key -> (# ctx, 'value option) Run.t
 
+  (** Checks if a value in a map exists. *)
+  val exists : ('key, 'value) t -> 'key -> (# ctx, bool) Run.t
+
   (** Grabs all values from the map, ordered by the binary representation of the key. *)
   val all : ?limit:int -> ?offset:int -> ('key,'value) t ->
     (# ctx, ('key * 'value) list) Run.t

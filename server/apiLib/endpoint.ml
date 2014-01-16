@@ -56,6 +56,13 @@ let method_not_allowed allowed =
 let bad_request error = 
   Httpd.json ~status:`BadRequest (Json.Object [ "error", Json.String error ])
 
+let respond to_json = function
+  | `Forbidden error -> forbidden error
+  | `NotFound error -> not_found error
+  | `Unauthorized error -> unauthorized error
+  | `OK out -> Httpd.json (to_json out)
+  | `Accepted out -> Httpd.json ~status:`Accepted (to_json out)
+
 (* Storage for all endpoints
    ========================= *)
 
@@ -158,7 +165,6 @@ module Dictionary = struct
 	try List.find_map lens list req 
 	with Not_found -> return (method_not_allowed (allow h))
 
-
 end
 
 (* GET endpoints
@@ -179,13 +185,27 @@ module SGet = functor(A:GET_ARG) -> struct
   let action req =     
     match argparse req with None -> return (bad_request "Could not parse parameters") | Some args ->
       let! out = A.response req args in 
-      match out with 
-      | `Forbidden error -> return (forbidden error)
-      | `NotFound error -> return (not_found error) 
-      | `Unauthorized error -> return (unauthorized error) 
-      | `OK out -> return (Httpd.json (A.Out.to_json out))
+      return (respond A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.get action) path
+
+end
+
+module Get = functor(A:GET_ARG) -> struct
+
+  let path = split ("db/{-}/" ^ A.path) 
+  let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+    
+  let action req = 
+    let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
+    match db with None -> return (bad_request "Could not parse parameters") | Some db ->
+      match argparse req with None -> return (bad_request "Could not parse parameters") | Some args ->
+	let! ctx = Db.ctx (Id.of_string db) in
+	match ctx with None -> return (not_found (!! "Database %s does not exist" db)) | Some ctx ->
+	  Run.with_context ctx begin
+	    let! out = A.response req args in
+	    return (respond A.Out.to_json out)
+	  end
 
 end
 
@@ -213,12 +233,7 @@ module SPost = functor(A:POST_ARG) -> struct
       match Option.bind (json req) A.Post.of_json_safe with 
       | None -> return (bad_request "Could not parse body") 
       | Some post -> let! out = A.response req args post in 
-		     match out with 
-		     | `Forbidden error -> return (forbidden error)
-		     | `Unauthorized error -> return (unauthorized error) 
-		     | `NotFound error -> return (not_found error) 
-		     | `OK out -> return (Httpd.json (A.Out.to_json out))
-		     | `Accepted out -> return (Httpd.json ~status:`Accepted (A.Out.to_json out))
+		     return (respond A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.post action) path
 
