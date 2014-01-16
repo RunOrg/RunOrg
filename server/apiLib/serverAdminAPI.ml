@@ -18,7 +18,7 @@ let () =
 (* Authenticate as a server administrator 
    ====================================== *)
 
-module Auth_Persona = Endpoint.Post(struct
+module Auth_Persona = Endpoint.SPost(struct
 
   module Arg  = type module unit
   module Post = type module < assertion : string >
@@ -37,7 +37,7 @@ end)
 (* List of all registered administrators 
    ===================================== *)
 
-module All = Endpoint.Get(struct
+module All = Endpoint.SGet(struct
 
   module Admin = type module < email : string ; fromConfig : bool >
 
@@ -57,7 +57,7 @@ end)
 (* Create a new database 
    ===================== *)
 
-module Db_Create = Endpoint.Post(struct
+module Db_Create = Endpoint.SPost(struct
 
   module Arg  = type module unit
   module Post = type module < label : string >
@@ -76,7 +76,7 @@ end)
 (* List all available databases 
    ============================ *)
 
-module Db_All = Endpoint.Get(struct
+module Db_All = Endpoint.SGet(struct
 
   module Arg = type module < 
    ?limit : int = 100 ; 

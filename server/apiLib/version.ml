@@ -2,7 +2,7 @@
 
 open Std
 
-include Endpoint.Get(struct
+include Endpoint.SGet(struct
 
   module Arg = type module unit
   module Out = type module < version : string >

@@ -11,8 +11,7 @@ type 'a read_response =
 type 'a write_response = 
   [ 'a read_response | `Accepted of 'a ]
 
-(** The type of a configuration module for a GET endpoint
-    (at the server level) *)
+(** The type of a configuration module for a GET endpoint. *)
 module type GET_ARG = sig
 
   (** A format that is able to parse an array of arguments 
@@ -33,8 +32,8 @@ module type GET_ARG = sig
 
 end
 
-(** Create a get endpoint. *)
-module Get : functor(A:GET_ARG) -> sig end
+(** Create a get endpoint at the server level (no URL path prefix). *)
+module SGet : functor(A:GET_ARG) -> sig end
 
 (** The type of a configuration module for a POST endpoint
     (at the server level) *)
@@ -61,8 +60,8 @@ module type POST_ARG = sig
 
 end
 
-(** Create a post endpoint. *)
-module Post : functor(A:POST_ARG) -> sig end
+(** Create a post endpoint at the server level (no URL path prefix). *)
+module SPost : functor(A:POST_ARG) -> sig end
 
 (** Create a static endpoint. [static url mimetype path] responds to GET requests with 
     data loaded from the specified path, with the provided mime-type. *)

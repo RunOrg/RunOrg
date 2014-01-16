@@ -171,7 +171,7 @@ module type GET_ARG = sig
   val response : Httpd.request -> Arg.t -> (O.ctx, Out.t read_response) Run.t
 end
 
-module Get = functor(A:GET_ARG) -> struct
+module SGet = functor(A:GET_ARG) -> struct
 
   let path = split A.path
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
@@ -200,7 +200,7 @@ module type POST_ARG = sig
   val response : Httpd.request -> Arg.t -> Post.t -> (O.ctx, Out.t write_response) Run.t
 end
 
-module Post = functor(A:POST_ARG) -> struct
+module SPost = functor(A:POST_ARG) -> struct
 
   let path = split A.path
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
