@@ -7,6 +7,7 @@ type operation = {
 type param = 
   [ `Binary of string 
   | `String of string 
+  | `Id of Id.t
   | `Int of int ] 
 
 type result = string array array 
@@ -107,12 +108,14 @@ let start query params (sql:Postgresql.connection) =
   let binary_params = Array.of_list (List.map (function
     | `Binary _ -> true
     | `String _ 
+    | `Id _ 
     | `Int _ -> false
   ) params) in 
 
   let params = Array.of_list (List.map (function 
     | `Binary s 
     | `String s -> s
+    | `Id     i -> Id.to_string i
     | `Int    i -> string_of_int i  
   ) params) in
 

@@ -31,6 +31,7 @@ val on_first_connection : ctx Run.effect ref
 type param = 
   [ `Binary of string 
   | `String of string 
+  | `Id of Id.t
   | `Int of int ] 
 
 type result = string array array 

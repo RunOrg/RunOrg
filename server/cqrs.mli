@@ -228,6 +228,7 @@ module Sql : sig
   (** The type of parameters to raw queries. *)
   type param = [ `Binary of string
 	       | `String of string 
+	       | `Id of Id.t
 	       | `Int of int ] 
 
   (** The type of raw results. *)
