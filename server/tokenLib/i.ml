@@ -1,4 +1,4 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 open Std
 
@@ -6,7 +6,6 @@ include Id.Phantom
 
 module Assert = struct
   let server_admin id = id
-  let admin id = id
 end
 
 (* We cannot use the standard generation function here, because its output is 
