@@ -18,7 +18,7 @@ let argparse (type t) (a : (module Fmt.FMT with type t = t)) path_segs =
   let module F = (val a : Fmt.FMT with type t = t) in
   let seg_bindings = List.filter_map identity 
     (List.mapi (fun i seg -> if seg.[0] = '{' && seg.[String.length seg - 1] = '}' then
-	Some (i, String.sub seg 0 (String.length seg - 2)) else None) path_segs) in  
+	Some (i, String.sub seg 1 (String.length seg - 2)) else None) path_segs) in  
   fun req ->
     let path = Array.of_list (req # path) in
     let map = List.fold_left (fun map (i,n) -> Map.add n path.(i) map) (req # params) seg_bindings in
