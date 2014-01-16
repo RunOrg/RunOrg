@@ -9,6 +9,7 @@ module OpenHack = struct
   open ServerAdmin
   open Db
   open Contact
+  open Gravatar
 end
 
 let () = Printexc.record_backtrace true
