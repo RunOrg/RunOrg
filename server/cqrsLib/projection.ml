@@ -59,7 +59,7 @@ let hash t =
       (List.map (fun (n,v) -> n ^ "@" ^ string_of_int v) 
 	 (List.sort compare t.contents)) in
     let h = Sha1.to_hex (Sha1.string blob) in
-   t. hash <- Some h ; h 
+    t.hash <- Some h ; h 
 
 (* Helper function for computing the identifier and version of a projection
    (done in a single function because both values are raead from the database
@@ -68,6 +68,8 @@ let hash t =
    This function updates the projection fields. Once this is done, no more views
    may be registered. *)
 let get_id_and_version t = 
+
+  let! _ = return () in (* Wait until the return value is evaluated to start the loop. *)
 
   Run.loop begin fun continue -> 
     
