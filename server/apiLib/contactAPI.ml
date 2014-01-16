@@ -19,7 +19,7 @@ module Import = Endpoint.Post(struct
     at        : Cqrs.Clock.t ;
   >
 
-  let path = "contact/import"
+  let path = "contacts/import"
 
   let response req () post = 
 
@@ -39,4 +39,24 @@ module Import = Endpoint.Post(struct
 
     return (`Accepted out) 
 			      
+end)
+
+module Get = Endpoint.Get(struct
+
+  module Arg = type module < cid : CId.t >
+
+  module Out = type module <
+    id     : CId.t ;
+    name   : string ; 
+    gender : [`F|`M] option ;
+    pic    : string ; 
+  >
+
+  let path = "contacts/{cid}"
+
+  let response req args = 
+    let! contact_opt = Contact.get (args # cid) in 
+    match contact_opt with Some contact -> return (`OK contact) | None ->
+      return (`NotFound (!! "Contact '%s' does not exist" (CId.to_string (args # cid))))
+    
 end)
