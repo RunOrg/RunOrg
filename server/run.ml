@@ -439,11 +439,82 @@ let start ?(exn_handler=(fun _ -> true)) ctx ms =
   
   eval ctx (ForList.iter retry ms) 
 
+(* Sleeping
+   ======== *)
+
+module S = Set.Make(struct
+  type t = float * (unit -> unit)
+  let compare (ta,_) (tb,_) = compare ta tb
+end) 
+
+(* A sorted set of (wake-up time, channel) pairs, and a wakeup thread id. *)
+let sleep_wakeup_queue = ref (None, S.empty)
+let sleep_wakeup_queue_mutex = Mutex.create () 
+
+(* Perform an atomic update of the sleep queue. The argument function may be 
+   called several times. *)
+let rec update_sleep_wakeup_queue update = 
+  let old_thread_id, old_set = !sleep_wakeup_queue in 
+  let result, thread_id, set = update (old_thread_id, old_set) in
+  Mutex.lock sleep_wakeup_queue_mutex ;
+  let new_thread_id, new_set = !sleep_wakeup_queue in 
+  let same = new_thread_id = old_thread_id && new_set == old_set in
+  if same then sleep_wakeup_queue := (thread_id, set) ;
+  Mutex.unlock sleep_wakeup_queue_mutex ; 
+  if same then result else update_sleep_wakeup_queue update
+
+(* The number of live wake-up threads. *)
+let wakeup_threads = ref 0 
+
 let sleep duration = 
+
   let channel = Event.new_channel () in
-  let _ = Thread.create 
-    (fun d -> 
-      Thread.delay d ; 
-      Event.sync (Event.send channel ())) 
-    (duration /. 1000.) in
+  let waketime = Unix.gettimeofday () +. duration /. 1000. in 
+  
+  let wake () = Event.sync (Event.send channel ()) in
+
+  (* Code run by the thread. Waits until the next event, then wakes up 
+     all the elements that should be woken up, IF it is still the 
+     active thread. *)
+  let rec wait_thread time = 
+
+    incr wakeup_threads ; 
+
+    let wake = max 0. (time -. Unix.gettimeofday ()) in
+    if wake > 0. then Thread.delay wake ;
+
+    let infSet, supSet = update_sleep_wakeup_queue begin fun (thread_id_opt, set) ->
+      if thread_id_opt <> Some Thread.(id (self ())) 
+      then (S.empty,S.empty), thread_id_opt, set 
+      else
+	let now = Unix.gettimeofday () in 
+	let supSet, infSet = S.partition (fun (time,_) -> time > now) set in 
+	let empty = S.is_empty supSet in
+	(infSet, supSet), (if empty then None else thread_id_opt), supSet
+    end in
+
+    S.iter (fun (_,wakeup) -> wakeup ()) infSet ; 
+
+    decr wakeup_threads ; 
+
+    try wait_thread (fst (S.min_elt supSet)) with Not_found -> () 
+
+  in
+  
+  (* Add the wake-up event to the queue, and start a new wake-up thread if
+     the current one is not active or will wake up too late. *)
+  let () = update_sleep_wakeup_queue begin fun (thread_id_opt, set) -> 
+  
+    (* We only support up to 500ms precision on wake-ups. *)
+    let lowest = try waketime +. 500. < fst (S.min_elt set) with Not_found -> true in
+    let set = S.add (waketime, wake) set in 
+    let tid = match thread_id_opt with 
+      | Some tid when not lowest -> Some tid 
+      | _ -> Some (Thread.(id (create wait_thread waketime))) in
+
+    (), tid, set
+
+  end in
+
   of_channel channel 
+
