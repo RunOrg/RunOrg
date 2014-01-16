@@ -71,5 +71,5 @@ let all ~limit ~offset _ =
 let ctx id = 
   let! ctx = Run.context in 
   let  ctx = ctx # with_db id in 
-  let! exists = Cqrs.MapView.exists View.all () in
+  let! exists = Run.with_context ctx (Cqrs.MapView.exists View.all ()) in
   return (if exists then Some ctx else None) 
