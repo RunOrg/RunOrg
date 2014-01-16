@@ -235,28 +235,34 @@ let of_finite_cursor fetch cursor =
 
   { finite = true ; next ; wait }
 
-let of_infinite_cursor fetch cursor = 
-
+let of_infinite_cursor ?(wait=10000.0) fetch cursor = 
 
   let q = Queue.create () in
   let semaphore = new Run.semaphore in 
   let cursor = ref cursor in  
   let runs = ref false in
 
-  let rec run () = 
-    if !runs then return () else  
-      let () = runs := true in 
-      let! list, c = fetch !cursor in 
-      let () = 
-	runs := false ;
-	cursor := Some c ;
-	List.iter (fun x -> Queue.push x q) list ;
-      in
-      if list = [] then 
-	let! () = Run.sleep 2000. in
-	run () 
-      else 
-	semaphore # give (List.length list)
+  (* Extracts data from the source. Keeps going until data is available. *)
+  let rec extract () = 
+    let! list, c = fetch !cursor in 
+    let () = 
+      cursor := Some c ;
+      List.iter (fun x -> Queue.push x q) list ;
+    in
+    if list = [] then 
+      let! () = Run.sleep wait in
+      extract () 
+    else       
+      return (fun () -> semaphore # give (List.length list))
+  in
+
+  (* Makes sure there is a single "extract" process running. *)
+  let run () = 
+    if !runs then return () else        
+      let  () = runs := true in 
+      let! finish = extract () in 
+      let  () = runs := false in      
+      finish () 
   in
 
   let rec next () = 

@@ -71,7 +71,11 @@ val of_finite_cursor :
     Marked as blocked when there are no more elements currently available
     (the query returns an empty list). Blocking is critical : querying can
     take unbounded time.
+
+    The optional wait time is expressed in milliseconds, and happens when
+    no more data is available.
 *)
 val of_infinite_cursor : 
+  ?wait:float -> 
   ('cursor option -> ('ctx, 'a list * 'cursor) Run.t) ->
    'cursor option -> ('ctx, 'a) t
