@@ -154,10 +154,11 @@ let run t =
     
     Run.loop begin fun continue -> 
       
-      let! ready_actions = Seq.to_list ~min:0 100 actions in      
+      (* Expect at least one, so that we will wait for a new item if there
+	 are none available. *)
+      let! ready_actions = Seq.to_list ~min:1 100 actions in      
       if ready_actions = [] then 
 
-	let! () = Run.sleep 1.0 in
 	continue
       
       else 
