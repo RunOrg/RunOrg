@@ -15,7 +15,7 @@ module Import = Endpoint.Post(struct
   > list
 
   module Out = type module <
-    created   : Contact.I.t list ;
+    created   : CId.t list ;
     at        : Cqrs.Clock.t ;
   >
 

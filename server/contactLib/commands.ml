@@ -6,7 +6,7 @@ let create ?fullname ?firstname ?lastname ?gender email =
   let! id = Cqrs.MapView.get View.byEmail email in 
   match id with Some id -> return (id, Cqrs.Clock.empty) | None -> 
 
-    let  id = I.gen () in 
+    let  id = CId.gen () in 
 
     let  update = 
       if fullname <> None || lastname <> None || firstname <> None || gender <> None 

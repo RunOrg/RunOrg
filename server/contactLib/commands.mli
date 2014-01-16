@@ -8,5 +8,5 @@ val create :
   ?firstname:string -> 
   ?lastname:string -> 
   ?gender:[`F|`M] -> 
-  string -> (# O.ctx, I.t * Cqrs.Clock.t) Run.t
+  string -> (# O.ctx, CId.t * Cqrs.Clock.t) Run.t
 
