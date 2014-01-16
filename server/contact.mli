@@ -12,3 +12,14 @@ val create :
   ?gender:[`F|`M] -> 
   string -> (# O.ctx, CId.t * Cqrs.Clock.t) Run.t
   
+(** A short profile for a contact. *)
+type short = <
+  id     : CId.t ;
+  name   : string ;
+  pic    : string ; 
+  gender : [`F|`M] option ; 
+>
+
+(** Return the short profile for a contact. *)
+val get : CId.t -> (# O.ctx, short option) Run.t
+
