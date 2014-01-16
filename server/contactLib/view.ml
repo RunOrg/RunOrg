@@ -15,12 +15,17 @@ let byEmail =
 
   let () = Store.track byEmailV begin function 
 
-    | `ContactCreated ev -> 
+    | `Created ev -> 
       
       Cqrs.MapView.update byEmail (ev # email) 
 	(function 
 	| None   -> `Put (ev # id)
 	| Some _ -> `Keep)
+
+    | `FirstnameSet _ 
+    | `LastnameSet _
+    | `FullnameSet _ 
+    | `GenderSet _ -> return () 
 	
   end in 
 

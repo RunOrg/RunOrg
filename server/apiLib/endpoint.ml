@@ -207,6 +207,8 @@ module Get = functor(A:GET_ARG) -> struct
 	    return (respond A.Out.to_json out)
 	  end
 
+  let () = Dictionary.add (snd Dictionary.get action) path
+
 end
 
 (* POST JSON endpoints
@@ -257,6 +259,8 @@ module Post = functor(A:POST_ARG) -> struct
 	      let! out = A.response req args post in
 	      return (respond A.Out.to_json out)
 	    end
+
+  let () = Dictionary.add (snd Dictionary.post action) path
 
 end
 
