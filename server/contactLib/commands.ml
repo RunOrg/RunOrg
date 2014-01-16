@@ -8,13 +8,13 @@ let create ?fullname ?firstname ?lastname ?gender email =
 
     let  id = I.gen () in 
 
-    let  events = List.filter_map identity [
-      Some (Events.created ~id ~email) ;
-      Option.map (fun fullname -> Events.fullnameSet ~id ~fullname) fullname ;
-      Option.map (fun lastname -> Events.lastnameSet ~id ~lastname) lastname ;
-      Option.map (fun firstname -> Events.firstnameSet ~id ~firstname) firstname ;
-      Option.map (fun gender -> Events.genderSet ~id ~gender) gender 
-    ] in
+    let  update = 
+      if fullname <> None || lastname <> None || firstname <> None || gender <> None 
+      then [ Events.infoUpdated ~id ~firstname ~lastname ~fullname ~gender ]
+      else []
+    in
+
+    let  events = (Events.created ~id ~email) :: update in 
 
     let! clock = Store.append events in
     return (id, clock) 

@@ -22,10 +22,7 @@ let byEmail =
 	| None   -> `Put (ev # id)
 	| Some _ -> `Keep)
 
-    | `FirstnameSet _ 
-    | `LastnameSet _
-    | `FullnameSet _ 
-    | `GenderSet _ -> return () 
+    | `InfoUpdated _ -> return () 
 	
   end in 
 
