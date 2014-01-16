@@ -27,4 +27,7 @@ val exists : ('key, 'value) t -> 'key -> (# Common.ctx, bool) Run.t
 val all : ?limit:int -> ?offset:int -> ('key,'value) t ->
   (#Common.ctx, ('key * 'value) list) Run.t
 
+val all_global : ?limit:int -> ?offset:int -> ('key,'value) t ->
+  (#Common.ctx, (Id.t * 'key * 'value) list) Run.t
+
 val count : ('key,'value) t -> (#Common.ctx, int) Run.t

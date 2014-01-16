@@ -201,6 +201,11 @@ module MapView : sig
   val all : ?limit:int -> ?offset:int -> ('key,'value) t ->
     (# ctx, ('key * 'value) list) Run.t
 
+  (** Grabs all values from the map, ordered by the binary representation of the key, 
+      for all databases. This is a potential data leak, use with caution. *)
+  val all_global : ?limit:int -> ?offset:int -> ('key,'value) t ->
+    (# ctx, (Id.t * 'key * 'value) list) Run.t
+
   (** Returns the number of key-value pairs in the map. *)
   val count : ('key,'value) t -> (#ctx, int) Run.t
 

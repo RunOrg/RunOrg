@@ -28,7 +28,7 @@ let create (type k) (type v) name dbname key value =
              ^ "\"db\" CHAR(11), "
 	     ^ "\"key\" BYTEA, "
 	     ^ "\"value\" BYTEA, "
-	     ^ "PRIMARY KEY (\"key\") "
+	     ^ "PRIMARY KEY (\"db\",\"key\") "
 	     ^ ");") []
   end in
 
@@ -129,4 +129,20 @@ let all ?(limit=1000) ?(offset=0) map =
        (fun a -> let key = Pack.of_string map.kupack (Postgresql.unescape_bytea a.(0)) in
 		 let value = Pack.of_string map.vupack (Postgresql.unescape_bytea a.(1)) in
 		 (key, value))
+       (Array.to_list result))
+
+let all_global ?(limit=1000) ?(offset=0) map = 
+  
+  let! dbname = Run.edit_context (fun ctx -> (ctx :> ctx)) map.dbname in 
+  let! result = Sql.query 
+    (!! "SELECT \"db\", \"key\", \"value\" FROM \"%s\" ORDER BY \"db\", \"key\" LIMIT %d OFFSET %d" 
+	dbname limit offset) 
+    [] in
+  
+  Run.return 
+    (List.map 
+       (fun a -> let id = Id.of_string a.(0) in
+		 let key = Pack.of_string map.kupack (Postgresql.unescape_bytea a.(1)) in
+		 let value = Pack.of_string map.vupack (Postgresql.unescape_bytea a.(2)) in
+		 (id, key, value))
        (Array.to_list result))

@@ -31,19 +31,20 @@ module View = struct
   let projection = Cqrs.Projection.make "db" (fun () -> new O.ctx) 
 
   (* A view of all databases *)
+  module Unit = type module unit
   module Item = type module < created : Time.t ; label : string >
   let all = 
 
-    let allV, all = Cqrs.MapView.make projection "all" 0 
-      (module Id : Fmt.FMT with type t = Id.t)
+    let allV, all = Cqrs.MapView.make projection "all" 2 
+      (module Unit : Fmt.FMT with type t = unit)
       (module Item : Fmt.FMT with type t = Item.t) in
 
     let () = Stream.track allV begin function 
 
       | `DatabaseCreated label -> 
 	let! ctx  = Run.context in 
-	let  created = ctx # time and id = ctx # db in 
-	Cqrs.MapView.update all id (fun _ -> `Put (Item.make ~created ~label))
+	let  created = ctx # time in
+	Cqrs.MapView.update all () (fun _ -> `Put (Item.make ~created ~label))
 
     end in 
 
@@ -60,17 +61,15 @@ let count _ =
 let all ~limit ~offset _ = 
   let  limit  = clamp 0 100000 limit in 
   let  offset = clamp 0 max_int offset in 
-  let! list = Cqrs.MapView.all ~limit ~offset View.all in
-  return (List.map (fun (id, db) -> (object 
+  let! list = Cqrs.MapView.all_global ~limit ~offset View.all in
+  return (List.map (fun (id, _, db) -> (object 
     method id = id
     method created = db # created
     method label = db # label
   end)) list)
 
 let ctx id = 
-  let! exists = Cqrs.MapView.exists View.all id in
-  if exists then 
-    let! ctx = Run.context in 
-    return (Some (ctx # with_db id))
-  else
-    return None
+  let! ctx = Run.context in 
+  let  ctx = ctx # with_db id in 
+  let! exists = Cqrs.MapView.exists View.all () in
+  return (if exists then Some ctx else None) 
