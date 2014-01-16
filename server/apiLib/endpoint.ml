@@ -219,23 +219,44 @@ module type POST_ARG = sig
   val path : string
   val response : Httpd.request -> Arg.t -> Post.t -> (O.ctx, Out.t write_response) Run.t
 end
+  
+let post_json req =
+  match req # body with Some (`JSON json) -> Some json | _ -> None
 
 module SPost = functor(A:POST_ARG) -> struct
 
   let path = split A.path
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
 
-  let json req =
-    match req # body with Some (`JSON json) -> Some json | _ -> None
-
   let action req =     
     match argparse req with None -> return (bad_request "Could not parse parameters") | Some args ->
-      match Option.bind (json req) A.Post.of_json_safe with 
+      match Option.bind (post_json req) A.Post.of_json_safe with 
       | None -> return (bad_request "Could not parse body") 
       | Some post -> let! out = A.response req args post in 
 		     return (respond A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.post action) path
+
+end
+
+module Post = functor(A:POST_ARG) -> struct
+
+  let path = split ("db/{-}/" ^ A.path) 
+  let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+    
+  let action req = 
+    let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
+    match db with None -> return (bad_request "Could not parse parameters") | Some db ->
+      match argparse req with None -> return (bad_request "Could not parse parameters") | Some args -> 
+	match Option.bind (post_json req) A.Post.of_json_safe with 
+	| None -> return (bad_request "Could not parse body") 
+	| Some post ->
+	  let! ctx = Db.ctx (Id.of_string db) in
+	  match ctx with None -> return (not_found (!! "Database %s does not exist" db)) | Some ctx ->
+	    Run.with_context ctx begin
+	      let! out = A.response req args post in
+	      return (respond A.Out.to_json out)
+	    end
 
 end
 

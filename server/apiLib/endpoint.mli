@@ -66,6 +66,9 @@ end
 (** Create a post endpoint at the server level (no URL path prefix). *)
 module SPost : functor(A:POST_ARG) -> sig end
 
+(** Create a post endpoint at the database level (/db/aaaaaaaaaaa/ prefix). *)
+module Post : functor(A:POST_ARG) -> sig end
+
 (** Create a static endpoint. [static url mimetype path] responds to GET requests with 
     data loaded from the specified path, with the provided mime-type. *)
 val static : string -> string -> string -> unit
