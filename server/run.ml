@@ -480,7 +480,8 @@ let sleep duration =
 
     incr wakeup_threads ; 
 
-    let wake = max 0. (time -. Unix.gettimeofday ()) in
+    let now = Unix.gettimeofday () in 
+    let wake = max 0. (time -. now) in
     if wake > 0. then Thread.delay wake ;
 
     let infSet, supSet = update_sleep_wakeup_queue begin fun (thread_id_opt, set) ->
@@ -505,8 +506,8 @@ let sleep duration =
      the current one is not active or will wake up too late. *)
   let () = update_sleep_wakeup_queue begin fun (thread_id_opt, set) -> 
   
-    (* We only support up to 500ms precision on wake-ups. *)
-    let lowest = try waketime +. 500. < fst (S.min_elt set) with Not_found -> true in
+    (* We only support up to 50ms precision on wake-ups. *)
+    let lowest = try waketime +. 0.05 < fst (S.min_elt set) with Not_found -> true in
     let set = S.add (waketime, wake) set in 
     let tid = match thread_id_opt with 
       | Some tid when not lowest -> Some tid 
