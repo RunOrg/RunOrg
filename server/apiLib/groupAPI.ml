@@ -21,7 +21,7 @@ module Create = Endpoint.Post(struct
     match Option.bind (post # id) CustomId.validate, post # id with 
     | None, Some id -> return (`BadRequest (!! "%S is not a valid identifier" id))
     | id, _ -> let! id, at = Group.create ?id ?label:(post # label) () in
-	       return (`OK (Out.make ~id ~at))
+	       return (`Accepted (Out.make ~id ~at))
 
 end)
 
