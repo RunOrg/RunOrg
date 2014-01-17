@@ -48,7 +48,6 @@ let parse context socket config handler =
     in
 
     let! response = Run.on_failure handle_request_failure begin
-      let () = Log.trace "Start parsing" in
       let! request  = Request.parse config ssl_socket in
       let! response = Run.on_failure (send500 request) (handler request) in 
       return (Response.for_request request response)	
