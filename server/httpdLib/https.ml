@@ -57,12 +57,40 @@ let parse context socket config handler =
 
     return ( Response.send ssl_socket response )
     
-  with exn -> 
+  with 
+  | ( Ssl.Read_error Ssl.Error_syscall
+	| Ssl.Accept_error Ssl.Error_syscall
+	| Ssl.Write_error Ssl.Error_syscall ) ->
+
+    (* Remote end closed the connection. *)
+    return () 
+
+  | ( Ssl.Read_error inner 
+	| Ssl.Accept_error inner
+	| Ssl.Write_error inner ) as exn ->
+	  
+    (* TODO: deal with errors properly. *)
+    Log.trace "When accepting connection: %s\n  %s\n  %s" 
+      (Printexc.to_string exn) 
+      Ssl.(match inner with 
+      | Error_none -> "No error happened. This is never raised and should disappear in future versions."
+      | Error_ssl -> "Error_ssl" 
+      | Error_want_read -> "The read operation did not complete; the same TLS/SSL I/O function should be called again later."
+      | Error_want_write -> "The write operation did not complete; the same TLS/SSL I/O function should be called again later."
+      | Error_want_x509_lookup -> "The operation did not complete because an application callback set by [set_client_cert_cb] has asked to be called again.  The TLS/SSL I/O function should be called again later. Details depend on the application."
+      | Error_syscall -> "Some I/O error occurred.  The OpenSSL error queue may contain more information on the error."
+      | Error_zero_return -> "The TLS/SSL connection has been closed.  If the protocol version is SSL 3.0 or TLS 1.0, this result code is returned only if a closure alert has occurred in the protocol, i.e. if the connection has been closed cleanly. Note that in this case [Error_zero_return] does not necessarily indicate that the underlying transport has been closed."
+      | Error_want_connect -> "The operation did not complete; the same TLS/SSL I/O function should be called again later."
+      | Error_want_accept -> "The operation did not complete; the same TLS/SSL I/O function should be called again later..")
+      (Ssl.get_error_string ()) ;
+
+    return () 
+
+  | exn -> 
     
     (* TODO: deal with errors properly. *)
     Log.trace "When accepting connection: %s" 
       (Printexc.to_string exn) ;
 
     return () 
-
-  
+    
