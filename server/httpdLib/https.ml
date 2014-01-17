@@ -18,13 +18,16 @@ let send500 time req exn =
   return (Response.Make.error time `InternalServerError "Server encountered an unexpected error")
 
 let parse context socket config handler = 
-  try
+  try   
 
     let time = Unix.gettimeofday () in
 
     (* Wrap the socket in an SSL context. This will cause a negotiation to happen. *)
     let ssl_socket = Ssl.embed_socket socket context in
-    ( try Ssl.accept ssl_socket with Ssl.Accept_error Ssl.Error_ssl -> () (* Not an error. *)) ;   
+
+    if trace_requests then Log.trace "%s | Request received" (Ssl.string_of_socket ssl_socket) ; 
+
+    Ssl.accept ssl_socket ;
 
     (* To avoid locking up a thread, all socket operations are non-blocking. *)
     Unix.set_nonblock socket ;
@@ -72,16 +75,7 @@ let parse context socket config handler =
     (* TODO: deal with errors properly. *)
     Log.trace "When accepting connection: %s\n  %s\n  %s" 
       (Printexc.to_string exn) 
-      Ssl.(match inner with 
-      | Error_none -> "No error happened. This is never raised and should disappear in future versions."
-      | Error_ssl -> "Error_ssl" 
-      | Error_want_read -> "The read operation did not complete; the same TLS/SSL I/O function should be called again later."
-      | Error_want_write -> "The write operation did not complete; the same TLS/SSL I/O function should be called again later."
-      | Error_want_x509_lookup -> "The operation did not complete because an application callback set by [set_client_cert_cb] has asked to be called again.  The TLS/SSL I/O function should be called again later. Details depend on the application."
-      | Error_syscall -> "Some I/O error occurred.  The OpenSSL error queue may contain more information on the error."
-      | Error_zero_return -> "The TLS/SSL connection has been closed.  If the protocol version is SSL 3.0 or TLS 1.0, this result code is returned only if a closure alert has occurred in the protocol, i.e. if the connection has been closed cleanly. Note that in this case [Error_zero_return] does not necessarily indicate that the underlying transport has been closed."
-      | Error_want_connect -> "The operation did not complete; the same TLS/SSL I/O function should be called again later."
-      | Error_want_accept -> "The operation did not complete; the same TLS/SSL I/O function should be called again later..")
+      (Ssl.string_of_error inner) 
       (Ssl.get_error_string ()) ;
 
     return () 

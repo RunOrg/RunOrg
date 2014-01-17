@@ -1,3 +1,7 @@
+(* © 2014 RunOrg *)
+
+let trace_enabled = false
+
 type operation = {
   start : Postgresql.connection -> unit ;
   finish : Postgresql.connection -> bool ;
@@ -119,9 +123,10 @@ let start query params (sql:Postgresql.connection) =
     | `Int    i -> string_of_int i  
   ) params) in
 
-  Log.trace "%s%s" query  
-    (if Array.length params = 0 then "" else 
-	"[" ^ (String.concat ", " (List.map (Printf.sprintf "%S") (Array.to_list params))) ^ "]") ;
+  if trace_enabled then 
+    Log.trace "%s%s" query  
+      (if Array.length params = 0 then "" else 
+	  "[" ^ (String.concat ", " (List.map (Printf.sprintf "%S") (Array.to_list params))) ^ "]") ;
 
   sql # send_query ~params ~binary_params query ;
   sql # flush 
@@ -160,7 +165,7 @@ let make_result_waiter query =
       match pgsql # get_result with 
       | None -> false
       | Some r ->  	
-	dump r ; 
+	if trace_enabled then dump r ; 
 	if pgsql # is_busy then false else ( result := Some (r # get_all) ; true )
     with Postgresql.Error reason -> 
       failwith (Postgresql.string_of_error reason) 

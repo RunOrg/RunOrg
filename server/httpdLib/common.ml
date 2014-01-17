@@ -20,3 +20,5 @@ let verb = function
   | `POST -> "POST"
   | `PUT -> "PUT"
   | `DELETE -> "DELETE"    
+
+let trace_requests = true

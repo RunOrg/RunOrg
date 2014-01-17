@@ -47,7 +47,8 @@ let send ssl_socket response =
   let headers = ("Content-Length", string_of_int content_length) :: response.headers in 
 
   (match response.request with None -> () | Some request -> 
-    Log.trace "%s /%s %s %d%s"
+    Log.trace "%s%s /%s %s %d%s"
+      (if trace_requests then Ssl.string_of_socket ssl_socket ^ " | " else "")
       (verb (request # verb))
       (String.concat "/" (request # path))
       (fst (String.split (status response.status) " "))
