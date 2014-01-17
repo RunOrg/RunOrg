@@ -2,6 +2,6 @@
 
 val create : 
   ?label:string -> 
-  ?id:string -> 
+  ?id:CustomId.t -> 
   unit -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
