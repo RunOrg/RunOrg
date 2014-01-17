@@ -21,4 +21,4 @@ let verb = function
   | `PUT -> "PUT"
   | `DELETE -> "DELETE"    
 
-let trace_requests = true
+let trace_requests = false

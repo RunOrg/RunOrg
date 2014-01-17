@@ -198,7 +198,7 @@ module Ssl = struct
 
   include Ssl 
     
-  let trace_errors = true
+  let trace_errors = false
 
   (** A string representing an [Ssl_error] *)
   let string_of_error = Ssl.(function 
