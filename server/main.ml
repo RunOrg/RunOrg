@@ -11,6 +11,7 @@ module OpenHack = struct
   open Contact
   open Gravatar
   open Group
+  open CustomId
 end
 
 let () = Printexc.record_backtrace true
