@@ -83,6 +83,9 @@ let expected_body_size header =
 (* Reading requests from sockets
    ============================= *)
 
+let delay retries timeout now =     
+  min (float_of_int (retries + 1) *. 10.) ((timeout -. now) /. 2. *. 1000.)
+
 let read_request config ssl_socket = 
 
   let timeout = Unix.gettimeofday () +. config.max_duration in 
@@ -92,7 +95,7 @@ let read_request config ssl_socket =
   let read_header () = 
     let buffer = String.create 1024 in
     let header = Buffer.create 1024 in
-    let rec more () =       
+    let rec more retries =       
 
       let l  = try Ssl.read ssl_socket buffer 0 1024 with Ssl.Read_error Ssl.Error_want_read -> 0 in
       let () = Buffer.add_substring header buffer 0 l in
@@ -108,13 +111,13 @@ let read_request config ssl_socket =
       else if l = 0 then 
 	let now = Unix.gettimeofday () in 
 	if now > timeout then raise Timeout else 
-	  let! () = Run.sleep (min 0.05 ((timeout -. now) /. 2.)) in
-	  more () 
+	  let! () = Run.sleep (delay retries timeout now) in
+	  more (retries + 1) 
       else 
-	more () 
+	more 0 
 
     in
-    let! () = more () in
+    let! () = more 0 in
     let header = Buffer.contents header in 
     
     (* Look for a header termination... *)
@@ -139,7 +142,7 @@ let read_request config ssl_socket =
       let body = String.create size in 
       let () = String.blit start 0 body 0 i in
 
-      let rec more i = 
+      let rec more retries i = 
 
 	let l = try Ssl.read ssl_socket body i (size - i) with Ssl.Read_error Ssl.Error_want_read -> 0 in
 	let i = i + l in
@@ -152,14 +155,14 @@ let read_request config ssl_socket =
 	  else if l = 0 then 
 	    let now = Unix.gettimeofday () in 
 	  if now > timeout then raise Timeout else 
-	    let! () = Run.sleep (min 0.05 ((timeout -. now) /. 2.)) in
-	    more i
+	    let! () = Run.sleep (delay retries timeout now) in
+	    more (retries + 1) i
 	else
-	  more i 
+	  more retries i 
 
       in
 
-      let! () = more i in
+      let! () = more 0 i in
       
       ( if log_enabled then
 	  Log.trace "Body:\n%s" body ;
