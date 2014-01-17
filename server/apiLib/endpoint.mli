@@ -1,9 +1,10 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 (** The type of an API GET response. *)
 type 'a read_response = 
   [ `OK of 'a 
   | `Forbidden of string 
+  | `BadRequest of string
   | `Unauthorized of string
   | `NotFound of string ]
 

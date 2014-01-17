@@ -1,4 +1,4 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 open Std
 
@@ -35,6 +35,7 @@ type 'a read_response =
   [ `OK of 'a 
   | `Forbidden of string 
   | `Unauthorized of string
+  | `BadRequest of string
   | `NotFound of string ]
 
 type 'a write_response = 
@@ -49,6 +50,9 @@ let forbidden error =
 let unauthorized error = 
   Httpd.json ~status:`Unauthorized (Json.Object [ "error", Json.String error ])
 
+let bad_request error = 
+  Httpd.json ~status:`BadRequest (Json.Object [ "error", Json.String error ])
+
 let method_not_allowed allowed = 
   Httpd.json ~headers:[ "Allowed", String.concat ", " allowed] ~status:`MethodNotAllowed
     (Json.Object [ "error", Json.String "Method not allowed" ])
@@ -60,6 +64,7 @@ let respond to_json = function
   | `Forbidden error -> forbidden error
   | `NotFound error -> not_found error
   | `Unauthorized error -> unauthorized error
+  | `BadRequest error -> bad_request error
   | `OK out -> Httpd.json (to_json out)
   | `Accepted out -> Httpd.json ~status:`Accepted (to_json out)
 
