@@ -22,7 +22,7 @@ let parse context socket config handler =
 
     (* Wrap the socket in an SSL context. This will cause a negotiation to happen. *)
     let ssl_socket = Ssl.embed_socket socket context in
-    ( try Ssl.accept ssl_socket with Ssl.Accept_error Ssl.Error_Ssl -> () (* Not an error. *)) ;   
+    ( try Ssl.accept ssl_socket with Ssl.Accept_error Ssl.Error_ssl -> () (* Not an error. *)) ;   
 
     (* To avoid locking up a thread, all socket operations are non-blocking. *)
     Unix.set_nonblock socket ;
