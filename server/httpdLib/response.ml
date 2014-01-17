@@ -3,6 +3,8 @@
 open Std
 open Common
 
+type time = float
+
 type status = 
   [ `OK 
   | `BadRequest
@@ -21,6 +23,7 @@ type t = {
   body : string ; 
   status : status ;
   request : Request.t option ; 
+  started : time option ; 
 }
 
 (* The names of the status codes. *)
@@ -44,11 +47,12 @@ let send ssl_socket response =
   let headers = ("Content-Length", string_of_int content_length) :: response.headers in 
 
   (match response.request with None -> () | Some request -> 
-    Log.trace "%s /%s %s %d"
+    Log.trace "%s /%s %s %d%s"
       (verb (request # verb))
       (String.concat "/" (request # path))
       (fst (String.split (status response.status) " "))
-      (content_length)) ;
+      (content_length)
+      (match response.started with None -> "" | Some t -> !! " %.2fms" (1000. *.(Unix.gettimeofday () -. t)))) ;
 
   let b = Buffer.create 1024 in 
   Buffer.add_string b (!! "HTTP/1.1 %s\r\n" (status response.status)) ;
@@ -65,19 +69,20 @@ let json headers status body = {
   status ;
   request = None ;
   body = Json.serialize body ;  
-  headers = ( "Content-Type", "application/json" ) :: headers
+  headers = ( "Content-Type", "application/json" ) :: headers ;
+  started = None ;
 }
 
-let for_request request response = 
-  { response with request = Some request }
+let for_request time request response = 
+  { response with request = Some request ; started = Some time }
 
 (* Response builders
    ================= *)
 
 module Make = struct
 
-  let error status error = 
-    json [] status (Json.Object [ "error", Json.String error ]) 
+  let error time status error = 
+    { json [] status (Json.Object [ "error", Json.String error ]) with started = Some time }
 
   let json ?(headers=[]) ?(status=`OK) body = 
     json headers status body 
@@ -87,6 +92,7 @@ module Make = struct
     request = None ;
     body ;
     headers ; 
+    started = None ;
   }
 
 end
