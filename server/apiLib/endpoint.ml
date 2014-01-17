@@ -216,6 +216,29 @@ module Get = functor(A:GET_ARG) -> struct
 
 end
 
+(* DELETE endpoints 
+   ================ *)
+
+module Delete = functor(A:GET_ARG) -> struct
+
+  let path = split ("db/{-}/" ^ A.path) 
+  let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+    
+  let action req = 
+    let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
+    match db with None -> return (bad_request "Could not parse parameters") | Some db ->
+      match argparse req with None -> return (bad_request "Could not parse parameters") | Some args ->
+	let! ctx = Db.ctx (Id.of_string db) in
+	match ctx with None -> return (not_found (!! "Database %s does not exist" db)) | Some ctx ->
+	  Run.with_context ctx begin
+	    let! out = A.response req args in
+	    return (respond A.Out.to_json out)
+	  end
+
+  let () = Dictionary.add (snd Dictionary.delete action) path
+
+end
+
 (* POST JSON endpoints
    =================== *)
 

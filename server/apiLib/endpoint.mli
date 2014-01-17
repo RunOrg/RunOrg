@@ -39,6 +39,9 @@ module SGet : functor(A:GET_ARG) -> sig end
 (** Create a get endpoint at the database level (/db/aaaaaaaaaaa/ prefix) *)
 module Get : functor(A:GET_ARG) -> sig end
 
+(** Create a delete endpoint at the database level (/db/aaaaaaaaaaa/ prefix) *)
+module Delete : functor(A:GET_ARG) -> sig end
+
 (** The type of a configuration module for a POST endpoint
     (at the server level) *)
 module type POST_ARG = sig
