@@ -41,16 +41,17 @@ module Import = Endpoint.Post(struct
 			      
 end)
 
+module Short = type module <
+  id     : CId.t ;
+  name   : string ; 
+  gender : [`F|`M] option ;
+  pic    : string ; 
+>
+
 module Get = Endpoint.Get(struct
 
   module Arg = type module < cid : CId.t >
-
-  module Out = type module <
-    id     : CId.t ;
-    name   : string ; 
-    gender : [`F|`M] option ;
-    pic    : string ; 
-  >
+  module Out = Short
 
   let path = "contacts/{cid}"
 
@@ -59,4 +60,22 @@ module Get = Endpoint.Get(struct
     match contact_opt with Some contact -> return (`OK contact) | None ->
       return (`NotFound (!! "Contact '%s' does not exist" (CId.to_string (args # cid))))
     
+end)
+
+module All = Endpoint.Get(struct
+
+  module Arg = type module unit
+  module Out = type module <
+    list  : Short.t list ; 
+    count : int 
+  >
+
+  let path = "contacts"
+
+  let response req () = 
+    let limit = Option.default 1000 (req # limit) in
+    let offset = Option.default 0 (req # offset) in
+    let! list, count = Contact.all ~limit ~offset in
+    return (`OK (Out.make ~list ~count))
+
 end)
