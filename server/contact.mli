@@ -23,3 +23,5 @@ type short = <
 (** Return the short profile for a contact. *)
 val get : CId.t -> (# O.ctx, short option) Run.t
 
+(** Return the short profiles for all contacts. *)
+val all : limit:int -> offset:int -> (# O.ctx, short list * int) Run.t
