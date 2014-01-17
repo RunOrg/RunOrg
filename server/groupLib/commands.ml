@@ -7,3 +7,6 @@ let create ?label ?id () =
   let! clock = Store.append [ Events.created ~id ~label ] in
   return (id, clock) 
     
+let delete id = 
+  let! clock = Store.append [ Events.deleted ~id ] in
+  return clock 
