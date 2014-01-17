@@ -38,15 +38,19 @@ type 'ctx          thread = ('ctx,unit) t
 (* Exception handling 
    ================== *)
 
+let trace_exceptions = false
+
 let trace n bad exn trace = 
-  Log.trace "trace %s: %s" n (Printexc.to_string exn) ; bad exn trace 
+  if trace_exceptions then Log.trace "trace %s: %s" n (Printexc.to_string exn) ; 
+  bad exn trace 
 
 let bktrc n bad exn = 
   trace n bad exn (Printexc.get_backtrace ()) 
 
 let catch n f x = 
   try Ok (f x) with exn -> let trace = Printexc.get_backtrace () in
-			   Log.trace "catch %s: %s\n%s" n (Printexc.to_string exn) trace ; 
+			   if trace_exceptions then 
+			     Log.trace "catch %s: %s\n%s" n (Printexc.to_string exn) trace ; 
 			   Bad (fun bad -> bad exn trace)
 
 
