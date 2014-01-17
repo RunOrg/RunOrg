@@ -219,7 +219,14 @@ end
 (* DELETE endpoints 
    ================ *)
 
-module Delete = functor(A:GET_ARG) -> struct
+module type DELETE_ARG = sig
+  module Arg : Fmt.FMT
+  module Out : Fmt.FMT
+  val path : string
+  val response : Httpd.request -> Arg.t -> (O.ctx, Out.t write_response) Run.t
+end
+
+module Delete = functor(A:DELETE_ARG) -> struct
 
   let path = split ("db/{-}/" ^ A.path) 
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path

@@ -24,3 +24,17 @@ module Create = Endpoint.Post(struct
 	       return (`OK (Out.make ~id ~at))
 
 end)
+
+module Delete = Endpoint.Delete(struct
+
+  module Arg = type module < id : Group.I.t >
+  module Out = type module < at : Cqrs.Clock.t >
+
+  let path = "groups/{id}"
+
+  let response req args = 
+    (* TODO: check for existence *)
+    let! at = Group.delete (args # id) in
+    return (`Accepted (Out.make ~at))
+
+end)
