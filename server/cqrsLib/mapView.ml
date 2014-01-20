@@ -1,9 +1,7 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 open Common
 open Std
-
-module Names = Names
 
 type ('key, 'value) t = {
   kpack  : 'key Pack.packer ;
