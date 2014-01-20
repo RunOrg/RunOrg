@@ -54,10 +54,10 @@ let add map lefts rights =
     let query = 
       "INSERT INTO \"" 
       ^ dbname 
-      ^ "\" (\"db\",\"l\",\"r\") SELECT DISTINCT $1, l.v, r.v FROM (VALUES "
-      ^ String.concat "," List.(map (fun i -> !! "($%d)" (i + 2)) (0 -- leftN)) 
+      ^ "\" (\"db\",\"l\",\"r\") SELECT DISTINCT $1::char, l.v, r.v FROM (VALUES "
+      ^ String.concat "," List.(map (fun i -> !! "($%d::bytea)" (i + 2)) (0 -- leftN)) 
       ^ ") as l(v) CROSS JOIN (VALUES "
-      ^ String.concat "," List.(map (fun i -> !! "($%d)" (i + 2 + leftN)) (0 -- rightN))
+      ^ String.concat "," List.(map (fun i -> !! "($%d::bytea)" (i + 2 + leftN)) (0 -- rightN))
       ^ ") as r(v) WHERE NOT EXISTS (SELECT 1 FROM \""
       ^ dbname
       ^ "\" WHERE \"db\" = $1 AND \"l\" = l.v AND \"r\" = r.v)"
@@ -84,9 +84,9 @@ let remove map lefts rights =
       "DELETE FROM \"" 
       ^ dbname 
       ^ "\" WHERE \"db\" = $1 AND \"l\" IN ("
-      ^ String.concat "," List.(map (fun i -> string_of_int (i + 2)) (0 -- leftN))
+      ^ String.concat "," List.(map (fun i -> !! "$%d" (i + 2)) (0 -- leftN))
       ^ ") AND \"r\" IN ("
-      ^ String.concat "," List.(map (fun i -> string_of_int (i + 2 + leftN)) (0 -- rightN))
+      ^ String.concat "," List.(map (fun i -> !! "$%d" (i + 2 + leftN)) (0 -- rightN))
       ^ ")"
     in
     
