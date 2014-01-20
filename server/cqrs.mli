@@ -158,12 +158,33 @@ module Stream : functor(Event:sig
   val name : string 
 end) -> STREAM with type event = Event.t
 
-(** Maps bind values to keys. *)
+(** A set of keys. *)
+module SetView : sig
 
+  (** A persistent set. *)
+  type 'key t
+
+  (** Create a set from a key type, which must support packing. A set always 
+      has a name and is placed inside a projection. *)
+  val make : Projection.t -> string -> int ->
+    (module Fmt.FMT with type t = 'key) ->
+    Projection.view * 'key t
+      
+  (** Add elements to a set. Nothing happens to elements already in the set. *)
+  val add : 'key t -> 'key list -> # ctx Run.effect
+
+  (** Removes elements from a set. Nothing happens to elements not in the set. *)
+  val remove : 'key t -> 'key list -> # ctx Run.effect
+
+  (** Determines whether an element exists in the set. *)
+  val exists : 'key t -> 'key -> (#ctx, bool) Run.t
+
+end
+
+(** Maps bind values to keys. *)
 module MapView : sig
 
   (** A persistent map *)
-
   type ('key, 'value) t 
 
   (** Create a map from a key type and a value type. Both types must support 
@@ -212,7 +233,6 @@ module MapView : sig
 end
 
 (** Many-to-many maps bind identifiers to identifiers. *)
-
 module ManyToManyView : sig
 
   (** The type of a many-to-many map. *)
@@ -241,6 +261,9 @@ module ManyToManyView : sig
 
   (** List all the bindings with the specified left member. *)
   val list : ?limit:int -> ?offset:int -> ('left, 'right) t -> 'left -> (# ctx, 'right list) Run.t
+
+  (** Count the bindings with the specified left value. *)
+  val count : ('left, 'right) t -> 'left -> (# ctx, int) Run.t 
 
 end
 
