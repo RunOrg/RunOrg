@@ -134,4 +134,19 @@ let list ?(limit=1000) ?(offset=0) map left =
        (fun a -> Pack.of_string map.rupack (Postgresql.unescape_bytea a.(0)))
        (Array.to_list result))
 
+(* Counting members
+   ================ *)
+	
+let count map left = 
+
+  let! ctx = Run.context in 
+  let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
+
+  let! result = Sql.query 
+    (!! "SELECT COUNT(*) FROM \"%s\" WHERE \"db\" = $1 AND \"l\" = $2" dbname)
+    [ `Id (ctx # db) ; `Binary (Pack.to_string map.lpack left) ] 
+  in
+
+  return (Option.default 0 (Result.int result))
+
   

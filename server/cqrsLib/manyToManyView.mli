@@ -16,3 +16,5 @@ val exists : ('left, 'right) t -> 'left -> 'right -> (# Common.ctx, bool) Run.t
 val delete : ('left, 'right) t -> 'left -> # Common.ctx Run.effect
   
 val list : ?limit:int -> ?offset:int -> ('left, 'right) t -> 'left -> (# Common.ctx, 'right list) Run.t
+
+val count : ('left, 'right) t -> 'left -> (# Common.ctx, int) Run.t
