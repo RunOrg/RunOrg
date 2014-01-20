@@ -141,6 +141,11 @@ module List = struct
       | h :: t -> (acc , h) :: (aux (acc+1) t)
     in aux 0 list
 
+  (** Creates a range list. [1 -- 7] return [[1;2;3;4;5;6]] *)
+  let (--) a b = 
+    let rec aux n = if n >= b then [] else n :: aux (n+1) in
+    aux a
+
   (** Turns a list into a map. [to_map fk fv list] creates a binding [(fk x, fv x)] 
       for every item [x] of [list]. *)
   let to_map fk fv list = 
