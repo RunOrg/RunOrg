@@ -54,7 +54,7 @@ let add map lefts rights =
     let query = 
       "INSERT INTO \"" 
       ^ dbname 
-      ^ "\" (\"db\",\"l\",\"r\") SELECT DISTINCT $1::char, l.v, r.v FROM (VALUES "
+      ^ "\" (\"db\",\"l\",\"r\") SELECT DISTINCT $1::char(11), l.v, r.v FROM (VALUES "
       ^ String.concat "," List.(map (fun i -> !! "($%d::bytea)" (i + 2)) (0 -- leftN)) 
       ^ ") as l(v) CROSS JOIN (VALUES "
       ^ String.concat "," List.(map (fun i -> !! "($%d::bytea)" (i + 2 + leftN)) (0 -- rightN))
