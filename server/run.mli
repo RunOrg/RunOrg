@@ -241,6 +241,7 @@ module ForList : sig
     
   val map        : ( 'it -> ('ctx,'value) t ) -> 'it list -> ('ctx,'value list) t 
   val filter_map : ( 'it -> ('ctx,'value option) t ) -> 'it list -> ('ctx,'value list) t
+  val filter     : ( 'it -> ('ctx,bool) t ) -> 'it list -> ('ctx,'it list) t
   val iter       : ( 'it -> 'ctx effect ) -> 'it list -> 'ctx effect
 
   (** Sequential *)

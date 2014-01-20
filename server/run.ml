@@ -272,6 +272,7 @@ module ForList = struct
       end list))
 	
   let filter_map f l = map f l |>> BatList.filter_map BatPervasives.identity
+  let filter f l = filter_map (fun x -> bind (function true -> return (Some x) | false -> return None) (f x)) l
   let collect f l = map f l |>> List.concat 
 
   let rec find f = function 
