@@ -211,6 +211,39 @@ module MapView : sig
 
 end
 
+(** Many-to-many maps bind identifiers to identifiers. *)
+
+module ManyToManyView : sig
+
+  (** The type of a many-to-many map. *)
+  type ('left, 'right) t
+
+  (** Create a map from a left type and a right type. Both types must support 
+      packing. A map always has a name, and is placed inside a projection. *)
+  val make : Projection.t -> string -> int -> 
+    (module Fmt.FMT with type t = 'left) ->
+    (module Fmt.FMT with type t = 'right) ->
+    Projection.view * ('left, 'right) t
+
+  (** Adds the cartesian product of the two provided sets to the 
+      map. Nothing happens to bindings already in the map. *)
+  val add : ('left, 'right) t -> 'left list -> 'right list -> # ctx Run.effect
+    
+  (** Remove the cartesian product of the two provided sets from the
+      map. Nothing happens to bindings not present in the map. *)
+  val remove : ('left, 'right) t -> 'left list -> 'right list -> # ctx Run.effect
+
+  (** Checks whether a binding exists in the map. *)
+  val exists : ('left, 'right) t -> 'left -> 'right -> (# ctx, bool) Run.t
+
+  (** Deletes all the bindings with the specified left member. *)
+  val delete : ('left, 'right) t -> 'left -> # ctx Run.effect
+
+  (** List all the bindings with the specified left member. *)
+  val list : ?limit:int -> ?offset:int -> ('left, 'right) t -> 'left -> (# ctx, 'right list) Run.t
+
+end
+
 (** Keeping track of running instances. *)
 module Running : sig
 

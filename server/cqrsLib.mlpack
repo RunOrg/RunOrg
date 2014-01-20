@@ -1,6 +1,7 @@
 Clock
 Common
 EventStream
+ManyToManyView
 MapView
 Names
 Projection

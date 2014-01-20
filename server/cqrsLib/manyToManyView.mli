@@ -1,0 +1,18 @@
+(* © 2014 RunOrg *)
+
+type ('left, 'right) t
+
+val make : Projection.t -> string -> int -> 
+  (module Fmt.FMT with type t = 'left) ->
+  (module Fmt.FMT with type t = 'right) ->
+  Projection.view * ('left, 'right) t
+
+val add : ('left, 'right) t -> 'left list -> 'right list -> # Common.ctx Run.effect
+  
+val remove : ('left, 'right) t -> 'left list -> 'right list -> # Common.ctx Run.effect
+  
+val exists : ('left, 'right) t -> 'left -> 'right -> (# Common.ctx, bool) Run.t
+  
+val delete : ('left, 'right) t -> 'left -> # Common.ctx Run.effect
+  
+val list : ?limit:int -> ?offset:int -> ('left, 'right) t -> 'left -> (# Common.ctx, 'right list) Run.t
