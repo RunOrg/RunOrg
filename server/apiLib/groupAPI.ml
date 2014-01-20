@@ -58,6 +58,7 @@ module Get = Endpoint.Get(struct
   module Arg = type module < id : Group.I.t >
   module Out = type module <
     list  : ContactAPI.Short.t list ; 
+    count : int ;
   >
 
   let path = "groups/{id}"
@@ -65,9 +66,9 @@ module Get = Endpoint.Get(struct
   let response req args = 
     let limit = Option.default 1000 (req # limit) in
     let offset = Option.default 0 (req # offset) in
-    let! cids = Group.list ~limit ~offset (args # id) in
+    let! cids, count = Group.list ~limit ~offset (args # id) in
     let! list = List.M.filter_map Contact.get cids in 
-    return (`OK (Out.make ~list))
+    return (`OK (Out.make ~list ~count))
 
 end)
 

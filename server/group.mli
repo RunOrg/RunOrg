@@ -28,4 +28,13 @@ val remove : CId.t list -> I.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
 val delete : I.t -> (# O.ctx, Cqrs.Clock.t) Run.t
 
 (** List the members of a group. *)
-val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, CId.t list) Run.t
+val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, CId.t list * int) Run.t
+
+(** Short information about a group. *)
+type info = <
+  label : string option ;
+  count : int ;
+>
+
+(** Get short information about a group. *)
+val get : I.t -> (#O.ctx, info option) Run.t 
