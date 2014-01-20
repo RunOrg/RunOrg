@@ -72,6 +72,26 @@ module Get = Endpoint.Get(struct
 
 end)
 
+module Info = type module <
+  id    : Group.I.t ;
+  label : string option ; 
+  count : int ;
+>
+
+module GetInfo = Endpoint.Get(struct
+
+  module Arg = type module < gid : Group.I.t >
+  module Out = Info
+
+  let path = "groups/{gid}/info"
+
+  let response req args = 
+    let! group_opt = Group.get (args # gid) in
+    match group_opt with Some group -> return (`OK group) | None ->
+      return (`NotFound (!! "Group '%s' does not exist" (Group.I.to_string (args # gid))))
+
+end)
+
 module Delete = Endpoint.Delete(struct
 
   module Arg = type module < id : Group.I.t >

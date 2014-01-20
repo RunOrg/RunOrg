@@ -5,10 +5,19 @@ open Std
 (* Group information 
    ================= *)
 
-type info = View.Info.t
+type info = <
+  id    : I.t ;
+  label : string option ; 
+  count : int ;
+>
 
 let get gid = 
-  Cqrs.MapView.get View.info gid 
+  let! info = Cqrs.MapView.get View.info gid in
+  match info with None -> return None | Some info -> return (Some (object
+    method id = gid
+    method label = info # label
+    method count = info # count
+  end))
 
 (* Members in the group 
    ==================== *)

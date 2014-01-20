@@ -32,6 +32,7 @@ val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, CId.t list * int) Run.t
 
 (** Short information about a group. *)
 type info = <
+  id    : I.t ; 
   label : string option ;
   count : int ;
 >
