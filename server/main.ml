@@ -24,7 +24,7 @@ let exn_handler = function
   | _ -> true
 
 let run_loop () = 
-  Log.trace "Server background process %s" RunorgVersion.version_string ;
+  Log.trace "RunOrg %s starting" RunorgVersion.version_string ;
   let respond = Api.run () in
   begin 
     try 
