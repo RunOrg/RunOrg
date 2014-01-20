@@ -191,7 +191,8 @@ class ['ctx] semaphore = object
     let rec list n = 
       if n = 0 then [] else 
 	if Queue.is_empty waiting then [] else
-	  Queue.take waiting :: list (n-1)
+	  let head = Queue.take waiting in
+	  head :: list (n-1)
     in
     
     let next = list n in
