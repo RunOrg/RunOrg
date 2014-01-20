@@ -52,7 +52,7 @@ let info =
 
 let contacts = 
 
-  let contactsV, contacts = Cqrs.ManyToManyView.make projection "contacts" 0
+  let contactsV, contacts = Cqrs.ManyToManyView.make projection "contacts" 2
     (module I : Fmt.FMT with type t = I.t)
     (module CId : Fmt.FMT with type t = CId.t) in
 
