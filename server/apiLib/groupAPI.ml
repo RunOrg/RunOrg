@@ -25,6 +25,34 @@ module Create = Endpoint.Post(struct
 
 end)
 
+module Add = Endpoint.Post(struct
+
+  module Arg = type module < id : Group.I.t >
+  module Post = type module (CId.t list)
+  module Out = type module < at : Cqrs.Clock.t >
+
+  let path = "groups/{id}/add"
+
+  let response req args post = 
+    let! at = Group.add post [ args # id ] in
+    return (`Accepted (Out.make ~at))
+
+end)
+
+module Remove = Endpoint.Post(struct
+
+  module Arg = type module < id : Group.I.t >
+  module Post = type module (CId.t list) 
+  module Out = type module < at : Cqrs.Clock.t >
+
+  let path = "groups/{id}/remove"
+
+  let response req args post = 
+    let! at = Group.remove post [ args # id ] in
+    return (`Accepted (Out.make ~at))
+
+end)
+
 module Delete = Endpoint.Delete(struct
 
   module Arg = type module < id : Group.I.t >
