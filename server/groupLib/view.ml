@@ -68,7 +68,7 @@ module Info = type module <
 
 let info = 
   
-  let infoV, info = Cqrs.MapView.make projection "info" 0 
+  let infoV, info = Cqrs.MapView.make projection "info" 1
     (module I : Fmt.FMT with type t = I.t)
     (module Info : Fmt.FMT with type t = Info.t) in
 
