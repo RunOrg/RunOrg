@@ -206,7 +206,7 @@ module Unpack = struct
     | Some f -> f x
 
   let option f i = 
-    if code i.i_buf.[i.i_pos] = 0xC0 then None else Some (f i)
+    if code i.i_buf.[i.i_pos] = 0xC0 then (fwd i 1 ; None) else Some (f i)
 
   let _int = int
   let _map = map
