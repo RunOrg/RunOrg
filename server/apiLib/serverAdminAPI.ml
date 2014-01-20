@@ -96,3 +96,32 @@ module Db_All = Endpoint.SGet(struct
       return (`OK (Out.make ~count ~list))
 
 end)
+
+(* Nominate an administrator for a database
+   ======================================== *)
+
+module Db_Admin_Nominate = Endpoint.Post(struct
+
+  module Arg = type module unit
+  module Post = type module (string list) 
+  module Out = type module < at : Cqrs.Clock.t >
+
+  let admin = Group.I.of_string "admin" 
+  let path = "groups/admin/nominate"
+
+  let response req args post = 
+    let! token = Option.M.bind Token.is_server_admin (req # token) in 
+    match token with None -> return forbidden | Some _ ->      
+
+      (* Create contacts by e-mail *)
+      let! created = List.M.map (fun email -> Contact.create email) post in 
+      let  cids = List.map fst created in 
+
+      (* Add contacts to group *)
+      let! at = Group.add cids [ admin ] in 
+      
+      (* Merge clocks *)
+      let  at = List.fold_left (fun acc (_,clock) -> Cqrs.Clock.merge acc clock) at created in
+      return (`Accepted (Out.make ~at))
+
+end)
