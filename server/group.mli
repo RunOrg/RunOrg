@@ -26,3 +26,6 @@ val remove : CId.t list -> I.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
 
 (** Delete a group. If the group does not exist, nothing happens. *)
 val delete : I.t -> (# O.ctx, Cqrs.Clock.t) Run.t
+
+(** List the members of a group. *)
+val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, CId.t list) Run.t
