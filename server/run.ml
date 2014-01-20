@@ -285,6 +285,12 @@ module ForList = struct
     | h :: t -> bind (fun a -> fold_left f a t) (f a h) 
 
   let mfold f a l = bind (fold_left (fun a f -> f a) a) (map f l) 
+
+  let iter_seq f l = 
+    let rec aux = function 
+      | [] -> return () 
+      | h :: t -> bind (fun () -> aux t) (f h) 
+    in aux l  
 		       
   let iter f l = fun ctx bad ok -> 
     if l = [] then try ok () with exn -> bktrc "ForList.iter" bad exn else 

@@ -243,6 +243,9 @@ module ForList : sig
   val filter_map : ( 'it -> ('ctx,'value option) t ) -> 'it list -> ('ctx,'value list) t
   val iter       : ( 'it -> 'ctx effect ) -> 'it list -> 'ctx effect
 
+  (** Sequential *)
+  val iter_seq   : ( 'it -> 'ctx effect ) -> 'it list -> 'ctx effect 
+
   (** Sequential by definition. *)
   val fold_left  : ( 'acc -> 'it -> ('ctx,'acc) t ) -> 'acc -> 'it list -> ('ctx,'acc) t 
 

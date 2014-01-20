@@ -162,10 +162,13 @@ end) -> struct
       (* No need to try for exceptions: we will add a value to the
 	 hash table before this function is called. *)
       let actions = Hashtbl.find trackers name in
+      (* Reverse actions (they should be executed in the order they were 
+	 defined in) *)
+      let actions = List.rev actions in 
       Seq.map begin fun wrap -> 
 	let ev = wrap # event and clock = wrap # clock and db = wrap # db and time = wrap # time in 
 	(Run.edit_context (fun ctx -> (ctx # with_time time) # with_db db)
-	   (List.M.iter (fun action -> action ev) actions)), clock
+	   (List.M.iter_seq (fun action -> action ev) actions)), clock
       end (follow clock)
     in
 
