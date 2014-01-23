@@ -80,3 +80,29 @@ module DeleteItem = Endpoint.Delete(struct
     return (`Accepted (Out.make ~at))
 
 end)
+
+(* Obtaining chat information 
+   ========================== *)
+
+module ChatInfo = type module <
+  id : Chat.I.t ;
+  contacts : CId.t list ;
+  groups : Group.I.t list ;
+  items : int ;
+  last : Time.t option ; 
+>
+
+module Get = Endpoint.Get(struct
+
+  module Arg = type module < id : Chat.I.t >
+  module Out = type module <
+    contacts : ContactAPI.Short.t list ;
+    info     : ChatInfo.t ;
+  >
+
+  let path = "chat/{id}"
+
+  let response req arg = 
+    return (`NotFound "No such chat")
+
+end)
