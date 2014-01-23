@@ -14,14 +14,14 @@ let exists =
 
   (* Create the admin group the first time it is mentioned. *)
   let ensure_admin id = 
-    if I.to_string id = "admin" 
+    if I.is_admin id 
     then Cqrs.SetView.add exists [id] 
     else return ()
   in
 
   let () = Store.track existsV begin function 
     | `Created ev -> Cqrs.SetView.add exists [ev # id] 
-    | `Deleted ev -> Cqrs.SetView.remove exists [ev # id]
+    | `Deleted ev -> if I.is_admin (ev # id) then return () else Cqrs.SetView.remove exists [ev # id]
     | `Added   ev 
     | `Removed ev -> List.M.iter ensure_admin (ev # groups)
   end in 
@@ -42,7 +42,8 @@ let contacts =
     | `Created _ -> return () 
     | `Deleted ev -> 
 
-      Cqrs.ManyToManyView.delete contacts (ev # id)
+      if I.is_admin (ev # id) then return () else 
+	Cqrs.ManyToManyView.delete contacts (ev # id)
 
     | `Removed ev -> 
       
@@ -76,7 +77,7 @@ let info =
   let count gid = 
     let! count = Cqrs.ManyToManyView.count contacts gid in 
     Cqrs.MapView.update info gid (function
-      | None -> if I.to_string gid = "admin" then `Put (Info.make ~label:None ~count:0) else `Keep
+      | None -> if I.is_admin gid then `Put (Info.make ~label:None ~count:0) else `Keep
       | Some g -> if g # count = count then `Keep else `Put (Info.make ~label:(g#label) ~count))
   in
 

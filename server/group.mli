@@ -4,6 +4,7 @@
 
 module I : sig
   include Id.PHANTOM
+  val is_admin : 'a id -> bool 
 end
 
 (** Create a new group. 
@@ -24,7 +25,8 @@ val add : CId.t list -> I.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
     exist, or if the contact is not in the group. *)
 val remove : CId.t list -> I.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
 
-(** Delete a group. If the group does not exist, nothing happens. *)
+(** Delete a group. If the group does not exist (or is delete-protected), nothing 
+    happens. *)
 val delete : I.t -> (# O.ctx, Cqrs.Clock.t) Run.t
 
 (** List the members of a group. *)
