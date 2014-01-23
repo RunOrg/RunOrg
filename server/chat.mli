@@ -24,3 +24,14 @@ val post : I.t -> CId.t -> string -> (#O.ctx, MI.t * Cqrs.Clock.t) Run.t
 
 (** Delete an item in a chatroom. *)
 val deleteItem : I.t -> MI.t -> (#O.ctx, Cqrs.Clock.t) Run.t
+
+(** Short information about a chatroom. *)
+type info = <
+  id : I.t ; 
+  count : int ;
+  contacts : CId.t list ;
+  groups : Group.I.t list ;
+>
+
+(** Get short information about a chatroom. *)
+val get : I.t -> (#O.ctx, info option) Run.t

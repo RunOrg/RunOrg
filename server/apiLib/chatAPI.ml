@@ -88,8 +88,7 @@ module ChatInfo = type module <
   id : Chat.I.t ;
   contacts : CId.t list ;
   groups : Group.I.t list ;
-  items : int ;
-  last : Time.t option ; 
+  count : int ;
 >
 
 module Get = Endpoint.Get(struct
@@ -103,6 +102,9 @@ module Get = Endpoint.Get(struct
   let path = "chat/{id}"
 
   let response req arg = 
-    return (`NotFound "No such chat")
+    let! info = Chat.get (arg # id) in 
+    match info with None -> return (`NotFound "No such chat") | Some info -> 
+      let! contacts = List.M.filter_map Contact.get (info # contacts) in 
+      return (`OK (Out.make ~contacts ~info))
 
 end)

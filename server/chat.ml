@@ -2,4 +2,6 @@
 
 module I = ChatLib.I
 module MI = ChatLib.MI
+
 include ChatLib.Commands
+include ChatLib.Queries
