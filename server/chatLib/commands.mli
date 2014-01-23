@@ -1,3 +1,5 @@
 (* © 2014 RunOrg *)
 
-val create : unit -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+val create : CId.t list -> Group.I.t list -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+val createPM : CId.t -> CId.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+

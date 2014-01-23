@@ -7,5 +7,7 @@ module I : sig
 end
 
 (** Create a new chatroom. *)
-val create : unit -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+val create : CId.t list -> Group.I.t list -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
+(** Create a new private chatroom between two contacts. *)
+val createPM : CId.t -> CId.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
