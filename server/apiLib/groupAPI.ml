@@ -101,7 +101,10 @@ module Delete = Endpoint.Delete(struct
 
   let response req args = 
     (* TODO: check for existence *)
-    let! at = Group.delete (args # id) in
-    return (`Accepted (Out.make ~at))
+    if Group.I.is_admin (args # id) then 
+      return (`Forbidden "Admin group cannot be deleted")
+    else 
+      let! at = Group.delete (args # id) in
+      return (`Accepted (Out.make ~at))
 
 end)
