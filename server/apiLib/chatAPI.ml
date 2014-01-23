@@ -33,3 +33,16 @@ module Create = Endpoint.Post(struct
 	return (`Accepted (Out.make ~id ~at))
 	
 end)
+
+module Delete = Endpoint.Delete(struct
+
+  module Arg = type module < id : Chat.I.t >
+  module Out = type module < at : Cqrs.Clock.t >
+
+  let path = "chat/{id}"
+
+  let response req arg = 
+    let! at = Chat.delete (arg # id) in
+    return (`Accepted (Out.make ~at))
+
+end)

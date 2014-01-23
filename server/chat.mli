@@ -11,3 +11,6 @@ val create : CId.t list -> Group.I.t list -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
 (** Create a new private chatroom between two contacts. *)
 val createPM : CId.t -> CId.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+
+(** Delete a chatroom (does not apply to private chatrooms). *)
+val delete : I.t -> (#O.ctx, Cqrs.Clock.t) Run.t
