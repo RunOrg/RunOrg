@@ -21,3 +21,6 @@ val delete : I.t -> (#O.ctx, Cqrs.Clock.t) Run.t
 
 (** Post a new item to the chatroom. *)
 val post : I.t -> CId.t -> string -> (#O.ctx, MI.t * Cqrs.Clock.t) Run.t
+
+(** Delete an item in a chatroom. *)
+val deleteItem : I.t -> MI.t -> (#O.ctx, Cqrs.Clock.t) Run.t

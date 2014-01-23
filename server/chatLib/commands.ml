@@ -15,9 +15,12 @@ let createPM c1 c2 =
   return (id, clock) 
 
 let delete id = 
-  Store.append [ Events.deleted ~id ]
+  Store.append [ Events.chatDeleted ~id ]
 
 let post id author body = 
-  let  mid = MI.gen () in 
-  let! clock = Store.append [ Events.posted ~id ~mid ~author ~body ] in
-  return (mid, clock) 
+  let  item = MI.gen () in 
+  let! clock = Store.append [ Events.itemPosted ~id ~item ~author ~body ] in
+  return (item, clock) 
+
+let deleteItem id item = 
+  Store.append [ Events.itemDeleted ~id ~item ]
