@@ -11,6 +11,7 @@ module OpenHack = struct
   open Contact
   open Gravatar
   open Group
+  open Chat
   open CustomId
 end
 
