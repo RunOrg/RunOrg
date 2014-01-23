@@ -16,3 +16,8 @@ let createPM c1 c2 =
 
 let delete id = 
   Store.append [ Events.deleted ~id ]
+
+let post id author body = 
+  let  mid = MI.gen () in 
+  let! clock = Store.append [ Events.posted ~id ~mid ~author ~body ] in
+  return (mid, clock) 

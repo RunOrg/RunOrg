@@ -6,6 +6,10 @@ module I : sig
   include Id.PHANTOM
 end
 
+module MI : sig
+  include Id.PHANTOM
+end
+
 (** Create a new chatroom. *)
 val create : CId.t list -> Group.I.t list -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
@@ -14,3 +18,6 @@ val createPM : CId.t -> CId.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
 (** Delete a chatroom (does not apply to private chatrooms). *)
 val delete : I.t -> (#O.ctx, Cqrs.Clock.t) Run.t
+
+(** Post a new item to the chatroom. *)
+val post : I.t -> CId.t -> string -> (#O.ctx, MI.t * Cqrs.Clock.t) Run.t
