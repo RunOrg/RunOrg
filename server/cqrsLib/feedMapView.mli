@@ -11,6 +11,8 @@ val update : ('key, 'id, 'value) t -> 'key -> 'id ->
   ((Time.t * 'value) option -> [ `Keep | `Put of (Time.t * 'value) | `Delete]) ->
   # Common.ctx Run.effect
 
+val delete : ('key, 'id, 'value) t -> 'key -> # Common.ctx Run.effect
+
 val exists : ('key, 'id, 'value) t -> 'key -> 'id -> (#Common.ctx, bool) Run.t
 
 val stats : ('key, 'id, 'value) t -> 'key -> (#Common.ctx, <

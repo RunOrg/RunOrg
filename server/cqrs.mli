@@ -201,6 +201,9 @@ module FeedMapView : sig
     ((Time.t * 'value) option -> [ `Keep | `Put of (Time.t * 'value) | `Delete]) ->
     # ctx Run.effect
 
+  (** Delete a feed. *)
+  val delete : ('key, 'id, 'value) t -> 'key -> # ctx Run.effect
+
   (** Does an item exist in the specified feed ? *)
   val exists : ('key, 'id, 'value) t -> 'key -> 'id -> (#ctx, bool) Run.t
 

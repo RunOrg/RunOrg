@@ -108,6 +108,20 @@ let mupdate map k i f =
 
 let update map k i f = mupdate map k i (fun v -> return (f v))
 
+(* Deleting a feed 
+   =============== *)
+
+let delete map k = 
+
+  let  k = Pack.to_string map.kpack k in 
+  
+  let! ctx = Run.context in 
+  let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
+
+  Sql.command
+    ("DELETE FROM \"" ^ dbname ^ "\"WHERE \"db\" = $1 AND \"key\" = $2")
+    [ `Id (ctx # db) ; `Binary k ]
+  
 (* Gathering stats for a key. 
    ========================== *)
 
