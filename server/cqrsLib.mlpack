@@ -1,6 +1,7 @@
 Clock
 Common
 EventStream
+FeedMapView
 ManyToManyView
 MapView
 Names

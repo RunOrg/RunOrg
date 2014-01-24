@@ -3,6 +3,7 @@ include CqrsLib.EventStream
 
 module Projection = CqrsLib.Projection
 module Clock = CqrsLib.Clock 
+module FeedMapView = CqrsLib.FeedMapView
 module Names = CqrsLib.Names
 module ManyToManyView = CqrsLib.ManyToManyView
 module MapView = CqrsLib.MapView
