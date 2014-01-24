@@ -96,6 +96,9 @@ module String = struct
       done
     done ;
     output
+
+  module Label = StdLib.Label
+  module Rich = StdLib.Rich
     
 end
 
