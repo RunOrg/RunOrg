@@ -277,6 +277,11 @@ end
 let post_json req =
   match req # body with Some (`JSON json) -> Some json | _ -> None
 
+let parse_body of_json req = 
+  match post_json req with None -> Bad None | Some json ->
+    try Ok (of_json json) with Json.Error (path, reason) -> 
+      Bad (Some [ "at", "body" ^ String.concat "" path ; "reason", reason ])
+
 module SPost = functor(A:POST_ARG) -> struct
 
   let path = split A.path
@@ -288,10 +293,10 @@ module SPost = functor(A:POST_ARG) -> struct
     match argparse req with 
     | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
     | Ok args ->
-      match Option.bind (post_json req) A.Post.of_json_safe with 
-      | None -> return (bad_request logPath "Could not parse body") 
-      | Some post -> let! out = A.response req args post in 
-		     return (respond logPath A.Out.to_json out)
+      match parse_body A.Post.of_json req with 
+      | Bad more -> return (bad_request ?more logPath "Could not parse body") 
+      | Ok post -> let! out = A.response req args post in 
+		   return (respond logPath A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.post action) path
 
@@ -310,9 +315,9 @@ module Post = functor(A:POST_ARG) -> struct
       match argparse req with 
       | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
       | Ok args -> 
-	match Option.bind (post_json req) A.Post.of_json_safe with 
-	| None -> return (bad_request logPath "Could not parse body") 
-	| Some post ->
+	match parse_body A.Post.of_json req with 
+	| Bad more -> return (bad_request ?more logPath "Could not parse body") 
+	| Ok post ->
 	  let! ctx = Db.ctx (Id.of_string db) in
 	  match ctx with None -> return (not_found logPath (!! "Database %s does not exist" db)) | Some ctx ->
 	    Run.with_context ctx begin
