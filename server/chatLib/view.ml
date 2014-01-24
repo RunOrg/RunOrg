@@ -75,6 +75,13 @@ let info =
     (module I : Fmt.FMT with type t = I.t) 
     (module Info : Fmt.FMT with type t = Info.t) in
 
+  let recount id = 
+    let! stats = Cqrs.FeedMapView.stats items id in
+    Cqrs.MapView.update info id (function None -> `Keep | Some info ->
+      if info # count = stats # count then `Keep else `Put
+	(Info.make ~count:(stats#count) ~contacts:(info#contacts) ~groups:(info#groups)))
+  in
+
   let () = Store.track infoV begin function 
     | `PrivateMessageCreated ev -> 
       let ida, idb = ev # who in 
@@ -87,8 +94,8 @@ let info =
 	| Some _ -> `Keep)
     | `ChatDeleted ev -> 
       Cqrs.MapView.update info (ev # id) (function None -> `Keep | Some _ -> `Delete) 
-    | `ItemPosted _ 
-    | `ItemDeleted _ -> return ()
+    | `ItemPosted ev -> recount (ev # id)
+    | `ItemDeleted ev -> recount (ev # id)
   end in 
 
   info
