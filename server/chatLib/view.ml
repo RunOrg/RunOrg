@@ -22,6 +22,44 @@ let exists =
 
   exists
 
+(* Chat feed contents
+   ================== *)
+
+module Item = type module <
+  author : CId.t ;
+  body   : string ;
+>
+
+let items = 
+
+  let itemsV, items = Cqrs.FeedMapView.make projection "items" 0 
+    (module I  : Fmt.FMT with type t = I.t)
+    (module MI : Fmt.FMT with type t = MI.t)
+    (module Item : Fmt.FMT with type t = Item.t) in
+
+  let () = Store.track itemsV begin function 
+
+    | `PrivateMessageCreated _ 
+    | `ChatCreated _ -> return () 
+
+    | `ChatDeleted ev -> Cqrs.FeedMapView.delete items (ev # id)
+
+    | `ItemDeleted ev -> 
+      Cqrs.FeedMapView.update items (ev # id) (ev # item)
+	(function Some _ -> `Delete | None -> `Keep)
+
+    | `ItemPosted ev ->
+      let! exists = Cqrs.SetView.exists exists (ev # id) in
+      let! ctx = Run.context in 
+      if not exists then return () else 
+	Cqrs.FeedMapView.update items (ev # id) (ev # item) (function 
+	| None -> `Put (ctx # time, Item.make ~author:(ev # author) ~body:(ev # body))
+	| Some _ -> `Keep)
+
+  end in 
+
+  items
+
 (* Chat information 
    ================ *)
 
