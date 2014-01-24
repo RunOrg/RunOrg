@@ -83,19 +83,24 @@ let info =
   in
 
   let () = Store.track infoV begin function 
+
     | `PrivateMessageCreated ev -> 
       let ida, idb = ev # who in 
       Cqrs.MapView.update info (ev # id) (function 
         | None -> `Put (Info.make ~count:0 ~contacts:[ida;idb] ~groups:[])
 	| Some _ -> `Keep)
+
     | `ChatCreated ev ->
       Cqrs.MapView.update info (ev # id) (function 
         | None -> `Put (Info.make ~count:0 ~contacts:(ev#contacts) ~groups:(ev#groups))
 	| Some _ -> `Keep)
+
     | `ChatDeleted ev -> 
       Cqrs.MapView.update info (ev # id) (function None -> `Keep | Some _ -> `Delete) 
+
     | `ItemPosted ev -> recount (ev # id)
     | `ItemDeleted ev -> recount (ev # id)
+
   end in 
 
   info
