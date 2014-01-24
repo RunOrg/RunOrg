@@ -84,6 +84,9 @@ end)
 (* Obtaining chat information 
    ========================== *)
 
+let not_found id = 
+  `NotFound (!! "Chat '%s' does not exist" (Chat.I.to_string id))
+
 module ChatInfo = type module <
   id : Chat.I.t ;
   contacts : CId.t list ;
@@ -103,8 +106,40 @@ module Get = Endpoint.Get(struct
 
   let response req arg = 
     let! info = Chat.get (arg # id) in 
-    match info with None -> return (`NotFound "No such chat") | Some info -> 
+    match info with None -> return (not_found (arg # id)) | Some info -> 
       let! contacts = List.M.filter_map Contact.get (info # contacts) in 
       return (`OK (Out.make ~contacts ~info))
+
+end)
+
+(* Obtaining chat contents 
+   ======================= *)
+
+module Item = type module <
+  id     : Chat.MI.t ;
+  author : CId.t ;
+  time   : Time.t ; 
+  body   : string 
+>
+
+module Items = Endpoint.Get(struct
+
+  module Arg = type module < id : Chat.I.t >
+  module Out = type module <
+    items    : Item.t list ;
+    contacts : ContactAPI.Short.t list ;
+    count    : int 
+  >
+
+  let path = "chat/{id}/items"
+
+  let response req arg = 
+    let! info = Chat.get (arg # id) in
+    match info with None -> return (not_found (arg # id)) | Some info -> 
+      let  count = info # count in 
+      let! items = Chat.list ?limit:(req # limit) ?offset:(req # offset) (arg # id) in
+      let  cids  = List.unique (List.map (#author) items) in
+      let! contacts = List.M.filter_map Contact.get cids in
+      return (`OK (Out.make ~items ~contacts ~count))
 
 end)
