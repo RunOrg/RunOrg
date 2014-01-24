@@ -18,3 +18,18 @@ let get id =
     method groups = info # groups
   end))
 
+type item = <
+  id : MI.t ;
+  author : CId.t ;
+  time : Time.t ;
+  body : string ;
+>
+
+let list ?(limit=1000) ?(offset=0) id = 
+  let! list = Cqrs.FeedMapView.list View.items ~limit ~offset id in 
+  return (List.map (fun (id,t,value) -> (object
+    method id = id
+    method time = t
+    method author = value # author
+    method body = value # body
+  end)) list)

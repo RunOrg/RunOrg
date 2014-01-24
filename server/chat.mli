@@ -35,3 +35,14 @@ type info = <
 
 (** Get short information about a chatroom. *)
 val get : I.t -> (#O.ctx, info option) Run.t
+
+(** An item. *)
+type item = <
+  id : MI.t ;
+  author : CId.t ;
+  time : Time.t ;
+  body : string ;
+>
+
+(** Get items from a chatroom, in reverse chronological order. *)
+val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, item list) Run.t
