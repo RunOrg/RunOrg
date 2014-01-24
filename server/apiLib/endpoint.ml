@@ -41,30 +41,30 @@ type 'a read_response =
 type 'a write_response = 
   [ 'a read_response | `Accepted of 'a ]
 
-let not_found error = 
-  Httpd.json ~status:`NotFound (Json.Object [ "error", Json.String error ])
+let not_found path error = 
+  Httpd.json ~status:`NotFound (Json.Object [ "error", Json.String error ; "path", Json.String path ])
 
-let forbidden error = 
-  Httpd.json ~status:`Forbidden (Json.Object [ "error", Json.String error ])
+let forbidden path error = 
+  Httpd.json ~status:`Forbidden (Json.Object [ "error", Json.String error ; "path", Json.String path ])
 
-let unauthorized error = 
-  Httpd.json ~status:`Unauthorized (Json.Object [ "error", Json.String error ])
+let unauthorized path error = 
+  Httpd.json ~status:`Unauthorized (Json.Object [ "error", Json.String error ; "path", Json.String path ])
 
-let bad_request error = 
-  Httpd.json ~status:`BadRequest (Json.Object [ "error", Json.String error ])
+let bad_request path error = 
+  Httpd.json ~status:`BadRequest (Json.Object [ "error", Json.String error ; "path", Json.String path ])
 
-let method_not_allowed allowed = 
+let method_not_allowed path allowed = 
   Httpd.json ~headers:[ "Allowed", String.concat ", " allowed] ~status:`MethodNotAllowed
-    (Json.Object [ "error", Json.String "Method not allowed" ])
+    (Json.Object [ "error", Json.String "Method not allowed" ; "path", Json.String path ])
 
-let bad_request error = 
-  Httpd.json ~status:`BadRequest (Json.Object [ "error", Json.String error ])
+let bad_request path error = 
+  Httpd.json ~status:`BadRequest (Json.Object [ "error", Json.String error ; "path", Json.String path ])
 
-let respond to_json = function
-  | `Forbidden error -> forbidden error
-  | `NotFound error -> not_found error
-  | `Unauthorized error -> unauthorized error
-  | `BadRequest error -> bad_request error
+let respond path to_json = function
+  | `Forbidden error -> forbidden path error
+  | `NotFound error -> not_found path error
+  | `Unauthorized error -> unauthorized path error
+  | `BadRequest error -> bad_request path error
   | `OK out -> Httpd.json (to_json out)
   | `Accepted out -> Httpd.json ~status:`Accepted (to_json out)
 
@@ -80,10 +80,11 @@ module Dictionary = struct
     get : action option ; 
     post : action option ; 
     put : action option ; 
-    delete : action option 
+    delete : action option ;
+    path : string ; 
   }
 
-  let empty_resource = { get = None ; post = None ; put = None ; delete = None }
+  let empty_resource path = { get = None ; post = None ; put = None ; delete = None ; path }
 
   (* Lenses for accessing actions. [fst] reads, [snd] writes. *)
 
@@ -114,13 +115,13 @@ module Dictionary = struct
   let empty = Choice Map.empty 
 
   let dictionary = Array.make maximum_path_size empty 
-  let () = dictionary.(0) <- Resource empty_resource
+  let () = dictionary.(0) <- Resource (empty_resource "/")
 
-  let add set path = 
-    let path = without_wildcards path in 
+  let add set spath = 
+    let path = without_wildcards spath in 
     let rec insert current = function 
       | [] -> begin match current with 
-	| None -> Resource (set empty_resource)
+	| None -> Resource (set (empty_resource ("/" ^ String.concat "/" spath)))
 	| Some (Resource r) -> Resource (set r)
 	| Some (Choice _) -> assert false (* The depth should always be correct *)
       end
@@ -161,14 +162,14 @@ module Dictionary = struct
       | `DELETE -> delete) in
 
     match find (req # path) with 
-      | [] -> return (not_found "No such resource") 
+      | [] -> return (not_found ("/" ^ String.concat "/" (req # path)) "No such resource") 
       | [r] -> begin match lens r with 
-	| None -> return (method_not_allowed (allow r))
+	| None -> return (method_not_allowed (r.path) (allow r))
 	| Some action -> action req 
       end
       | (h :: _) as list -> 
 	try List.find_map lens list req 
-	with Not_found -> return (method_not_allowed (allow h))
+	with Not_found -> return (method_not_allowed (h.path) (allow h))
 
 end
 
@@ -187,10 +188,11 @@ module SGet = functor(A:GET_ARG) -> struct
   let path = split A.path
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
 
-  let action req =     
-    match argparse req with None -> return (bad_request "Could not parse parameters") | Some args ->
+  let action req =
+    let path = "/" ^ A.path in     
+    match argparse req with None -> return (bad_request path "Could not parse parameters") | Some args ->
       let! out = A.response req args in 
-      return (respond A.Out.to_json out)
+      return (respond path A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.get action) path
 
@@ -202,14 +204,15 @@ module Get = functor(A:GET_ARG) -> struct
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
     
   let action req = 
+    let path = "/" ^ A.path in
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
-    match db with None -> return (bad_request "Could not parse parameters") | Some db ->
-      match argparse req with None -> return (bad_request "Could not parse parameters") | Some args ->
+    match db with None -> return (bad_request path "Could not parse parameters") | Some db ->
+      match argparse req with None -> return (bad_request path "Could not parse parameters") | Some args ->
 	let! ctx = Db.ctx (Id.of_string db) in
-	match ctx with None -> return (not_found (!! "Database %s does not exist" db)) | Some ctx ->
+	match ctx with None -> return (not_found path (!! "Database %s does not exist" db)) | Some ctx ->
 	  Run.with_context ctx begin
 	    let! out = A.response req args in
-	    return (respond A.Out.to_json out)
+	    return (respond path A.Out.to_json out)
 	  end
 
   let () = Dictionary.add (snd Dictionary.get action) path
@@ -232,14 +235,15 @@ module Delete = functor(A:DELETE_ARG) -> struct
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
     
   let action req = 
+    let path = "/" ^ A.path in
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
-    match db with None -> return (bad_request "Could not parse parameters") | Some db ->
-      match argparse req with None -> return (bad_request "Could not parse parameters") | Some args ->
+    match db with None -> return (bad_request path "Could not parse parameters") | Some db ->
+      match argparse req with None -> return (bad_request path "Could not parse parameters") | Some args ->
 	let! ctx = Db.ctx (Id.of_string db) in
-	match ctx with None -> return (not_found (!! "Database %s does not exist" db)) | Some ctx ->
+	match ctx with None -> return (not_found path (!! "Database %s does not exist" db)) | Some ctx ->
 	  Run.with_context ctx begin
 	    let! out = A.response req args in
-	    return (respond A.Out.to_json out)
+	    return (respond path A.Out.to_json out)
 	  end
 
   let () = Dictionary.add (snd Dictionary.delete action) path
@@ -265,12 +269,13 @@ module SPost = functor(A:POST_ARG) -> struct
   let path = split A.path
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
 
-  let action req =     
-    match argparse req with None -> return (bad_request "Could not parse parameters") | Some args ->
+  let action req =    
+    let path = "/" ^ A.path in     
+    match argparse req with None -> return (bad_request path "Could not parse parameters") | Some args ->
       match Option.bind (post_json req) A.Post.of_json_safe with 
-      | None -> return (bad_request "Could not parse body") 
+      | None -> return (bad_request path "Could not parse body") 
       | Some post -> let! out = A.response req args post in 
-		     return (respond A.Out.to_json out)
+		     return (respond path A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.post action) path
 
@@ -282,17 +287,18 @@ module Post = functor(A:POST_ARG) -> struct
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
     
   let action req = 
+    let path = "/" ^ A.path in
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
-    match db with None -> return (bad_request "Could not parse parameters") | Some db ->
-      match argparse req with None -> return (bad_request "Could not parse parameters") | Some args -> 
+    match db with None -> return (bad_request path "Could not parse parameters") | Some db ->
+      match argparse req with None -> return (bad_request path"Could not parse parameters") | Some args -> 
 	match Option.bind (post_json req) A.Post.of_json_safe with 
-	| None -> return (bad_request "Could not parse body") 
+	| None -> return (bad_request path "Could not parse body") 
 	| Some post ->
 	  let! ctx = Db.ctx (Id.of_string db) in
-	  match ctx with None -> return (not_found (!! "Database %s does not exist" db)) | Some ctx ->
+	  match ctx with None -> return (not_found path (!! "Database %s does not exist" db)) | Some ctx ->
 	    Run.with_context ctx begin
 	      let! out = A.response req args post in
-	      return (respond A.Out.to_json out)
+	      return (respond path A.Out.to_json out)
 	    end
 
   let () = Dictionary.add (snd Dictionary.post action) path
