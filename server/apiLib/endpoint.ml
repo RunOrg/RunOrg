@@ -145,8 +145,8 @@ module Dictionary = struct
       end 
       | seg :: t -> begin 
 	let map = match current with Choice m -> m | Resource _ -> assert false in 
-	let acc = try find acc (Map.find (Some seg) map) t with Not_found -> acc in
-	try find acc (Map.find None map) t with Not_found -> acc 
+	let acc = try find acc (Map.find None map) t with Not_found -> acc in
+	try find acc (Map.find (Some seg) map) t with Not_found -> acc 
       end 
     in
     let n = List.length segs in     
