@@ -188,11 +188,13 @@ module SGet = functor(A:GET_ARG) -> struct
   let path = split A.path
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
 
+  let logPath = "/" ^ A.path 
+
   let action req =
-    let path = "/" ^ A.path in     
-    match argparse req with None -> return (bad_request path "Could not parse parameters") | Some args ->
+
+    match argparse req with None -> return (bad_request logPath "Could not parse parameters") | Some args ->
       let! out = A.response req args in 
-      return (respond path A.Out.to_json out)
+      return (respond logPath A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.get action) path
 
@@ -202,17 +204,18 @@ module Get = functor(A:GET_ARG) -> struct
 
   let path = split ("db/{-}/" ^ A.path) 
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+
+  let logPath = "/db/{db}/" ^ A.path
     
   let action req = 
-    let path = "/" ^ A.path in
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
-    match db with None -> return (bad_request path "Could not parse parameters") | Some db ->
-      match argparse req with None -> return (bad_request path "Could not parse parameters") | Some args ->
+    match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
+      match argparse req with None -> return (bad_request logPath "Could not parse parameters") | Some args ->
 	let! ctx = Db.ctx (Id.of_string db) in
-	match ctx with None -> return (not_found path (!! "Database %s does not exist" db)) | Some ctx ->
+	match ctx with None -> return (not_found logPath (!! "Database %s does not exist" db)) | Some ctx ->
 	  Run.with_context ctx begin
 	    let! out = A.response req args in
-	    return (respond path A.Out.to_json out)
+	    return (respond logPath A.Out.to_json out)
 	  end
 
   let () = Dictionary.add (snd Dictionary.get action) path
@@ -234,16 +237,17 @@ module Delete = functor(A:DELETE_ARG) -> struct
   let path = split ("db/{-}/" ^ A.path) 
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
     
+  let logPath = "/db/{db}/" ^ A.path 
+
   let action req = 
-    let path = "/" ^ A.path in
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
-    match db with None -> return (bad_request path "Could not parse parameters") | Some db ->
-      match argparse req with None -> return (bad_request path "Could not parse parameters") | Some args ->
+    match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
+      match argparse req with None -> return (bad_request logPath "Could not parse parameters") | Some args ->
 	let! ctx = Db.ctx (Id.of_string db) in
-	match ctx with None -> return (not_found path (!! "Database %s does not exist" db)) | Some ctx ->
+	match ctx with None -> return (not_found logPath (!! "Database %s does not exist" db)) | Some ctx ->
 	  Run.with_context ctx begin
 	    let! out = A.response req args in
-	    return (respond path A.Out.to_json out)
+	    return (respond logPath A.Out.to_json out)
 	  end
 
   let () = Dictionary.add (snd Dictionary.delete action) path
@@ -269,13 +273,14 @@ module SPost = functor(A:POST_ARG) -> struct
   let path = split A.path
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
 
+  let logPath = "/" ^ A.path
+
   let action req =    
-    let path = "/" ^ A.path in     
-    match argparse req with None -> return (bad_request path "Could not parse parameters") | Some args ->
+    match argparse req with None -> return (bad_request logPath "Could not parse parameters") | Some args ->
       match Option.bind (post_json req) A.Post.of_json_safe with 
-      | None -> return (bad_request path "Could not parse body") 
+      | None -> return (bad_request logPath "Could not parse body") 
       | Some post -> let! out = A.response req args post in 
-		     return (respond path A.Out.to_json out)
+		     return (respond logPath A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.post action) path
 
@@ -285,20 +290,21 @@ module Post = functor(A:POST_ARG) -> struct
 
   let path = split ("db/{-}/" ^ A.path) 
   let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+
+  let logPath = "/db/{db}/" ^ A.path
     
   let action req = 
-    let path = "/" ^ A.path in
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
-    match db with None -> return (bad_request path "Could not parse parameters") | Some db ->
-      match argparse req with None -> return (bad_request path"Could not parse parameters") | Some args -> 
+    match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
+      match argparse req with None -> return (bad_request logPath "Could not parse parameters") | Some args -> 
 	match Option.bind (post_json req) A.Post.of_json_safe with 
-	| None -> return (bad_request path "Could not parse body") 
+	| None -> return (bad_request logPath "Could not parse body") 
 	| Some post ->
 	  let! ctx = Db.ctx (Id.of_string db) in
-	  match ctx with None -> return (not_found path (!! "Database %s does not exist" db)) | Some ctx ->
+	  match ctx with None -> return (not_found logPath (!! "Database %s does not exist" db)) | Some ctx ->
 	    Run.with_context ctx begin
 	      let! out = A.response req args post in
-	      return (respond path A.Out.to_json out)
+	      return (respond logPath A.Out.to_json out)
 	    end
 
   let () = Dictionary.add (snd Dictionary.post action) path
