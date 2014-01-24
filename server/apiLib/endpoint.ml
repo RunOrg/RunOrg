@@ -23,8 +23,9 @@ let argparse (type t) (a : (module Fmt.FMT with type t = t)) path_segs =
     let path = Array.of_list (req # path) in
     let map = List.fold_left (fun map (i,n) -> Map.add n path.(i) map) (req # params) seg_bindings in
     let json = Json.Object (List.of_map (fun k v -> k, Json.String v) map) in
-    F.of_json_safe json 
-      
+    try Ok (F.of_json json) 
+    with Json.Error (path,reason) -> Bad [ "in", String.concat "" path ; "reason", reason ]       
+
 let without_wildcards path_segs = 
   List.map (fun seg -> if seg.[0] = '{' then None else Some seg) path_segs
   
@@ -57,8 +58,10 @@ let method_not_allowed path allowed =
   Httpd.json ~headers:[ "Allowed", String.concat ", " allowed] ~status:`MethodNotAllowed
     (Json.Object [ "error", Json.String "Method not allowed" ; "path", Json.String path ])
 
-let bad_request path error = 
-  Httpd.json ~status:`BadRequest (Json.Object [ "error", Json.String error ; "path", Json.String path ])
+let bad_request ?(more=[]) path error = 
+  Httpd.json ~status:`BadRequest 
+    (Json.Object (("error", Json.String error) :: ("path", Json.String path) :: 
+      (List.map (fun (a,b) -> a, Json.String b) more)))
 
 let respond path to_json = function
   | `Forbidden error -> forbidden path error
@@ -192,7 +195,9 @@ module SGet = functor(A:GET_ARG) -> struct
 
   let action req =
 
-    match argparse req with None -> return (bad_request logPath "Could not parse parameters") | Some args ->
+    match argparse req with 
+    | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+    | Ok args ->
       let! out = A.response req args in 
       return (respond logPath A.Out.to_json out)
 
@@ -210,7 +215,9 @@ module Get = functor(A:GET_ARG) -> struct
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
     match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
-      match argparse req with None -> return (bad_request logPath "Could not parse parameters") | Some args ->
+      match argparse req with 
+      | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+      | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
 	match ctx with None -> return (not_found logPath (!! "Database %s does not exist" db)) | Some ctx ->
 	  Run.with_context ctx begin
@@ -242,7 +249,9 @@ module Delete = functor(A:DELETE_ARG) -> struct
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
     match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
-      match argparse req with None -> return (bad_request logPath "Could not parse parameters") | Some args ->
+      match argparse req with 
+      | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+      | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
 	match ctx with None -> return (not_found logPath (!! "Database %s does not exist" db)) | Some ctx ->
 	  Run.with_context ctx begin
@@ -276,7 +285,9 @@ module SPost = functor(A:POST_ARG) -> struct
   let logPath = "/" ^ A.path
 
   let action req =    
-    match argparse req with None -> return (bad_request logPath "Could not parse parameters") | Some args ->
+    match argparse req with 
+    | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+    | Ok args ->
       match Option.bind (post_json req) A.Post.of_json_safe with 
       | None -> return (bad_request logPath "Could not parse body") 
       | Some post -> let! out = A.response req args post in 
@@ -296,7 +307,9 @@ module Post = functor(A:POST_ARG) -> struct
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
     match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
-      match argparse req with None -> return (bad_request logPath "Could not parse parameters") | Some args -> 
+      match argparse req with 
+      | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+      | Ok args -> 
 	match Option.bind (post_json req) A.Post.of_json_safe with 
 	| None -> return (bad_request logPath "Could not parse body") 
 	| Some post ->
