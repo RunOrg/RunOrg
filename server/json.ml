@@ -1,4 +1,4 @@
-(* Ohm is © 2012 Victor Nicollet *)
+(* © 2014 RunOrg *)
 
 open BatPervasives
 
@@ -12,6 +12,8 @@ type t = Json_type.t =
   | String of string
 
 exception Error = Json_type.Error
+
+let error why = Error ([], why) 
 
 let of_json x = x
 let to_json x = x
@@ -37,7 +39,7 @@ let rec unpack t =
     ~list:(fun l -> Array l)
     ~map:(fun l -> Object (List.map (function 
     | (String s,x) -> (s,x) 
-    | (k,_) -> raise (Error "Unexpected non-string key")) l))
+    | (k,_) -> raise (error "Unexpected non-string key")) l))
     t
 
 let unserialize string =
@@ -142,7 +144,7 @@ let of_list   f list = Array (List.map f list)
 
 let parse_error what json = 
   let string = serialize json in 
-  raise (Error (Printf.sprintf "Expected %s, found `%s`" what string))  
+  raise (error (Printf.sprintf "Expected %s, found `%s`" what string))  
 
 let to_object f = function
   | Object list -> let opt s = try Some (List.assoc s list) with Not_found -> None in
@@ -176,11 +178,6 @@ let to_opt f = function
   | Null -> None
   | json -> Some (f json) 
  
-let parse f json = 
-  try Ok (f json) with 
-    | Error e -> Bad (Error (e ^ " in " ^ to_string json)) 
-    | exn -> Bad exn 
-
 let to_array = function
   | Array a -> a
   | json -> parse_error "array" json

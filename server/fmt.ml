@@ -2,7 +2,7 @@
 
 let protect ?save f v = 
   try Some (f v)
-  with Json.Error error ->
+  with Json.Error (_,error) ->
     match save with None -> None | Some g -> 
       try Some (f (g v)) with _ -> None
 

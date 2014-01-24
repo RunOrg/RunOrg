@@ -165,7 +165,7 @@ module Json = struct
 
   let error _loc text src = 
     let s = <:expr< $str:("Expecting " ^ text ^ ", found ")$ ^ Json.serialize $src$ >> in
-    <:expr< raise (Json.Error ($s$)) >>
+    <:expr< raise (Json.error ($s$)) >>
       
   (* Parses either an OCaml record, or an OCaml object, from a list
      of key-value pairs. *)
@@ -179,14 +179,20 @@ module Json = struct
        final value. *)
     let fields_and_boxes = List.map (fun field -> (fresh(),field)) fields in
     
-    let set box value = <:expr< $lid:box$.val := Some $value$ >> in
+    let set key box value = 
+      let _try = <:expr< try Some $value$ with [ 
+	Json.Error path reason -> raise (Json.Error [ $str:("."^key)$ :: path ] reason) 
+      ] >> in 
+      <:expr< $lid:box$.val := $_try$ >> 
+    in
     
     (* Matches a key named 'k', places a value named 'v' in the corresponding
        temp-box. *)
     let set_temp_box_for_named_field = 
       let cases = List.fold_left begin fun acc (box,field) -> 
 	let value = recurse <:expr< v >> (field # typ) in
-	let case = <:match_case< $str:snd (field # label)$ -> $set box value$ >> in
+	let key   = snd (field # label) in 
+	let case = <:match_case< $str:key$ -> $set key box value$ >> in
 	<:match_case< $case$ | $acc$ >> 
       end <:match_case< _ -> () >> fields_and_boxes in 
       <:expr< match k with [ $cases$ ] >>
@@ -274,14 +280,18 @@ module Json = struct
 	
       | `list t -> begin
 	let r = recurse <:expr< _t_ >> t in
-	let list = <:match_case< Json.Array _l_ -> List.map (fun _t_ -> $r$) _l_ >> in
+	let list = <:match_case< Json.Array _l_ -> BatList.mapi (fun _i_ _t_ -> try $r$ with [
+	  Json.Error path reason -> raise (Json.Error [ ("["^string_of_int _i_^"]") :: path ] reason)
+	]) _l_ >> in
 	let fail = <:match_case< _ -> $error "list" src$ >> in
 	<:expr< match $src$ with [ $list$ | $fail$ ] >>
       end 
 	
       | `array t -> begin
 	let r = recurse <:expr< _t_ >> t in
-	let list = <:match_case< Json.Array _l_ -> Array.of_list (List.map (fun _t_ -> $r$) _l_) >> in
+	let list = <:match_case< Json.Array _l_ -> Array.of_list (BatList.mapi (fun _i_ _t_ -> try $r$ with [
+	  Json.Error path reason -> raise (Json.Error [ ("["^string_of_int _i_^"]") :: path ] reason)
+	]) _l_) >> in
 	let fail = <:match_case< _ -> $error "list" src$ >> in
 	<:expr< match $src$ with [ $list$ | $fail$ ] >>
       end 
@@ -293,13 +303,16 @@ module Json = struct
 	  <:patt< [ $id$ :: $acc$ ] >> 
 	end l <:patt< [] >> in
 	let patt = <:patt< Json.Array $patt$ >> in
-	let expr = List.fold_right begin fun (i,t) acc -> 
+	let _, expr = List.fold_right begin fun (i,t) (n,acc) -> 
 	  let id = <:expr< $lid:i$ >> in
 	  let t  = recurse id t in
-	  <:expr< $t$, $acc$ >>
-	end l <:expr< >> in
+	  let t  = <:expr< try $t$ with [ 
+	    Json.Error path reason -> raise (Json.Error [ $str:("["^string_of_int n^"]")$ :: path ] reason)
+	  ] >> in
+	  n - 1, <:expr< $t$, $acc$ >>
+	end l (List.length l - 1,<:expr< >>) in
 	let ok = <:match_case< $patt$ -> ($tup:expr$) >> in
-	let nok = <:match_case< _ -> $error "tuple" src$ >> in
+	let nok = <:match_case< _ -> $error (string_of_int (List.length l) ^ "-element array") src$ >> in
 	<:expr< match $src$ with [ $ok$ | $nok$ ] >>
       end
 	
@@ -321,7 +334,7 @@ module Json = struct
 		let id = <:expr< $lid:i$ >> in
 		let t = recurse id t in
 		<:expr< $acc$ $t$ >>
-	      end <:expr< $uid:ident (v#name)$ >> l in
+	      end (<:expr< $uid:ident (v#name)$ >>) l in
 	      <:match_case< $patt$ -> $list$ >>			    
 	    end
 	  in

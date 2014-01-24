@@ -10,15 +10,15 @@
     
   let float f =
     try Json_type.Float (float_of_string f)
-    with _ -> raise (Json_type.Error ("Could not parse '" ^ f ^ "' as float"))
+    with _ -> raise (Json_type.Error ([],"Could not parse '" ^ f ^ "' as float"))
 
   let int i =
     try Json_type.Int (int_of_string i)
     with _ -> try Json_type.Float (float_of_string i)
-      with _ -> raise (Json_type.Error ("Could not parse '" ^ i ^ "' as int"))
+      with _ -> raise (Json_type.Error ([],"Could not parse '" ^ i ^ "' as int"))
 
-  let eof = Json_type.Error "Unexpected end of string"
-  let unexpected s = Json_type.Error ("Unexpected string '" ^ s ^ "'")
+  let eof = Json_type.Error ([],"Unexpected end of string")
+  let unexpected s = Json_type.Error ([],"Unexpected string '" ^ s ^ "'")
     
   let append buffer lexbuf =
     Buffer.add_substring buffer lexbuf.Lexing.lex_buffer lexbuf.Lexing.lex_start_pos

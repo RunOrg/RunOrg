@@ -11,8 +11,9 @@ module Json = struct
 
   let to_string _ = "."
 
-  exception Error of string
+  exception Error of string list * string
 
+  let error _ = assert false
   let serialize json = ""
 
 end
@@ -58,5 +59,6 @@ module T = type module
     | `C of int * int 
     | `D of < a : int ; b : string ; c : float ; d : bool > 
     | `E of string option 
-    | `F of unit ]
+    | `F of unit 
+    | `G of (int * string) array ]
       

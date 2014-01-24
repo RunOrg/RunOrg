@@ -1,4 +1,4 @@
-(* Ohm is © 2012 Victor Nicollet *)
+(* © 2014 RunOrg *)
 
 type t = Json_type.t = 
   | Null
@@ -9,7 +9,9 @@ type t = Json_type.t =
   | Bool of bool
   | String of string
 
-exception Error of string 
+exception Error of string list * string 
+
+val error : string -> exn
 
 val to_json : t -> t
 val of_json : t -> t
@@ -40,7 +42,5 @@ val to_string : t -> string
 val to_opt    : (t -> 'a) -> t -> 'a option
 val to_array  : t -> t list
 val to_assoc  : t -> (string * t) list 
-
-val parse     : (t -> 'a) -> t -> ('a,exn) BatPervasives.result 
  
 val parse_error : string -> t -> 'a 

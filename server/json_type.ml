@@ -1,4 +1,4 @@
-(* Ohm is © 2012 Victor Nicollet *)
+(* © 2014 RunOrg *)
 
 type t =
   | Null
@@ -9,5 +9,5 @@ type t =
   | Bool of bool
   | String of string
       
-exception Error of string
+exception Error of string list * string
     

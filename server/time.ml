@@ -57,9 +57,9 @@ include Fmt.Make(struct
     | Json.String s -> begin 
       match of_iso8601 s with 
 	| Some d -> d
-	| None -> raise (Json.Error (Printf.sprintf "Unexpected date format : %S" s))
+	| None -> raise (Json.error (Printf.sprintf "Unexpected date format : %S" s))
     end
-    | _ -> raise (Json.Error "Expected string representation for date") 
+    | _ -> raise (Json.error "Expected string representation for date") 
   let json_of_t d = Json.String (to_iso8601 d) 
   let pack d = 
     Json.pack (Json.Array (List.map (fun i -> Json.Int i) (match d.t with 
