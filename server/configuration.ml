@@ -1,3 +1,5 @@
+(* © 2014 RunOrg *)
+
 type role = [ `Run | `Reset ]
 
 let test = true
