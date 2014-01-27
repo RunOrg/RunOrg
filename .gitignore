@@ -1,5 +1,6 @@
 .server/
 runorg
+server/test.ml
 server/main.byte
 server/_build
 plang/plang.byte
