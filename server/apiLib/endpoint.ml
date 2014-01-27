@@ -350,12 +350,12 @@ let static path mime file =
   
   let hash = String.base62_encode (Sha1.hash_of_string content) in
 
-  let action req = 
-    return (Httpd.raw ~headers:[
-      "Content-Type", mime ;
-      "ETag", !! "%S" hash ;      
-    ] content)
-  in
+  let response = Httpd.raw ~headers:[
+    "Content-Type", mime ;
+    "ETag", !! "%S" hash ;      
+  ] content in
+    
+  let action req = return response in 
     
   Dictionary.add (snd Dictionary.get action) (split path) 
 
