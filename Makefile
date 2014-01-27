@@ -1,6 +1,10 @@
 all: runorg
 	./runorg reset
 
+tests: 
+	make -C testc
+	testc/testc.native
+
 depend: 
 	opam install postgresql-ocaml ssl sha batteries ocurl menhir
 
@@ -8,7 +12,7 @@ toolchain:
 	make -C syntax
 	make -C plang
 
-runorg: toolchain
+runorg: toolchain tests
 	make -C server
 	make -C admin
 	cp server/main.byte runorg
