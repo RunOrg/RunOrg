@@ -5,13 +5,17 @@ var Test = (function() {
     return {
 
 	all: function(callback) {
+	    Test.all_ = [ callback ];
+	    Test.all  = function(callback) { Test.all_.push(callback); };
 	    $.get("/docs/all.json",function(contents){
 		Test.all = function(callback) { callback(contents); };
-		Test.all(callback);
+		for (var i = 0; i < Test.all_.length; ++i) Test.all(Test.all_[i]);
 	    });
 	},
 
 	tree: function(callback) {
+	    Test.tree_ = [ callback ];
+	    Test.tree  = function(callback) { Test.tree_.push(callback); };
 	    Test.all(function(tests) {
 		var tree = {};
 		for (var path in tests) {
@@ -24,7 +28,7 @@ var Test = (function() {
 		    root[test.description] = { '__' : 'test', test: test };
 		}
 		Test.tree = function(callback) { callback(tree); };
-		Test.tree(callback);
+		for (var i = 0; i < Test.tree_.length; ++i) Test.tree(Test.tree_[i]);
 	    });
 	}
 
