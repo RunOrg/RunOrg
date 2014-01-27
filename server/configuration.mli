@@ -5,6 +5,10 @@ type role = [ `Run | `Reset ]
 (** The role of this instance, as parsed from the command line. *)
 val role : role
 
+(** Is this server running in test mode ? This would enable the "login as 
+    test script" API endpoint. *)
+val test : bool
+
 (** If set, write logs to a file in that folder. Otherwise, write logs to 
     standard output. *)
 val log_prefix : string option

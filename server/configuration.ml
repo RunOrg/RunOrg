@@ -1,5 +1,7 @@
 type role = [ `Run | `Reset ]
 
+let test = true
+
 let role =
   if BatArray.mem "reset" Sys.argv then `Reset else `Run
 
