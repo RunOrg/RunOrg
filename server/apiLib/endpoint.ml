@@ -331,6 +331,7 @@ end
 
 (* Static content 
    ============== *)
+
 let static path mime file =
 
   let content =
@@ -357,6 +358,9 @@ let static path mime file =
   in
     
   Dictionary.add (snd Dictionary.get action) (split path) 
+
+(* Dispatching requests
+   ==================== *)
   
 let dispatch req = 
   Dictionary.dispatch req
