@@ -82,10 +82,10 @@ let parse_line1 =
 let parse_line2 = 
   let re = Str.regexp "[ \t]*/[ \t]*" in
   fun line ->
-    let splits = Str.split re line in
+    let splits = List.filter (fun s -> s <> "") (Str.split re line) in
     match List.rev splits with 
     | [] -> assert false
-    | desc :: categories -> (desc, List.rev categories) 
+    | desc :: categories -> (desc, List.rev categories)
 
 let test_re = Str.regexp "TEST("
 
