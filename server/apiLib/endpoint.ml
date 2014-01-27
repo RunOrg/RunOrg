@@ -359,6 +359,21 @@ let static path mime file =
     
   Dictionary.add (snd Dictionary.get action) (split path) 
 
+let json path json = 
+
+  let json = Json.serialize json in 
+  let hash = String.base62_encode (Sha1.hash_of_string json) in 
+  let etag = !! "%S" hash in
+
+  let response = Httpd.raw ~headers:[
+    "Content-Type", "application/json" ;
+    "ETag", etag
+  ] json in
+      
+  let action req = return response in
+
+  Dictionary.add (snd Dictionary.get action) (split path) 
+
 (* Dispatching requests
    ==================== *)
   

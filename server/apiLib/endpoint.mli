@@ -98,6 +98,10 @@ module Post : functor(A:POST_ARG) -> sig end
     data loaded from the specified path, with the provided mime-type. *)
 val static : string -> string -> string -> unit
 
+(** Create a static endpoint serving JSON. [static url json] responds to GET requests
+    with the provided JSON as [application/json]. *)
+val json : string -> Json.t -> unit
+
 (** Dispatch a request, generate a response. *)
 val dispatch : Httpd.request -> (O.ctx, Httpd.response) Run.t
 
