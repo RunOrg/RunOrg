@@ -7,7 +7,7 @@ open Std
 
 type info = <
   id    : I.t ;
-  label : string option ; 
+  label : String.Label.t option ; 
   count : int ;
 >
 

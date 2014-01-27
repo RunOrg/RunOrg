@@ -7,7 +7,7 @@ module Create = Endpoint.Post(struct
   module Arg = type module unit
   module Post = type module <
     ?id    : string option ; 
-    ?label : string option ;
+    ?label : String.Label.t option ;
   >
 
   module Out = type module <
@@ -74,7 +74,7 @@ end)
 
 module Info = type module <
   id    : Group.I.t ;
-  label : string option ; 
+  label : String.Label.t option ; 
   count : int ;
 >
 

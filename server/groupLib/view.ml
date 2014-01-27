@@ -63,7 +63,7 @@ let contacts =
    ================= *)
 
 module Info = type module <
-  label : string option ;
+  label : String.Label.t option ;
   count : int ; 
 >
 

@@ -1,5 +1,7 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 (** Groups are sets of contacts. *)
 
 module I : sig
@@ -13,7 +15,7 @@ end
     @param id A custom identifier. Must be alphanumeric and 10 or fewer characters long. If a 
               group with that identifier already exists, nothing happens. *)
 val create : 
-  ?label:string -> 
+  ?label:String.Label.t -> 
   ?id:CustomId.t -> 
   unit -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
@@ -35,7 +37,7 @@ val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, CId.t list * int) Run.t
 (** Short information about a group. *)
 type info = <
   id    : I.t ; 
-  label : string option ;
+  label : String.Label.t option ;
   count : int ;
 >
 

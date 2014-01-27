@@ -1,7 +1,9 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 val create : 
-  ?label:string -> 
+  ?label:String.Label.t -> 
   ?id:CustomId.t -> 
   unit -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 

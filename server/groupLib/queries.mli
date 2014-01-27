@@ -1,10 +1,12 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, CId.t list * int) Run.t
 
 type info = <
   id    : I.t ;
-  label : string option ; 
+  label : String.Label.t option ; 
   count : int ;
 >
 
