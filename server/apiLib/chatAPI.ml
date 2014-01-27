@@ -52,7 +52,7 @@ module Post = Endpoint.Post(struct
   module Arg  = type module < id : Chat.I.t >
   module Post = type module <
     author : CId.t ;
-    body : string ;
+    body : String.Rich.t ;
   >
 
   module Out = type module <
@@ -119,7 +119,7 @@ module Item = type module <
   id     : Chat.MI.t ;
   author : CId.t ;
   time   : Time.t ; 
-  body   : string 
+  body   : String.Rich.t ;
 >
 
 module Items = Endpoint.Get(struct

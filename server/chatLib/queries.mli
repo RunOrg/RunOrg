@@ -1,5 +1,7 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 type info = <
   id : I.t ; 
   count : int ;
@@ -13,7 +15,7 @@ type item = <
   id : MI.t ;
   author : CId.t ;
   time : Time.t ;
-  body : string ;
+  body : String.Rich.t ;
 >
 
 val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, item list) Run.t

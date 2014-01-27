@@ -1,5 +1,7 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 (** Chatrooms are sequences of messages. *)
 
 module I : sig
@@ -20,7 +22,7 @@ val createPM : CId.t -> CId.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 val delete : I.t -> (#O.ctx, Cqrs.Clock.t) Run.t
 
 (** Post a new item to the chatroom. *)
-val post : I.t -> CId.t -> string -> (#O.ctx, MI.t * Cqrs.Clock.t) Run.t
+val post : I.t -> CId.t -> String.Rich.t -> (#O.ctx, MI.t * Cqrs.Clock.t) Run.t
 
 (** Delete an item in a chatroom. *)
 val deleteItem : I.t -> MI.t -> (#O.ctx, Cqrs.Clock.t) Run.t
@@ -41,7 +43,7 @@ type item = <
   id : MI.t ;
   author : CId.t ;
   time : Time.t ;
-  body : string ;
+  body : String.Rich.t ;
 >
 
 (** Get items from a chatroom, in reverse chronological order. *)

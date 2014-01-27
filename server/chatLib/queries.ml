@@ -22,7 +22,7 @@ type item = <
   id : MI.t ;
   author : CId.t ;
   time : Time.t ;
-  body : string ;
+  body : String.Rich.t ;
 >
 
 let list ?(limit=1000) ?(offset=0) id = 

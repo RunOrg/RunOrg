@@ -27,7 +27,7 @@ let exists =
 
 module Item = type module <
   author : CId.t ;
-  body   : string ;
+  body   : String.Rich.t ;
 >
 
 let items = 
