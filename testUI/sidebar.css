@@ -1,0 +1,72 @@
+.sidebar {
+  width: 320px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #EEE;
+  border-right: 1px solid #CCC;
+  padding: 5px;
+  font-size: 12px;
+
+  li {
+    border-top: 1px solid #DDD;
+  }
+  
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  li ul {
+    padding-left: 5px;
+  }
+
+  div {
+    font-weight: bold;
+    padding: 6px 4px;
+    line-height: 18px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  a > span { margin-top: 6px }
+
+  span {
+    float: right; 
+    border-radius: 30px;
+    height: 18px;
+    line-height: 18px;
+    padding: 0 6px;    
+    background-color: #F80;
+    color: white;
+    font-weight: bold;
+    font-size: 0.8em;
+  }
+
+  span.ok {
+    background-color: #690;
+  }
+
+  span.fail {
+    background-color: #C00;
+  }
+
+  a {
+    display: block;
+    text-decoration: none;
+    color: #111;
+    height: 30px;
+    padding: 6px 4px;
+    line-height: 1.3em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+
+    code {
+      display: block;
+      color: #AAA;
+      font-size: 0.95em;
+    }
+  }
+}

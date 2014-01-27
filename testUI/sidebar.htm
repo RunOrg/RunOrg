@@ -1,15 +1,17 @@
 <ul>
   {< each sub }
     <li>
-      <div>{{ name }} <span {< if ok }class="ok"{>}>{{ count }}</span></div>
+      <div onclick="$(this).next().toggle()">
+	<span {< if ok }class="ok"{>}>{{ count }}</span>{{ name }}
+      </div>
       {< sidebar >}
     </li>
   {>}
   {< each tests }
     <li>
       <a href="{{ file }}">
-	{{ name }} 
 	<span {<if ok }class="ok"{>}>{{ count }}</span>
+	{{ name }} 	
 	<code>{{ verb }} {{ path }}</code> 
       </a>
     </li>

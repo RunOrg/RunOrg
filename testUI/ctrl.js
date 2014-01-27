@@ -16,6 +16,7 @@ function sidebar(R) {
 		} else {
 		    out.tests.push({ 
 			name: k, 
+			verb: tree[k].file.verb,
 			path: tree[k].file.path,
 			file: "/docs/" + tree[k].file.file,
 			count: tree[k].file.tests
