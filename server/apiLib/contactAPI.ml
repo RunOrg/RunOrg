@@ -7,10 +7,10 @@ module Import = Endpoint.Post(struct
   module Arg = type module unit
 
   module Post = type module <
-    email     : string ;
-   ?fullname  : string option ; 
-   ?firstname : string option ;
-   ?lastname  : string option ; 
+    email     : String.Label.t ;
+   ?fullname  : String.Label.t option ; 
+   ?firstname : String.Label.t option ;
+   ?lastname  : String.Label.t option ; 
    ?gender    : [`F|`M] option ;
   > list
 
@@ -43,7 +43,7 @@ end)
 
 module Short = type module <
   id     : CId.t ;
-  name   : string ; 
+  name   : String.Label.t ; 
   gender : [`F|`M] option ;
   pic    : string ; 
 >

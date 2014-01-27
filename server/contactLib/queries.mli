@@ -1,8 +1,10 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 type short = <
   id     : CId.t ;
-  name   : string ;
+  name   : String.Label.t ;
   pic    : string ; 
   gender : [`F|`M] option ; 
 >

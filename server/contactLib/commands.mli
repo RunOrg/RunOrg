@@ -1,12 +1,11 @@
 (* © 2014 RunOrg *)
 
-(** Create a new contact with the specified e-mail, and return its identifier. 
-    If the e-mail already belongs to a contact, the identifier of that contact
-    is returned instead. *)
+open Std
+
 val create : 
-  ?fullname:string -> 
-  ?firstname:string -> 
-  ?lastname:string -> 
+  ?fullname:String.Label.t -> 
+  ?firstname:String.Label.t -> 
+  ?lastname:String.Label.t -> 
   ?gender:[`F|`M] -> 
-  string -> (# O.ctx, CId.t * Cqrs.Clock.t) Run.t
+  String.Label.t -> (# O.ctx, CId.t * Cqrs.Clock.t) Run.t
 

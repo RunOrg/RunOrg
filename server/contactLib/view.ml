@@ -5,12 +5,11 @@ open Std
 let projection = Cqrs.Projection.make "contact" (fun () -> new O.ctx) 
 
 (* Contact identifier by e-mail. *)
-module S = type module string
 
 let byEmail =
  
   let byEmailV, byEmail = Cqrs.MapView.make projection "all" 0
-    (module S : Fmt.FMT with type t = string)
+    (module String.Label : Fmt.FMT with type t = String.Label.t)
     (module CId : Fmt.FMT with type t = CId.t) in
 
   let () = Store.track byEmailV begin function 
@@ -31,8 +30,8 @@ let byEmail =
 (* Short contact details by id *)
 
 module Short = type module < 
-  email : string ;
-  name : string ; 
+  email : String.Label.t ;
+  name : String.Label.t ; 
   force : bool ; 
   gender : [`F|`M] option 
 >
@@ -61,7 +60,11 @@ let short =
   	    | None, None -> None
 	    | Some name, None 
 	    | None, Some name -> Some name
-	    | Some fn, Some ln -> Some (fn ^ " " ^ ln)
+	    | Some fn, Some ln -> let fns = String.Label.to_string fn in
+				  let lns = String.Label.to_string ln in 
+				  match String.Label.of_string (fns ^ " " ^ lns) with 
+				  | None -> Some fn
+				  | Some l -> Some l
       in
 
       Cqrs.MapView.update short (ev # id) 

@@ -103,7 +103,7 @@ end)
 module Db_Admin_Nominate = Endpoint.Post(struct
 
   module Arg = type module unit
-  module Post = type module (string list) 
+  module Post = type module (String.Label.t list) 
   module Out = type module < at : Cqrs.Clock.t >
 
   let admin = Group.I.of_string "admin" 

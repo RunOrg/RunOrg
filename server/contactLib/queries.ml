@@ -7,7 +7,7 @@ open Std
 
 type short = <
   id     : CId.t ;
-  name   : string ;
+  name   : String.Label.t ; 
   pic    : string ; 
   gender : [`F|`M] option ; 
 >
@@ -16,7 +16,7 @@ let format_short cid short = object
   method id     = cid
   method name   = short # name
   method gender = short # gender
-  method pic    = Gravatar.pic_of_email (short # email)
+  method pic    = Gravatar.pic_of_email (String.Label.to_string (short # email))
 end
 
 (* Unfiltered access
