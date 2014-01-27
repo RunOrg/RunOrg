@@ -22,7 +22,7 @@ module Inline = type module
   | Text of int * int
   | Strong of t list
   | Emphasis of t list
-  | Anchor of int * int * inline list
+  | Anchor of int * int * (t list)
   
 module Block = type module 
   | Paragraph of Inline.t list
@@ -47,8 +47,8 @@ let rec bInline_of_inline buf = function
   | Strong i -> Inline.Strong (List.map (bInline_of_inline buf) i)
   | Emphasis i -> Inline.Emphasis (List.map (bInline_of_inline buf) i)
   | Anchor (href,i) -> let s = Buffer.length buf in 
-		       let l = String.length str in 
-		       Buffer.add_string buf str ; 
+		       let l = String.length href in 
+		       Buffer.add_string buf href ; 
 		       Inline.Anchor (s, l, List.map (bInline_of_inline buf) i)
 			  
 let rec bBlock_of_block buf = function 
@@ -60,7 +60,7 @@ let rec bBlock_of_block buf = function
 
 let b_of_t t = 
   let buf = Buffer.create 1024 in
-  let root = bBlock_of_block buf t in
+  let root = List.map (bBlock_of_block buf) t in
   let text = Buffer.contents buf in 
   Backend.make ~text ~root
 
@@ -70,7 +70,7 @@ let rec inline_of_bInline txt = function
   | Inline.Emphasis i -> Strong (List.map (inline_of_bInline txt) i)
   | Inline.Anchor (s,l,i) -> Anchor (String.sub txt s l, List.map (inline_of_bInline txt) i) 
 		
-let block_of_bBlock txt = function 
+let rec block_of_bBlock txt = function 
   | Block.Paragraph i -> Paragraph (List.map (inline_of_bInline txt) i)      
   | Block.UnorderedList l -> UnorderedList (List.map (List.map (block_of_bBlock txt)) l)
   | Block.OrderedList l -> OrderedList (List.map (List.map (block_of_bBlock txt)) l)
@@ -78,12 +78,12 @@ let block_of_bBlock txt = function
   | Block.Heading (n,i) -> Heading (n, List.map (inline_of_bInline txt) i)
 
 let t_of_b b = 
-  block_of_bBlock (b # text) (b # root) 
+  List.map (block_of_bBlock (b # text)) (b # root) 
 
 (* Forwarding the packing functions appropriately. *)
 
 include Fmt.Extend(struct
-  type t = t
+  type t = block list
   let t_of_json json = t_of_b (Backend.of_json json)
   let json_of_t t = Backend.to_json (b_of_t t)
   let pack t = Backend.pack (b_of_t t) 

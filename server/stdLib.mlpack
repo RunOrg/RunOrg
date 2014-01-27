@@ -1,5 +1,6 @@
 Common
 Label
-RichParse 
-RichLex
 Rich
+RichLex
+RichParse 
+RichText
