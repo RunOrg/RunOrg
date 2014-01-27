@@ -17,7 +17,8 @@
 
     {[
 { verb: "GET", 
-  path: "/db/{db}/contacts/{id}", 
+  path: "/db/{db}/contacts/{id}",
+  file: "wherever/the/file/was.js", 
   categories: [ "Contacts" ],
   description: "Fetch basic information for contact {id}",
   tests: 10 }
@@ -44,11 +45,12 @@ let to_string meta =
     "Json.Object [ 
        \"verb\", Json.String %S ; 
        \"path\", Json.String %S ;
+       \"file\", Json.String %S ; 
        \"categories\", Json.Array [%s] ; 
        \"description\", Json.String %S ;
        \"tests\", Json.Int %d ;
      ]"
-    meta.verb meta.path
+    meta.verb meta.path meta.file
     (String.concat " ; " (List.map (Printf.sprintf "Json.String %S") meta.categories))
     meta.description meta.tests
 

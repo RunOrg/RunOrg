@@ -2,12 +2,12 @@
   {< each sub }
     <li>
       <div>{{ name }} <span {< if ok }class="ok"{>}>{{ count }}</span></div>
-      
+      {< sidebar >}
     </li>
   {>}
   {< each tests }
     <li>
-      <a href="{{ path }}">
+      <a href="{{ file }}">
 	{{ name }} 
 	<span {<if ok }class="ok"{>}>{{ count }}</span>
 	<code>{{ verb }} {{ path }}</code> 

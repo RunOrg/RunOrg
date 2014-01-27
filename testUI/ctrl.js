@@ -14,7 +14,12 @@ function sidebar(R) {
 		    out.count += s.count;
 		    out.ok = out.ok && s.ok;
 		} else {
-		    out.tests.push({ name: k, path: '/docs/' + tree[k].file.path });
+		    out.tests.push({ 
+			name: k, 
+			path: tree[k].file.path,
+			file: "/docs/" + tree[k].file.file,
+			count: tree[k].file.tests
+		    });
 		    out.count += tree[k].file.tests;
 		    out.ok = out.ok && !tree[k].failed;
 		}
