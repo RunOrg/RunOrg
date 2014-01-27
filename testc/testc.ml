@@ -134,7 +134,7 @@ let get_all_files path =
   
   let rec fold path acc =     
     List.fold_left (fun acc name ->
-      let path = Filename.concat path name in 
+      let path = if path = "" then name else Filename.concat path name in 
       if is_directory path then
 	fold path acc
       else if has_extension name then
@@ -154,4 +154,4 @@ let parse_all_files path =
    ================ *)
 
 let () = 
-  output (parse_all_files ".") 
+  output (parse_all_files "") 
