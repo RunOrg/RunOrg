@@ -3,6 +3,8 @@
 (* Type definitions 
    ================ *)
 
+open RichText
+
 module Token = struct
   type t = 
     | Text of string
@@ -10,21 +12,6 @@ module Token = struct
     | Close of string
     | Eof 
 end
-
-type inline = 
-  | Text of string
-  | Strong of inline list
-  | Emphasis of inline list
-  | Anchor of string * inline list
-
-type block = 
-  | Paragraph of inline list
-  | UnorderedList of block list list
-  | OrderedList of block list list
-  | Blockquote of block list
-  | Heading of int * inline list
-
-type t = block list 
 
 exception ParseError of int * string
 
