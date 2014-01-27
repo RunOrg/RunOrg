@@ -15,6 +15,7 @@ toolchain:
 runorg: toolchain tests
 	make -C server
 	make -C admin
+	make -C testUI
 	cp server/main.byte runorg
 	chmod a+x runorg
 
