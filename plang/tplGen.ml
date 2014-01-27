@@ -33,10 +33,15 @@ module Js = struct
     sprintf "if(%s){%s}else{%s}" expr ifTrue ifFalse
 
   let call path arg blocks = 
-    sprintf "this[%S]({data:__,args:[%s],blocks:{%s}})"
-      (String.concat "/" path)
-      (match arg with None -> "" | Some expr -> expr)
-      (String.concat "," (List.map (fun (k,v) -> sprintf "%S:function(__){%s}" k v) blocks))
+    if blocks <> [] then
+      sprintf "this[%S]({data:__,args:[%s],blocks:{%s}})"
+	(String.concat "/" path)
+	(match arg with None -> "" | Some expr -> expr)
+	(String.concat "," (List.map (fun (k,v) -> sprintf "%S:function(__){%s}" k v) blocks))
+    else
+      sprintf "this[%S](%s)"
+	(String.concat "/" path)
+	(match arg with None -> "__" | Some expr -> expr)
 
 end 
   
