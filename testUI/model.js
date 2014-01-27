@@ -25,7 +25,7 @@ var Test = (function() {
 			root[cat] = root[cat] || { '__' : "cat" };
 			root = root[cat];
 		    }
-		    root[test.description] = { '__' : 'test', test: test };
+		    root[test.description] = { '__' : 'test', file: test };
 		}
 		Test.tree = function(callback) { callback(tree); };
 		for (var i = 0; i < Test.tree_.length; ++i) Test.tree(Test.tree_[i]);

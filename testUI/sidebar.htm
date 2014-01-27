@@ -1,1 +1,17 @@
-{{ @ }}
+<ul>
+  {< each sub }
+    <li>
+      <div>{{ name }} <span {< if ok }class="ok"{>}>{{ count }}</span></div>
+      
+    </li>
+  {>}
+  {< each tests }
+    <li>
+      <a href="{{ path }}">
+	{{ name }} 
+	<span {<if ok }class="ok"{>}>{{ count }}</span>
+	<code>{{ verb }} {{ path }}</code> 
+      </a>
+    </li>
+  {>}
+</ul>
