@@ -5,6 +5,8 @@ server/main.byte
 server/_build
 plang/plang.byte
 plang/_build
+testc/testc.native
+testc/_build
 *~
 *.cmo
 *.cmi
