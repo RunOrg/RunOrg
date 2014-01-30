@@ -43,7 +43,7 @@ var Route = {
     },
 
     getBase : function(loc) { 
-	return loc.protocol + '//' + loc.host + (loc.port ? ':' + loc.port : '') 
+	return loc.protocol + '//' + loc.host 
     },
 
     // Set this value to false if you do not wish for the initial page load
@@ -61,7 +61,7 @@ var go;
 if ('history' in this) { 
 
     go = function(path) {
-	history.pushState(path);
+	history.pushState(null, null, path);
 	Route.dispatch(path);
     }
 
