@@ -39,6 +39,10 @@
 	    
 	    R.sidebar(clean(tree));
 	    R.show();
+
+	    var location = document.location.pathname + document.location.hash;
+	    var $a = $('a[href="' + location + '"]').addClass('active');
+	    while ($a.length > 0) $a = $a.parent().closest('ul').show();	    
 	});
     }
 

@@ -77,6 +77,10 @@
     text-overflow: ellipsis;
     overflow: hidden;
 
+    &.active {
+      background-color: rgba(255,255,255,0.05)
+    }
+
     code {
       display: block;
       color: #888;
