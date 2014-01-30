@@ -21,3 +21,24 @@ let () =
 
   end 
 
+(* Creating a test token
+   ===================== *)
+
+let bad_auth  = `Forbidden "Test mode is disabled"
+
+module AuthServerAdmin = Endpoint.SPost(struct
+
+  module Arg = type module unit
+  module Post = type module unit
+  module Out = type module < token : Token.I.t ; email : string >
+
+  let path = "test/auth"
+
+  let response req () () = 
+    let! result = ServerAdmin.auth_test () in
+    match result with None -> return bad_auth | Some (token, email) ->
+      let token = Token.I.decay token in 
+      return (`OK (Out.make ~token ~email)) 
+
+
+end)

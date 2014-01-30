@@ -13,6 +13,15 @@ let auth_persona assertion =
       let  token = Token.I.Assert.server_admin token in 
       return (Some (token, email))
 
+let auth_test () = 
+  if Configuration.test then 
+    let  email = match Configuration.admins with [] -> "vnicollet@runorg.com" | h :: _ -> h in
+    let! token = Token.create `ServerAdmin in 
+    let  token = Token.I.Assert.server_admin token in 
+    return (Some (token, email))
+  else
+    return None
+
 (* Listing all server administrators
    ================================= *)
 
