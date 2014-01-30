@@ -36,7 +36,7 @@ var Route = {
 
     // Dispatch the provided path. Cancels the previous controller
     dispatch: function(path) {
-	path = path || document.location.pathname;
+	path = path || document.location.pathname + document.location.hash;
 	for (var i = 0; i < this.routes.length; ++i) 
 	    if (this.routes[i](path))
 		return;
@@ -67,7 +67,7 @@ if ('history' in this) {
 
     $(function() { 
 	$('body').on('click', 'a', function(e) {
-	    if (Route.here == Route.getBase(this)) go(this.pathname);
+	    if (Route.here == Route.getBase(this)) go(this.pathname + this.hash);
 	    return false;
 	});
     });
