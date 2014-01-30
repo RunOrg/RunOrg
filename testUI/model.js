@@ -140,9 +140,13 @@ var Test = (function() {
 			    if (j == tests.length) { return next(); }
 			    Test.fail = fail(tests[j].name);
 			    Test.ping();
-			    tests[j].run(function(){ testLoop(j+1); });
+			    tests[j].run(function(){ 
+				console.log("%d/%d: %s", j+1, tests.length, tests[j].name);
+				testLoop(j+1); 
+			    });
 			}
 
+			console.log("Starting: %s", all[i]);
 			testLoop(0);
 		    });
 		}
@@ -157,6 +161,9 @@ var Test = (function() {
 	ping: function() {
 	    Test.ping_++;
 	},
+
+	// Run a query.
+	query: Query.create, 
 
     };   
 
