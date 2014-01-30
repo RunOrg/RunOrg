@@ -3,7 +3,7 @@
 /* Extend the layout to automatically render the sidebar. */
 (function() {
 
-    var layout = R.layout;
+    var layout = R.prototype.layout;
 
     function sidebar(R) {
 	Test.tree(function(tree) {
@@ -42,7 +42,7 @@
 	});
     }
 
-    R.layout = function(data) {
+    R.prototype.layout = function(data) {
 	layout.call(this,$.extend({ sidebar : sidebar }, data || {}));
     }
 
@@ -55,6 +55,7 @@ Route.add(/^\/docs\/?$/, function(R) {
 });
 
 /* Individual node pages */
-Route.add(/^\/docs\/(.+)$/, function(R) {
-    console.log(arguments);
+Route.add(/^\/docs\/(.+)$/, function(R,path) {
+    R.layout();
+    R.show();
 });
