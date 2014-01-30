@@ -21,16 +21,16 @@
 		    } else {                
 			out.tests.push({ 
 			    name: k, 
-			    ok:   !node.failed,
-			    ran:  node.ran,
-			    verb: node.file.verb,
-			    path: node.file.path,
-			    file: "/docs/#/" + node.file.file,
-			    count: node.file.tests
+			    ok:   !node.fixture.failed,
+			    ran:  node.fixture.ran,
+			    verb: node.fixture.verb,
+			    path: node.fixture.path,
+			    file: "/docs/#/" + node.fixture.file,
+			    count: node.fixture.tests
 			});
-			out.count += node.file.tests;
-			out.ok = out.ok && !node.failed;
-			out.ran = out.ran && node.ran;
+			out.count += node.fixture.tests;
+			out.ok = out.ok && !node.fixture.failed;
+			out.ran = out.ran && node.fixture.ran;
 		    }
 		}
 		out.ran = out.ran && out.count > 0;
