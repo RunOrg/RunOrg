@@ -30,10 +30,12 @@
   }
 
   li ul {
+    display: none;
     padding-left: 5px;
   }
 
   div {
+    cursor: pointer;
     font-weight: bold;
     padding: 6px 4px;
     line-height: 18px;

@@ -1,8 +1,8 @@
 <ul>
   {< each sub }
     <li>
-      <div onclick="$(this).next().toggle()">
-	<span{< if ran } class="{< if ok }ok{else}failed{>}"{>}>{{ count }}</span>{{ name }}
+      <div onclick="$(this).next().slideToggle('fast')">
+	{< if count}<span{< if ran } class="{< if ok }ok{else}failed{>}"{>}>{{ count }}</span>{>}{{ name }}
       </div>
       {< sidebar >}
     </li>
@@ -10,7 +10,7 @@
   {< each tests }
     <li>
       <a href="{{ file }}">
-	<span{< if ran } class="{< if ok }ok{else}failed{>}"{>}>{{ count }}</span>
+	{< if count }<span{< if ran } class="{< if ok }ok{else}failed{>}"{>}>{{ count }}</span>{>} 
 	{{ name }} 	
 	<code>{{ verb }} {{ path }}</code> 
       </a>
