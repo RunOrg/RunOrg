@@ -1,3 +1,14 @@
+{< if root }
+   <div>
+     {< if running }
+	<div class="progress">
+	  <div style="width:{{ done }}%"></div>
+	</div>
+     {else}
+	<button> Run tests </button> 
+     {>}
+   </div>
+{>}
 <ul>
   {< each sub }
     <li>
