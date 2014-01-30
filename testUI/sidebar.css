@@ -38,17 +38,17 @@
     height: 18px;
     line-height: 18px;
     padding: 0 6px;    
-    background-color: #F80;
-    color: white;
     font-weight: bold;
     font-size: 0.8em;
+    background-color: #BBB;
+    color: white;
   }
 
   span.ok {
     background-color: #690;
   }
 
-  span.fail {
+  span.failed {
     background-color: #C00;
   }
 

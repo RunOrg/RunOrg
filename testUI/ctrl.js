@@ -4,27 +4,32 @@
 function sidebar(R) {
     Test.tree(function(tree) {
 	function clean(tree) {
-	    var out = { sub: [], tests: [], count: 0, ok: true };
+	    var out = { sub: [], tests: [], count: 0, ok: true, ran: true };
 	    for (var k in tree) {
+		var node = tree[k];
 		if (k == '__') continue;
-		if (tree[k]['__'] == 'cat') {
-		    var s = clean(tree[k]);
+		if (node['__'] == 'cat') {
+		    var s = clean(node);
 		    s.name = k;
 		    out.sub.push(s);
 		    out.count += s.count;
 		    out.ok = out.ok && s.ok;
-		} else {
+		} else {                
 		    out.tests.push({ 
 			name: k, 
-			verb: tree[k].file.verb,
-			path: tree[k].file.path,
-			file: "/docs/" + tree[k].file.file,
-			count: tree[k].file.tests
+			ok:   !node.failed,
+			ran:  node.ran,
+			verb: node.file.verb,
+			path: node.file.path,
+			file: "/docs/" + node.file.file,
+			count: node.file.tests
 		    });
-		    out.count += tree[k].file.tests;
-		    out.ok = out.ok && !tree[k].failed;
+		    out.count += node.file.tests;
+		    out.ok = out.ok && !node.failed;
+		    out.ran = out.ran && node.ran;
 		}
 	    }
+	    out.ran = out.ran && out.count > 0;
 	    return out;
 	}
 

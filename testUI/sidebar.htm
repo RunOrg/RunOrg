@@ -2,7 +2,7 @@
   {< each sub }
     <li>
       <div onclick="$(this).next().toggle()">
-	<span {< if ok }class="ok"{>}>{{ count }}</span>{{ name }}
+	<span{< if ran } class="{< if ok }ok{else}failed{>}"{>}>{{ count }}</span>{{ name }}
       </div>
       {< sidebar >}
     </li>
@@ -10,7 +10,7 @@
   {< each tests }
     <li>
       <a href="{{ file }}">
-	<span {<if ok }class="ok"{>}>{{ count }}</span>
+	<span{< if ran } class="{< if ok }ok{else}failed{>}"{>}>{{ count }}</span>
 	{{ name }} 	
 	<code>{{ verb }} {{ path }}</code> 
       </a>
