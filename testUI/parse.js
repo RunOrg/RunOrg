@@ -4,7 +4,7 @@ function parseTestFixture(script) {
     var parsed = { tests: [] };
 
     // The test functions themselves
-    var run = eval("function(TEST){\n" + script + "\n}")(function(name,run){
+    var run = eval("(function(TEST){\n" + script + "\n})")(function(name,run){
 	parsed.tests.push({name : name, run: run});
     });
 
@@ -19,4 +19,6 @@ function parseTestFixture(script) {
     parsed.description = text.shift().replace(/^.*\/\s*/,'');
 
     parsed.body = markdown.toHTML(text.join('\n').trim());
+
+    return parsed;
 }
