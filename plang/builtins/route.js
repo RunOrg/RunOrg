@@ -65,6 +65,10 @@ if ('history' in this) {
 	Route.dispatch(path);
     }
 
+    window.onpopstate = function() {
+	Route.dispatch();
+    }
+
     $(function() { 
 	$('body').on('click', 'a', function(e) {
 	    if (Route.here == Route.getBase(this)) go(this.pathname + this.hash);
