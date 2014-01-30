@@ -1,0 +1,20 @@
+.body > h1 {
+
+  font-size: 24px;
+  margin: 8px 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+
+  code {
+    display: block;
+    color: #333;
+    background-color: #EEE;
+    padding: 3px 12px;
+    font-size: 16px;
+    font-weight: normal;
+    border-radius: 4px;
+    margin-top: 8px;
+  }
+
+}

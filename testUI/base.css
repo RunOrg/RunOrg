@@ -5,5 +5,11 @@ body {
 
 .body {
   margin-left: 340px;
+  margin-right: 16px;
   overflow: hidden;
 }
+
+code, pre {
+  font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+
