@@ -30,6 +30,23 @@ var Test = (function() {
 		Test.tree = function(callback) { callback(tree); };
 		for (var i = 0; i < Test.tree_.length; ++i) Test.tree(Test.tree_[i]);
 	    });
+	},
+
+	get: function(id, callback) {
+	    Test.get_ = Test.get_ || {};
+	    var cache = Test.get_[id] = Test.get_[id] || {};
+
+	    if ('test' in cache) {	    
+		callback(cache.test);
+	    } else if ('wait' in cache) {
+		cache.wait.push(callback);
+	    } else {
+		cache.wait = [callback];
+		$.get("/docs/" + id, function(contents){
+		    cache.test = contents;
+		    for (var i = 0; i < cache.wait.length; ++i) cache.wait[i](contents);
+		}, 'text');
+	    }
 	}
 
     };   

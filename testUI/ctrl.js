@@ -43,7 +43,8 @@
     }
 
     R.prototype.layout = function(data) {
-	layout.call(this,$.extend({ sidebar : sidebar }, data || {}));
+	function body(R) { R.show() }
+	layout.call(this,$.extend({ sidebar : sidebar, body : body }, data || {}));
     }
 
 })();
@@ -56,6 +57,15 @@ Route.add(/^\/docs\/?$/, function(R) {
 
 /* Individual node pages */
 Route.add(/^\/docs\/(.+)$/, function(R,path) {
-    R.layout();
+
+    function body(R) {
+	Test.get(path,function(contents) {
+	    R.body(contents);
+	    R.show();
+	});
+    }
+
+    R.layout({ body: body });
     R.show();
+
 });
