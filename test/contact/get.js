@@ -7,8 +7,8 @@
 //
 // Expect a `200 OK` return code and an `application/json` content type. 
 
-TEST("The response has valid return code and content type.", function() {
-    Assert.fail();
+TEST("The response has valid return code and content type.", function(next) {
+    next()
 });
 
 //
@@ -24,8 +24,8 @@ TEST("The response has valid return code and content type.", function() {
 //       "gender" : "M", 
 //       "pic" : "https://www.gravatar.com/avatar/648e25e4372728b2d3e0c0b2b6e26f4e" }
 
-TEST("The example was properly returned", function() {
-    Assert.fail()
+TEST("The example was properly returned", function(next) {
+    next()
 });
 
 // 
@@ -34,8 +34,8 @@ TEST("The example was properly returned", function() {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function() {
-    Assert.fail();
+TEST("Returns 404 when database does not exist.", function(next) {
+    Test.query("GET","/db/00000000001/contact/00000000002/").error(404).then(next);
 });
 
 // - ... if contact `{id}` does not exist in database `{db}`
