@@ -17,6 +17,9 @@
 // to use `label.trim().replace('\s+',' ').length < 80` as a test on the maximum 
 // length of the string.
 //
+// ### Example value
+//     "This is a short label!"
+//
 // # Errors
 // 
 // - `Empty label` occurs when the trimmed and cleaned label has length zero.

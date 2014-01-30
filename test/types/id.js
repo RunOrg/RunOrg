@@ -7,3 +7,6 @@
 // always imply the corresponding objects have been created in that order.
 // 
 // An unique identifier satisfies the regular expression `[a-zA-Z0-9]{1,11}`. 
+//
+// ### Example value
+//     "0Et9j0026rO"

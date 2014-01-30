@@ -22,7 +22,7 @@ TEST("The response has valid return code and content type.", function() {
 //     { "id" : "0Et9j0026rO",
 //       "name" : "Victor Nicollet",
 //       "gender" : "M", 
-//       "pic" : "https://www.gravatar.com/avatar/648e25e4372728b2d3e0c0b2b6e26f4e"}
+//       "pic" : "https://www.gravatar.com/avatar/648e25e4372728b2d3e0c0b2b6e26f4e" }
 
 TEST("The example was properly returned", function() {
     Assert.fail()

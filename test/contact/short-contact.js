@@ -12,14 +12,15 @@
 //       gender : "F" | "M" | null,
 //       pic : <url> }
 // 
-// - `id` is the unique 11-character identifier for this contact
+// - `id` is the [unique 11-character identifier](/docs/#/types/id.js) for this 
+//   contact
 
 TEST("The contact's identifier is returned.", function() {
     Assert.fail();
 });
 
-// - `name` is a human-readable name. This is the contact's 
-//   `fullname` (if specified), otherwise RunOrg will do its best
+// - `name` is a [human-readable name](/docs/#/types/label.js). This is the 
+//   contact's `fullname` (if specified), otherwise RunOrg will do its best
 //   to create a recognizable name in an unspecified fashion.
 TEST("The contact's fullname is returned if available.", function() {
     Assert.fail();
@@ -52,6 +53,11 @@ TEST("A gravatar is generated if no picture is available.", function() {
     Assert.fail();
 });
 
+// ### Example value
+//     { "id" : "0Et9j0026rO",
+//       "name" : "Victor Nicollet",
+//       "gender" : "M", 
+//       "pic" : "https://www.gravatar.com/avatar/648e25e4372728b2d3e0c0b2b6e26f4e" }
 //
 // If you end up with a contact's id but not its basic information, this usually
 // means the contact has gone missing from the database. You can still
