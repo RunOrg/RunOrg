@@ -20,6 +20,59 @@
   padding: 5px;
   font-size: 12px;
 
+  button {
+    display: block;
+    margin: 8px auto;
+    box-sizing: box-content;
+    border: 0 none white;
+    padding: 0;
+    height: 28px;
+    overflow: hidden;
+    background-color: transparent;
+    cursor: pointer;
+
+    span:hover {
+      background-color: #4C4;
+      background: linear-gradient(top, #55dd55, #33cc33);
+    }
+
+    span {
+      color: white;
+      text-shadow: 0 -1px 0 #007700;
+      background-color: #3B3;
+      background: linear-gradient(top, #44cc44, #22aa22);
+      border: 1px solid #070;
+      display: block;
+      margin: 3px;
+      height: 14px;
+      padding: 3px 11px;
+      line-height: 14px;
+      font-weight: bold;
+      font-size: 14px;
+      border-radius: 2px;
+      text-align: center;
+      box-shadow: 0 0 3px rgba(0,0,0,0.5);
+    }
+  }
+
+  .progress {
+
+    margin: 12px 3px;
+    border: 1px solid #070;
+    box-shadow: 0 0 3px rgba(0,0,0,0.5);
+
+    div {
+      background-color: #3B3;
+      background: linear-gradient(top, #44cc44, #22aa22);
+      border: 1px solid #070;
+      display: block;
+      height: 14px;
+      margin: -1px;
+      padding: 3px 0;
+      border-radius: 2px;
+    }
+  }
+
   li {
     border-top: 1px solid rgba(255,255,255,0.05)
   }
@@ -34,7 +87,7 @@
     padding-left: 5px;
   }
 
-  div {
+  li > div {
     cursor: pointer;
     font-weight: bold;
     padding: 6px 4px;
