@@ -5,6 +5,8 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #CCC;
 
   code {
     display: block;
@@ -17,4 +19,94 @@
     margin-top: 8px;
   }
 
+}
+
+.body p > code, .body li > code {
+  display: inline-block;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-weight: normal;
+  line-height: 20px;
+  background-color: #DDD;
+}
+
+.body pre {
+  font-size: 12px;
+  padding: 8px 10px 12px;
+  width: 580px;
+  background-color: #1d1f21;
+  color: #c5c8c6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.body p, .body li {
+  font-size: 13px;
+  line-height: 1.7em;
+  width: 580px;
+}
+
+/* H3 is used to represent a code snippet label */
+.body h3 {
+
+  background-color: #282a2e;
+  color: #de935f;
+  font-size: 14px;
+  padding: 4px 10px;
+  border-radius: 8px 8px 0 0;
+  width: 580px;
+  font-weight: normal;
+  margin-bottom: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+
+  + pre {
+    border-radius: 0 0 8px 8px;
+    margin-top: 0;
+  }
+
+}
+
+.body pre + ul {
+  
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+  width: 598px;
+
+  li {
+    margin: 6px 12px;
+
+    code:nth-child(1) { 
+      background-color: #1d1f21;
+      color: #c5c8c6;
+    }
+  }
+
+}
+
+.body .text h1 {
+  font-size: 24px;
+  color: #333;
+  border-bottom: 1px solid #DDD;
+}
+
+/* H2 is used to represent an enumeration label */
+.body h2 {
+
+  font-size: 13px;
+  font-weight: normal;
+ 
+  code {
+    background-color: #DDD;
+    padding: 4px 8px;
+  }
+}
+
+.body h2 + ul {
+  margin: -5px 0 16px 0;
+  padding-left: 16px;
+  list-style-type: none;
+  li { margin: 6px 12px; }
 }

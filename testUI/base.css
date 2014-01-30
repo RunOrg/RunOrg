@@ -1,11 +1,11 @@
 body {
   font-family: 'Open Sans', 'Verdana', sans;
   margin: 0px;
+  background-color: #EEE;
 }
 
 .body {
-  margin-left: 340px;
-  margin-right: 16px;
+  margin: 10px 16px 0 356px;
   overflow: hidden;
 }
 

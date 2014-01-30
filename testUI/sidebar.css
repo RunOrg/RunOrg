@@ -1,15 +1,27 @@
+#left {
+  position: fixed;
+  top: -10px;
+  bottom: 0px;
+  left: 0;
+  width: 330px; 
+  z-index: 0;
+  background-color: #1d1f21;
+  box-shadow: inset -6px 0 12px rgba(0,0,0,0.75);
+  border-right: #888 1px solid;
+}
+
 .sidebar {
-  width: 320px;
+  width: 310px;
   position: absolute;
+  z-index: 1;
   top: 0;
   left: 0;
-  background-color: #EEE;
-  border-right: 1px solid #CCC;
+  color: #c5c8c6;  
   padding: 5px;
   font-size: 12px;
 
   li {
-    border-top: 1px solid #DDD;
+    border-top: 1px solid rgba(255,255,255,0.05)
   }
   
   ul {
@@ -41,21 +53,21 @@
     font-weight: bold;
     font-size: 0.8em;
     background-color: #BBB;
-    color: white;
+    color: #111;
   }
 
   span.ok {
-    background-color: #690;
+    background-color: #9C0;
   }
 
   span.failed {
-    background-color: #C00;
+    background-color: #F44;
   }
 
   a {
     display: block;
     text-decoration: none;
-    color: #111;
+    color: #c5c8c6;  
     height: 30px;
     padding: 6px 4px;
     line-height: 1.3em;
@@ -65,7 +77,7 @@
 
     code {
       display: block;
-      color: #AAA;
+      color: #888;
       font-size: 0.95em;
     }
   }
