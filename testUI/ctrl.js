@@ -25,7 +25,7 @@
 			    ran:  node.ran,
 			    verb: node.file.verb,
 			    path: node.file.path,
-			    file: "/docs/" + node.file.file,
+			    file: "/docs/#/" + node.file.file,
 			    count: node.file.tests
 			});
 			out.count += node.file.tests;
@@ -50,13 +50,13 @@
 })();
 
 /* Root page */
-Route.add(/^\/docs\/?$/, function(R) {
+Route.add(/^\/docs(\/(#\/?)?)?$/, function(R) {
     R.layout();
     R.show();
 });
 
 /* Individual node pages */
-Route.add(/^\/docs\/(.+)$/, function(R,path) {
+Route.add(/^\/docs\/#\/(.+)$/, function(R,path) {
 
     function body(R) {
 	Test.get(path,function(contents) {

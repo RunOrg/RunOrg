@@ -1,3 +1,9 @@
 body {
   font-family: 'Open Sans', 'Verdana', sans;
+  margin: 0px;
+}
+
+.body {
+  margin-left: 340px;
+  overflow: hidden;
 }
