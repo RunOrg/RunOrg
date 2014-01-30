@@ -11,6 +11,23 @@ TEST("The response has valid return code and content type.", function() {
     Assert.fail();
 });
 
+//
+// ### Example request
+//     GET /db/0Et4X0016om/contacts/0Et9j0026rO
+//     
+// ### Example response
+//     200 OK 
+//     Content-Type: application/json
+//
+//     { "id" : "0Et9j0026rO",
+//       "name" : "Victor Nicollet",
+//       "gender" : "M", 
+//       "pic" : "https://www.gravatar.com/avatar/648e25e4372728b2d3e0c0b2b6e26f4e"}
+
+TEST("The example was properly returned", function() {
+    Assert.fail()
+});
+
 // 
 // # Errors
 // 
