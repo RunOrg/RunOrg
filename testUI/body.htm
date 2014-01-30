@@ -1,4 +1,7 @@
-<h1>{{ description }}<code>{{query}}</code></h1>
+<h1>
+  {{ description }}
+  <code>{{query}}{< if status }<span class="status-{{status}}">{{status}} since {{version}}</span>{>}</code>
+</h1>
 
 <div class="text">
   {< raw body >}
