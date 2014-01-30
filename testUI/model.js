@@ -36,15 +36,16 @@ var Test = (function() {
 	    Test.get_ = Test.get_ || {};
 	    var cache = Test.get_[id] = Test.get_[id] || {};
 
-	    if ('test' in cache) {	    
-		callback(cache.test);
+	    if ('fixture' in cache) {	    
+		callback(cache.fixture);
 	    } else if ('wait' in cache) {
 		cache.wait.push(callback);
 	    } else {
 		cache.wait = [callback];
 		$.get("/docs/" + id, function(contents){
-		    cache.test = contents;
-		    for (var i = 0; i < cache.wait.length; ++i) cache.wait[i](contents);
+		    cache.fixture = parseTestFixture(contents);
+		    for (var i = 0; i < cache.wait.length; ++i) cache.wait[i](cache.fixture);
+		    delete cache.wait;
 		}, 'text');
 	    }
 	}
