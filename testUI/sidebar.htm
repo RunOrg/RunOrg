@@ -25,6 +25,13 @@
 	{{ name }} 	
 	<code>{{ verb }} {{ path }}</code> 
       </a>
+      {< if failed }
+	 <ul class="failed">
+	   {< each failed }
+	      <li><strong>{{ what }}</strong><small>{{ reason }}</small></li>
+           {>}
+	 </ul>
+      {>}
     </li>
   {>}
 </ul>

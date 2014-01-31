@@ -27,7 +27,8 @@
 			    verb: node.fixture.verb,
 			    path: node.fixture.path,
 			    file: "/docs/#/" + node.fixture.file,
-			    count: node.fixture.tests
+			    count: node.fixture.tests,
+			    failed: node.fixture.failed
 			});
 			out.count += node.fixture.tests;
 			out.rcount += node.fixture.rcount;

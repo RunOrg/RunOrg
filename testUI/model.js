@@ -85,7 +85,7 @@ var Test = (function() {
 		for (var k in fixtures) {
 		    fixtures[k].ran = false;
 		    fixtures[k].rcount = 0;
-		    fixtures[k].failed = false;
+		    fixtures[k].failed = [];
 		    all.push(k);
 		}
 
@@ -116,8 +116,7 @@ var Test = (function() {
 		    function fail(what) {
 			return function(reason) {			
 			    if (finished) return;
-			    console.log("FAIL %s (%s):\n %s", what, all[i], reason);
-			    fixtures[all[i]].failed = true;
+			    fixtures[all[i]].failed.push({what:what,reason:reason});
 			    next();
 			}
 		    }

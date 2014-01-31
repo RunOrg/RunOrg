@@ -144,4 +144,30 @@
       font-size: 0.95em;
     }
   }
+
+  a.active + .failed { display: block; }
+
+  .failed {
+    margin-left: 10px;
+      
+    li { 
+	padding: 3px; 
+	background-color: rgba(255,0,0,0.15);
+    }
+    
+    strong { 
+      font-weight: normal; 
+      font-size: 11px;
+      display: block;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    small {
+      display: block;
+      color: #888;
+      font-size: 11px;
+    }
+  }
 }
