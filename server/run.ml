@@ -181,8 +181,12 @@ class ['ctx] semaphore = object
   method count = count
 
   method take = fun (ctx : 'ctx) bad ok ->
-    count <- count - 1 ;     
-    if count >= 0 then try ok () with exn -> bktrc "semaphore#take" bad exn else
+    if count > 0 then 
+      try     
+	count <- count - 1 ; 
+	ok () 
+      with exn -> bktrc "semaphore#take" bad exn 
+    else
       ( Queue.add (fun () -> try ok () with exn -> bktrc "semaphore#queue" bad exn) waiting ; nop )
     
   method give n = fun (ctx : 'ctx) bad ok ->
