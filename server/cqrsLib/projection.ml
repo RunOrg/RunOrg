@@ -166,7 +166,8 @@ let run t =
 	
 	let! () = Sql.transaction begin 
 
-	  let () = if trace_events then Log.trace "Found new events for %s" (t.name) in
+	  let () = if trace_events then 
+	      Log.trace "Found %d new events for %s" (List.length ready_actions) (t.name) in
 	  
 	  let! c = clock t in 	  
 	  
