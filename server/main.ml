@@ -26,7 +26,7 @@ let exn_handler = function
   | _ -> true
 
 let run_loop () = 
-  Log.trace "RunOrg %s starting" RunorgVersion.version_string ;
+  Log.trace "RunOrg %s starting ; config: %s" RunorgVersion.version_string Configuration.path ;
   let respond = Api.run () in
   begin 
     try 
@@ -42,7 +42,7 @@ let run_loop () =
 let () =   
   match Configuration.role with
   | `Run -> run_loop ()
-  | `Reset -> Log.trace "Starting global reset." ; Cqrs.Running.reset (mkctx ())
+  | `Reset -> Log.trace "Starting global reset ; config: %s" Configuration.path ; Cqrs.Running.reset (mkctx ())
     
 
 

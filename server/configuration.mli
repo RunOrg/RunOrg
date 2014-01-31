@@ -2,6 +2,13 @@
 
 type role = [ `Run | `Reset ]
 
+(** The path to the configuration used by this instance. By order of priority: 
+    - The contents of the -config command-line argument. 
+    - File ./conf.ini if it exists.
+    - /etc/runorg/conf.ini 
+*)
+val path : string
+
 (** The role of this instance, as parsed from the command line. *)
 val role : role
 

@@ -1,4 +1,5 @@
 .server/
+conf.ini
 runorg
 server/test.ml
 server/main.byte
