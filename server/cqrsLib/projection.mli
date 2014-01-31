@@ -5,12 +5,16 @@ type view
 
 (* See cqrs.mli for documentation *)
 
+
 val make : string -> (unit -> Common.ctx) -> t
 val view : t -> string -> int -> view
 val name : t -> string
 val clock : t -> (#Common.ctx, Clock.t) Run.t
 val prefix : view -> Names.prefix
 val of_view : view -> t
+val wait : t -> Clock.t -> (#Common.ctx, unit) Run.t
+
+exception LeftBehind
 
 val run : unit -> unit Run.thread
 

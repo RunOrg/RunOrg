@@ -98,6 +98,14 @@ module Projection : sig
   (** A view, following a projection. *)
   type view
 
+  (** Wait for a projection to reach a given clock. Returns once the
+      clock has been reached. May throw [Projection.LeftBehind] if it
+      times out. *)
+  val wait : t -> Clock.t -> (#ctx, unit) Run.t
+
+  (** Raised if waiting on a projection for too long. *)
+  exception LeftBehind
+
   (** Create a projection from a name and a projection function. *)
   val make : string -> (unit -> ctx) -> t
 

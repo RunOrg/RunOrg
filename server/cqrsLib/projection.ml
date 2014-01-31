@@ -224,6 +224,29 @@ let run () =
     (fun acc task -> Run.fork (restart task) (task ()) acc) 
     (Run.return ()) !projection_run_functions
 
+(* Waiting on a projection 
+   ======================= *)
+
+exception LeftBehind
+
+(* This code does not perform any low-level work: it simply polls
+   'clock' until it either times out or the condition is satisfied. *)
+let wait t after = 
+
+  (* On failure, waits 100 * 2^{2 * number of tries} milliseconds: 
+       100 ; 400 ; 1600 ; 25600 ; raise LeftBehind
+     Max waiting time = 27.7s *)
+  let rec retry attempts = 
+     (* TODO: attempt with a cached version first. *)
+     let! current = clock t in 
+     if Clock.earlier_than_constraint after current then return () else
+       if attempts = 4 then raise LeftBehind else
+         let! () = Run.sleep (float_of_int (1 lsl (2 * attempts)) *. 100.) in
+         retry (attempts + 1)
+  in
+  
+  retry 0
+
 (* Meta tables
    =========== *)
 
