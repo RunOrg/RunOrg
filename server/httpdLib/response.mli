@@ -39,7 +39,7 @@ module Make : sig
   (** A response with a JSON payload. *)
   val json : ?headers:(string*string) list -> ?status:status -> Json.t -> t
 
-  (** A responwe with raw payload. *)
+  (** A response with raw payload. *)
   val raw : ?headers:(string*string) list -> ?status:status -> string -> t
 
   (** A 'try later' response. *)
