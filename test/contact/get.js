@@ -55,7 +55,7 @@ TEST("Returns 404 when contact does not exist in database.", function(next) {
 TEST("Returns 401 when token is not valid.", function(next) {
     var db = Query.mkdb();
     Test.query("GET",["db/",db,"/contacts/00000000002/"]).error(401).then(function() {
-	Test.query("GET",["db/",db,"/contacts/000000000002/"],{},"0123456789a").error(401).then(next);
+	Test.query("GET",["db/",db,"/contacts/00000000002/"],{},"0123456789a").error(401).then(next);
     });
 });
 
