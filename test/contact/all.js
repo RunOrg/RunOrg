@@ -4,7 +4,7 @@
 // Alpha @ 0.1.22
 // 
 // `200 OK`, 
-// [Invariant](/docs/#/concept/invariant.js)
+// [Invariant](/docs/#/concept/invariant.js),
 // [Paginated](/docs/#/concept/paginated.js).
 //
 // Returns all the contacts in the database, in arbitrary order.
