@@ -10,7 +10,10 @@ var Async = (function() {
     };
     
     Function.prototype.then = function(callback) {
-	this(function() { callback() });    
+	if (callback) 
+	    this(function() { callback() });    
+	else
+	    this(function() {});
     };
 
     // Cleans up a value by instantiating any sub-elements, calls the callback
