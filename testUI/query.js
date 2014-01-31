@@ -195,6 +195,10 @@ Query.authAsServerAdmin = function() {
     return Query.create("POST","test/auth",{}).result('token');
 };
 
+Query.auth = function(db) {
+    return Query.create("POST",["db/",db,"/test/auth"],{}).result('token');
+};
+
 Query.mkdb = function() {
     var token = Query.authAsServerAdmin();
     return Query.create("POST","db/create",{label:"Test database " + new Date()}, token).result('id');
