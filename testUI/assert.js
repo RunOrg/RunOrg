@@ -32,7 +32,16 @@ var Assert = (function(){
 		else Test.fail("Not equal: "+JSON.stringify(a)+" and "+JSON.stringify(b));
 	    });
 
-	}
+	},
+
+	isTrue: function(a, reason) {
+
+	    return Async.lift(a).map(function(a){
+		if (a) return Async.lift(true);
+		else Test.fail("False: " + reason);
+	    });
+
+	},
 
     };
 
