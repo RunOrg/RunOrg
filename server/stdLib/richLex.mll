@@ -10,7 +10,7 @@
       if i = n then raise (ParseError (!pos + acc, "Invalid UTF8"))
       else if i = j then add acc j else
 	let code = Char.code text.[i] in 
-	if code < 0x70 || code >= 0xA0 then raise (ParseError (!pos + acc, "Invalid UTF8"))
+	if code < 0x80 || code >= 0xC0 then raise (ParseError (!pos + acc, "Invalid UTF8"))
 	else test acc (i+1) j 
 	      
     and add acc i = 
