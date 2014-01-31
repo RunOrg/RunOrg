@@ -35,13 +35,14 @@ TEST("The example was properly returned", function(next) {
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(next) {
-    Test.query("GET","/db/00000000001/contact/00000000002/").error(404).then(next);
+    Test.query("GET","/db/00000000001/contacts/00000000002/").error(404).then(next);
 });
 
 // - ... if contact `{id}` does not exist in database `{db}`
 
-TEST("Returns 404 when contact does not exist in database.", function() {
-    Assert.fail();
+TEST("Returns 404 when contact does not exist in database.", function(next) {
+    var db = Query.mkdb();
+    Test.query("GET",["db/",db,"/contacts/00000000002/"]).error(404).then(next);
 });
 
 // 
@@ -49,7 +50,8 @@ TEST("Returns 404 when contact does not exist in database.", function() {
 // - ... if the provided token does not provide access to the contact,
 //   or no token was provided
 
-TEST("Returns 401 when token is not valid.", function() {
+TEST("Returns 401 when token is not valid.", function(next) {
+    next()
 });
 
 // 
