@@ -1,3 +1,5 @@
+(* © 2014 RunOrg *)
+
 type cqrs
 
 val trace_events : bool
