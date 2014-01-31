@@ -145,7 +145,7 @@ var Test = (function() {
 			    Test.ping();
 			    tests[j].run(function(){ 
 				callback(all[i],tests[j].name);
-				setTimeout(function(){ testLoop(j+1); }, 1000);
+				setTimeout(function(){ testLoop(j+1); }, 50);
 			    });
 			}
 
