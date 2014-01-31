@@ -41,8 +41,10 @@ TEST("Returns 404 when database does not exist.", function(next) {
 // - ... if contact `{id}` does not exist in database `{db}`
 
 TEST("Returns 404 when contact does not exist in database.", function(next) {
-    var db = Query.mkdb();
-    Test.query("GET",["db/",db,"/contacts/00000000002/"]).error(404).then(next);
+    var db = Query.mkdb(),
+        token = Query.auth(db);
+
+    Test.query("GET",["db/",db,"/contacts/00000000002/"],{},token).error(404).then(next);
 });
 
 // 
@@ -51,7 +53,10 @@ TEST("Returns 404 when contact does not exist in database.", function(next) {
 //   or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(next) {
-    next()
+    var db = Query.mkdb();
+    Test.query("GET",["db/",db,"/contacts/00000000002/"]).error(401).then(function() {
+	Test.query("GET",["db/",db,"/contacts/000000000002/"],{},"0123456789a").error(401).then(next);
+    });
 });
 
 // 
