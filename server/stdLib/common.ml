@@ -10,9 +10,9 @@ let nextUTF8 str =
   fun i -> 
     if i = n then raise (BadUTF8 i) else
       let c = Char.code str.[i] in
-      if c < 0x70 then 
+      if c < 0x80 then 
 	i + 1, c 
-      else if c < 0xA0 then 
+      else if c < 0xC0 then 
 	raise (BadUTF8 i) 
       else if c < 0xE0 then
 	if i + 1 = n then raise (BadUTF8 i) else
