@@ -32,6 +32,10 @@ function Query(verb, url, data, token) {
 }
 
 Query.prototype = {
+
+    toString: function() {
+	return this.verb + ' ' + this.usedUrl;
+    },
     
     send: function(callback) {
 	var query = this;
