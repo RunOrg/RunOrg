@@ -5,7 +5,7 @@
 Function.prototype.map = function(applied) {
     var self = this;
     return function(callback) {
-	self(function(result){ callback(applied(result)); });
+	self(function(){ callback(applied.apply(this,arguments)); });
     }
 };
 
@@ -35,12 +35,16 @@ Query.prototype = {
     
     send: function(callback) {
 	var query = this;
-	query.pending = [callback];
+	query.pending = [getClock,callback];
 	query.token(function(token) {
+	    query.usedToken = token;
 	    query.url(function(url) {
 		if (! /^\//.exec(url)) url = "/" + url;
-		query.data(function(data) {
+		if (Query.clock) url = url + (/\?/.exec(url) ? '&' : '?') + 'at=' + Query.clock; 
+		query.usedUrl = url;
+		query.data(function(data) {		    
 		    data = JSON.stringify(data);
+		    query.usedData = data;
 		    Test.ping();
 		    query.request = $.ajax({
 			url: url,
@@ -48,15 +52,30 @@ Query.prototype = {
 			dataType: 'json',
 			contentType: 'application/json',
 			data: (query.verb == "GET" || query.verb == "DELETE") ? {} : data,
-			complete: query.pending,
-			beforeSend: function() {
+			beforeSend: function(xhr) {
 			    if (token) xhr.setRequestHeader('Authorization','RUNORG token=' + token);
 			}
-		    });
+		    }).always(query.pending);
 		    query.pending = null;
 		});
 	    });
 	});
+
+	function getClock(data,status) {
+	    if (status == "success" && "at" in data) {
+		var c = Query.clock ? JSON.parse(Query.clock) : [], i, j;
+
+		// Merge the new clock value with the old one
+		for (i = 0; i < data.at.length; ++i) {
+		    for (j = 0; j < c.length; ++j) 
+			if (c[j][0] == data.at[i][0]) { c[j][1] = data.at[i][1]; break; }
+		    if (j == c.length) 
+			c.push(data.at[i]);
+		}
+		
+		Query.clock = JSON.stringify(c);
+	    }
+	}
     },
 
     always: function() {
@@ -68,21 +87,18 @@ Query.prototype = {
 	}
     },
 
-    result: function(path) {
+    result: function() {
 	var query = this,
+	    path = arguments,
 	    result = query.always().map(function(data,status){
 		if (status == "success") return data; 
 		Test.fail("Query "+query+" failed.");	    
 	    });
 
-	if (!path) return result;
 	return result.map(function(data){
-	    return eval("(function(x){return x" + path + ";})")(data);
+	    for (var i = 0; i < path.length; ++i) data = data[path[i]];
+	    return data;
 	});
-    },
-
-    token: function() {
-	return this.result('.token');
     },
 
     error: function(http,more) {
@@ -119,7 +135,10 @@ Query.create = function(verb, url, data, token) {
 	    function loop(i) {
 		if (i == url.length) return callback(url.join(''));
 		if (typeof url[i] == "string") return loop(i+1);
-		url[i](function(seg) { url[i] = seg; loop(i+1); })
+		url[i](function(seg) { 
+		    url[i] = seg; 
+		    loop(i+1); 
+		})
 	    }
 
 	    loop(0);
@@ -170,4 +189,13 @@ Query.create = function(verb, url, data, token) {
     }
 
     return new Query(verb, url, data, token);
+}
+
+Query.authAsServerAdmin = function() {
+    return Query.create("POST","test/auth",{}).result('token');
+}
+
+Query.mkdb = function() {
+    var token = Query.authAsServerAdmin();
+    return Query.create("POST","db/create",{label:"Test database " + new Date()}, token).result('id');
 }
