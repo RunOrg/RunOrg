@@ -92,6 +92,12 @@ Query.prototype = {
 	}
     },
 
+    response: function() {
+	return query.always().map(function(fst,status,snd) {
+	    return (status == "success") ? snd : fst;
+	});
+    },
+
     result: function() {
 	var query = this,
 	    path = arguments,
