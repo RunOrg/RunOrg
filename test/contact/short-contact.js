@@ -1,10 +1,12 @@
 // JSON <shortcontact>
 // Contacts / A short representation of a contact
 // 
-// This data type will be returned by most API methods that involve contacts, such
-// as [listing contacts in a group](/docs/#/group/list.js) or [displaying the
-// messages in a chatroom](/docs/#/chat/messages.js). It is intended to provide
-// data relevant for displaying the contact: its name, picture and gender. 
+// Returned by most API methods that involve contacts. It is intended to 
+// provide data relevant for displaying the contact: its name, picture 
+// and gender. 
+// 
+// Typical examples: [listing contacts in a group](/docs/#/group/list.js) or 
+// [displaying the messages in a chatroom](/docs/#/chat/messages.js). 
 //
 // ### `ShortContact` JSON format
 //     { id : <id>, 

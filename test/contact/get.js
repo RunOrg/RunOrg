@@ -3,9 +3,8 @@
 //
 // Alpha @ 0.1.21
 //
-// Contact information is represented as a [`<shortcontact>`](/docs/#/contact/short-contact.js).
+// `200 OK`, [Invariant](/docs/#/concepts/invariant.js).
 //
-// Expect a `200 OK` return code and an `application/json` content type. 
 
 TEST("The response has valid return code and content type.", function(next) {
 
@@ -23,6 +22,8 @@ TEST("The response has valid return code and content type.", function(next) {
 
 });
 
+// Returns a short representation of the specified contact, as a 
+// [`<shortcontact>`](/docs/#/contact/short-contact.js).
 //
 // ### Example request
 //     GET /db/0Et4X0016om/contacts/0Et9j0026rO
