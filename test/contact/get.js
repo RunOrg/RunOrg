@@ -8,7 +8,19 @@
 // Expect a `200 OK` return code and an `application/json` content type. 
 
 TEST("The response has valid return code and content type.", function(next) {
-    next()
+
+    var example = { "email" : "vnicollet@runorg.com" };
+
+    var db = Query.mkdb(),
+        token = Query.auth(db),
+        id = Test.query("POST",["db/",db,"/contacts/import"],[example],token).result('created',0),
+        response = Test.query("GET",["db/",db,"/contacts/",id],{},token).response();
+
+    response.map(function(r) {
+	Assert.areEqual(200, r.status).then();
+	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
+    }).then(next);
+
 });
 
 //
