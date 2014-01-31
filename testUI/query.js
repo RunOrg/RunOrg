@@ -189,13 +189,13 @@ Query.create = function(verb, url, data, token) {
     }
 
     return new Query(verb, url, data, token);
-}
+};
 
 Query.authAsServerAdmin = function() {
     return Query.create("POST","test/auth",{}).result('token');
-}
+};
 
 Query.mkdb = function() {
     var token = Query.authAsServerAdmin();
     return Query.create("POST","db/create",{label:"Test database " + new Date()}, token).result('id');
-}
+};
