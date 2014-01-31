@@ -1,5 +1,7 @@
 type cqrs
 
+val trace_events : bool
+
 type config = {
   host : string ;
   port : int ;

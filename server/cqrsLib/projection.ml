@@ -141,6 +141,7 @@ let clock t =
 (* Save the clock. This is exclusively called internally to save checkpoints. *)
 let save_clock t clock = 
   let! id = id t in 
+  let () = if trace_events then Log.trace "Checkpoint %s : %s" (t.name) (Clock.to_json_string clock) in
   Sql.command ("UPDATE \"meta:projections\" SET \"clock\" = $1 WHERE \"id\" = $2")
     [ `Binary (Pack.to_string Clock.pack clock) ; `Int id ]
 
@@ -164,6 +165,8 @@ let run t =
       else 
 	
 	let! () = Sql.transaction begin 
+
+	  let () = if trace_events then Log.trace "Found new events for %s" (t.name) in
 	  
 	  let! c = clock t in 	  
 	  

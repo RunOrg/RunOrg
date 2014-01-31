@@ -109,7 +109,9 @@ end) -> struct
       end packs in
 
       let! id = id () in
-      Run.return (Clock.at id (int_of_string (result.(0).(0)))) 
+      let  clock = Clock.at id (int_of_string (result.(0).(0))) in
+      let  () = if trace_events then Log.trace "Created event at %s" (Clock.to_json_string clock) in
+      Run.return clock
 
   (* Reading events 
      ============== *)

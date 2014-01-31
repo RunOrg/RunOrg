@@ -1,6 +1,7 @@
 (* © 2014 RunOrg *)
 
 let trace_enabled = false
+let trace_events  = true
 
 type operation = {
   start : Postgresql.connection -> unit ;
