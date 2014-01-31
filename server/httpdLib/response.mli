@@ -14,6 +14,7 @@ type status =
   | `MethodNotAllowed 
   | `Accepted
   | `NotModified 
+  | `ServiceUnavailable
   | `InternalServerError ]
 
 (** A response. *)
@@ -40,5 +41,8 @@ module Make : sig
 
   (** A responwe with raw payload. *)
   val raw : ?headers:(string*string) list -> ?status:status -> string -> t
+
+  (** A 'try later' response. *)
+  val tryLater : time -> int -> string -> t
 
 end

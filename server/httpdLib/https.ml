@@ -61,6 +61,10 @@ let parse context socket config handler =
 	return (Response.Make.error time `NotImplemented 
 		  ("Method " ^ verb ^ " is not supported.")) ;	
 
+      | Cqrs.Projection.LeftBehind ->
+	return (Response.Make.tryLater time 1
+		  ("Data is not yet available for the 'at' you specified. Try again later."))
+
       | exn -> raise exn
     in
 

@@ -16,6 +16,7 @@ type status =
   | `MethodNotAllowed 
   | `Accepted 
   | `NotModified
+  | `ServiceUnavailable
   | `InternalServerError ]
 
 type t = {
@@ -39,6 +40,7 @@ let status = function
   | `RequestEntityTooLarge -> "413 Request Entity Too Large"
   | `InternalServerError -> "500 Internal Server Error"
   | `NotImplemented -> "501 Not Implemented"
+  | `ServiceUnavailable -> "503 Service Unavailable"
 
 (* Raw response function, merely formats the individual lines for output. *)
 let send ssl_socket response = 
@@ -84,6 +86,11 @@ module Make = struct
 
   let error time status error = 
     { json [] status (Json.Object [ "error", Json.String error ]) with started = Some time }
+
+  let tryLater time delay reason = 
+    { json [ "Retry-After", string_of_int delay ] `ServiceUnavailable
+	(Json.Object [ "error", Json.String reason ]) 
+      with started = Some time }
 
   let json ?(headers=[]) ?(status=`OK) body = 
     json headers status body 
