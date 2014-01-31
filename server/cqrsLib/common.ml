@@ -79,6 +79,8 @@ class type ctx = object ('self)
   method with_time : Time.t -> 'self
   method db : Id.t
   method with_db : Id.t -> 'self
+  method after : Clock.t 
+  method with_after : Clock.t -> 'self
 end 
 
 class cqrs_ctx config = object (self)
@@ -101,6 +103,11 @@ class cqrs_ctx config = object (self)
 
   method db = db
   method with_db db = {< db = db >}
+
+  val after = Clock.empty
+
+  method after = after
+  method with_after after = {< after = after >}
 
 end
 

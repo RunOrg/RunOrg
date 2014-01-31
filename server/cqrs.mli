@@ -13,26 +13,6 @@ type config = {
 (** Exception raised when connecting to the database failed. *)
 exception ConnectionFailed of string
 
-(** A database context: all operations related to CQRS should be executed
-    while in this context. By default, executes in the 'global' database
-    (id 00000000000). *)
-class type ctx = object ('self) 
-  method cqrs : cqrs
-  method time : Time.t 
-  method with_time : Time.t -> 'self
-  method db   : Id.t
-  method with_db : Id.t -> 'self 
-end 
-
-(** A concrete implementation of the [cqrs] part of [ctx]. *)
-class cqrs_ctx : config -> object ('self) 
-  method cqrs : cqrs
-  method time : Time.t
-  method with_time : Time.t -> 'self 
-  method db : Id.t 
-  method with_db : Id.t -> 'self
-end
-
 module Clock : sig
 
   include Fmt.FMT
@@ -53,6 +33,30 @@ module Clock : sig
       second clock are assumed to be at revision -1. *)
   val earlier_than_checkpoint : t -> t -> bool
     
+end
+
+(** A database context: all operations related to CQRS should be executed
+    while in this context. By default, executes in the 'global' database
+    (id 00000000000). *)
+class type ctx = object ('self) 
+  method cqrs : cqrs
+  method time : Time.t 
+  method with_time : Time.t -> 'self
+  method db   : Id.t
+  method with_db : Id.t -> 'self 
+  method after : Clock.t
+  method with_after : Clock.t -> 'self
+end 
+
+(** A concrete implementation of the [cqrs] part of [ctx]. *)
+class cqrs_ctx : config -> object ('self) 
+  method cqrs : cqrs
+  method time : Time.t
+  method with_time : Time.t -> 'self 
+  method db : Id.t 
+  method with_db : Id.t -> 'self
+  method after : Clock.t
+  method with_after : Clock.t -> 'self
 end
 
 (** An event writer is a function that writes events of the specified type to 

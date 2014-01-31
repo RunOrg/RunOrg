@@ -16,6 +16,8 @@ class type ctx = object ('self)
   method with_time : Time.t -> 'self
   method db : Id.t
   method with_db : Id.t -> 'self
+  method after : Clock.t 
+  method with_after : Clock.t -> 'self
 end 
 
 class cqrs_ctx : config -> object ('self)
@@ -24,6 +26,8 @@ class cqrs_ctx : config -> object ('self)
   method with_time : Time.t -> 'self
   method db : Id.t
   method with_db : Id.t -> 'self
+  method after : Clock.t 
+  method with_after : Clock.t -> 'self
 end
 
 val on_first_connection : ctx Run.effect ref 
