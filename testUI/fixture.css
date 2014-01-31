@@ -34,6 +34,17 @@
 
 }
 
+/* First paragraph is a list of tags */
+.body p:nth-child(1) a {
+  display: inline-block;
+  text-decoration: none;
+  background-color: #DDF;
+  padding: 0 5px;
+  border-radius: 4px;
+  line-height: 20px;
+  &:hover { background-color: #EEF; }
+}
+
 .body p > code, .body li > code {
   display: inline-block;
   padding: 0 5px;
