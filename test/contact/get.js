@@ -24,8 +24,24 @@ TEST("The response has valid return code and content type.", function(next) {
 //       "gender" : "M", 
 //       "pic" : "https://www.gravatar.com/avatar/648e25e4372728b2d3e0c0b2b6e26f4e" }
 
-TEST("The example was properly returned", function(next) {
-    next()
+TEST("The example was properly returned.", function(next) {
+
+    var example = { "email" : "vnicollet@runorg.com",
+		    "fullname" : "Victor Nicollet",
+		    "gender" : "M" };
+
+    var db = Query.mkdb(),
+        token = Query.auth(db),
+        id = Test.query("POST",["db/",db,"/contacts/import"],[example],token).result('created',0),
+        created = Test.query("GET",["db/",db,"/contacts/",id],{},token).result();
+
+    var expected = { "id": id, 
+		     "name": "Victor Nicollet",
+		     "gender": "M", 
+		     "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060" };
+
+    Assert.areEqual(expected, created).then(next);
+
 });
 
 // 
