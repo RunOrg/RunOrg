@@ -96,7 +96,7 @@ Query.prototype = {
 	    path = arguments,
 	    result = query.always().map(function(data,status){
 		if (status == "success") return data; 
-		Test.fail("Query "+query+" failed.");	    
+		Test.fail("Failed: "+query);	    
 	    });
 
 	return result.map(function(data){
@@ -109,9 +109,9 @@ Query.prototype = {
 	var query = this;
 	return query.always().map(function(xhr,status){
 	    if (status == "success") 
-		return Test.fail("Query "+query+" expected to fail");
+		return Test.fail("Should fail: "+query);
 	    if (xhr.status != http) 
-		return Test.fail("Query "+query+" returned invalid status");
+		return Test.fail("Expected "+http+": "+query);
 	    if (more)
 		more(xhr.responseText);		    
 	});
