@@ -93,7 +93,7 @@ Query.prototype = {
     },
 
     response: function() {
-	return query.always().map(function(fst,status,snd) {
+	return this.always().map(function(fst,status,snd) {
 	    return (status == "success") ? snd : fst;
 	});
     },
