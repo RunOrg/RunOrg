@@ -30,6 +30,7 @@ type t = <
   params : (string, string) Map.t ;
 
   token : Token.I.t option ;
+  at : Cqrs.Clock.t option ; 
   limit : int option ;
   offset : int option ; 
 
@@ -278,6 +279,10 @@ let parse config ssl_socket =
   let offset = 
     try Some (int_of_string (Map.find "offset" params)) 
     with Not_found -> None | _ -> raise (SyntaxError "Invalid offset parameter") in   
+
+  let at = 
+    try Some (Cqrs.Clock.of_json (Json.unserialize (Map.find "at" params))) 
+    with Not_found -> None | _ -> raise (SyntaxError "Invalid at parameter") in   
   
   let accept = 
     try let list = String.nsplit (Map.find "ACCEPT" headers) "," in
@@ -307,6 +312,7 @@ let parse config ssl_socket =
     method headers = headers 
     method params = params
     method token = token
+    method at = at
     method limit = limit
     method offset = offset 
     method accept = accept
