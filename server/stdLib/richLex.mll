@@ -16,8 +16,8 @@
     and add acc i = 
       if i = n then pos := !pos + i else
 	let code = Char.code text.[i] in 
-	if code < 0x70 then add (acc + 1) (i + 1) 
-	else if code < 0xA0 then raise (ParseError (!pos + acc, "Invalid UTF8")) 
+	if code < 0x80 then add (acc + 1) (i + 1) 
+	else if code < 0xC0 then raise (ParseError (!pos + acc, "Invalid UTF8")) 
 	else if code < 0xE0 then test (acc + 1) (i + 1) (i + 2)
 	else if code < 0xF0 then test (acc + 1) (i + 1) (i + 3) 
 	else test (acc + 1) (i + 1) (i + 4)
