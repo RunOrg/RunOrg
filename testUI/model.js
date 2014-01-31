@@ -84,6 +84,7 @@ var Test = (function() {
 
 		for (var k in fixtures) {
 		    fixtures[k].ran = false;
+		    fixtures[k].rcount = 0;
 		    fixtures[k].failed = false;
 		    all.push(k);
 		}
@@ -92,7 +93,7 @@ var Test = (function() {
 
 		// This loop performs work on every test.
 		function loop(i) {
-		    if (i == all.length) { Test.running = false; callback(null); return; }
+		    if (i == all.length) { Test.running = false; callback(null,null); return; }
 
 		    // Set to true when the test is either interrupted or completes
 		    // successfully.
@@ -127,9 +128,10 @@ var Test = (function() {
 		    function next() {
 			if (finished) return;
 			fixtures[all[i]].ran = true;
+			fixtures[all[i]].rcount = fixtures[all[i]].tests;
 		    	finished = true;
-			callback(all[i]);
-			setTimeout(function() { loop(i+1); }, 50);
+			callback(all[i],null);
+			loop(i+1);
 		    }
 
 		    // Run the tests by querying the test fixture and 
@@ -137,12 +139,13 @@ var Test = (function() {
 			var tests = fixture.tests;
 			
 			function testLoop(j) {
+			    fixtures[all[i]].rcount = j;
 			    if (j == tests.length) { return next(); }
 			    Test.fail = fail(tests[j].name);
 			    Test.ping();
 			    tests[j].run(function(){ 
-				console.log("%d/%d: %s", j+1, tests.length, tests[j].name);
-				testLoop(j+1); 
+				callback(all[i],tests[j].name);
+				setTimeout(function(){ testLoop(j+1); }, 1000);
 			    });
 			}
 

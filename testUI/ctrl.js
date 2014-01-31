@@ -32,7 +32,7 @@
 			    count: node.fixture.tests
 			});
 			out.count += node.fixture.tests;
-			out.rcount += node.fixture.ran ? node.fixture.tests : 0;
+			out.rcount += node.fixture.rcount;
 			out.ok = out.ok && !node.fixture.failed;
 			out.ran = out.ran && node.fixture.ran;
 		    }
@@ -43,8 +43,10 @@
 	    
 	    var data = clean(tree);
 	    data.running = Test.running;
-	    data.done = (tree.rcount * 100 / tree.count);
+	    data.done = (data.rcount * 100 / data.count).toFixed(2);
 	    data.root = true;
+
+	    console.log(data.done);
 
 	    R.sidebar(data);
 	    R.show();
@@ -55,7 +57,7 @@
 
 	    if (!Test.running) {
 		var $button = $sidebar.find('button').click(function(){
-		    Test.run(function() {
+		    Test.run(function(fixture,test) {
 			sidebar(new window.R($sidebar))
 		    });
 		});
