@@ -17,9 +17,12 @@ let context socket config =
    ================ *)
 
 let handle_action_failure time req = function  
-  | Cqrs.Projection.LeftBehind ->
+  | Cqrs.Projection.LeftBehind (proj,current,at) ->
     return (Response.Make.tryLater time 1
-	      ("Data is not yet available for the 'at' you specified. Try again later."))
+	      [ "error", Json.String "Data is not yet available for the 'at' you specified. Try again later." ;
+		"projection", Json.String proj ;
+		"current", Cqrs.Clock.to_json current ;
+		"expected", Cqrs.Clock.to_json at ])
   | exn -> 
     Log.error "In /%s: %s" (String.concat "/" (req # path)) (Printexc.to_string exn) ;
     return (Response.Make.error time `InternalServerError "Server encountered an unexpected error")

@@ -43,6 +43,6 @@ module Make : sig
   val raw : ?headers:(string*string) list -> ?status:status -> string -> t
 
   (** A 'try later' response. *)
-  val tryLater : time -> int -> string -> t
+  val tryLater : time -> int -> (string * Json.t) list -> t
 
 end

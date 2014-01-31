@@ -88,8 +88,7 @@ module Make = struct
     { json [] status (Json.Object [ "error", Json.String error ]) with started = Some time }
 
   let tryLater time delay reason = 
-    { json [ "Retry-After", string_of_int delay ] `ServiceUnavailable
-	(Json.Object [ "error", Json.String reason ]) 
+    { json [ "Retry-After", string_of_int delay ] `ServiceUnavailable (Json.Object reason) 
       with started = Some time }
 
   let json ?(headers=[]) ?(status=`OK) body = 

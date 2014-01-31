@@ -14,7 +14,7 @@ val prefix : view -> Names.prefix
 val of_view : view -> t
 val wait : ?clock:Clock.t -> t -> (#Common.ctx, unit) Run.t
 
-exception LeftBehind
+exception LeftBehind of string * Clock.t * Clock.t
 
 val run : unit -> unit Run.thread
 

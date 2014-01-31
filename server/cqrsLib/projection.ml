@@ -227,7 +227,7 @@ let run () =
 (* Waiting on a projection 
    ======================= *)
 
-exception LeftBehind
+exception LeftBehind of string * Clock.t * Clock.t
 
 (* This code does not perform any low-level work: it simply polls
    'clock' until it either times out or the condition is satisfied. *)
@@ -240,7 +240,7 @@ let wait_until_after t after =
      (* TODO: attempt with a cached version first. *)
      let! current = clock t in 
      if Clock.earlier_than_constraint after current then return () else
-       if attempts = 4 then raise LeftBehind else
+       if attempts = 4 then raise (LeftBehind (t.name, current, after)) else
          let! () = Run.sleep (float_of_int (1 lsl (2 * attempts)) *. 100.) in
          retry (attempts + 1)
   in
