@@ -18,6 +18,7 @@ module Database = struct
   let database = "dev" 
   let user = "dev" 
   let password = "dev" 
+  let poll = 1000.0
 end
 
 let admins = [ "vnicollet@runorg.com" ]

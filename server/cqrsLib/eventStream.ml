@@ -139,7 +139,7 @@ end) -> struct
     Run.return (match Clock.get clock id with None -> 0 | Some n -> n + 1)
 
   let follow clock = 
-    Seq.of_infinite_cursor begin fun start_opt -> 
+    Seq.of_infinite_cursor ~wait:Configuration.Database.poll begin fun start_opt -> 
       
       let! start = match start_opt with 
 	| Some start -> Run.return start 

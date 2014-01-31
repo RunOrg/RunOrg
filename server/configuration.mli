@@ -14,11 +14,16 @@ val test : bool
 val log_prefix : string option
 
 module Database : sig
+
   val host : string
   val port : int
   val database : string
   val user : string
   val password : string
+
+  (** Poll frequency, in millisecons. *)
+  val poll : float
+
 end
 
 (** The list of all super-administrator emails loaded from configuration. *)
