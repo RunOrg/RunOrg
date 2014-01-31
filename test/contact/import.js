@@ -3,7 +3,7 @@
 //
 // Alpha @ 0.1.22
 //
-// `201 Accepted`, 
+// `202 Accepted`, 
 // [Delayed](/docs/#/concepts/delayed.js), 
 // [Sync Idempotent](/docs/#/concepts/sync-idempotent.js).
 
@@ -16,7 +16,7 @@ TEST("The response has valid return code and content type.", function(next) {
         response = Test.query("POST",["db/",db,"/contacts/import"],[example],token).response();
 
     response.map(function(r) {
-	Assert.areEqual(201, r.status).then();
+	Assert.areEqual(202, r.status).then();
 	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
     }).then(next);
 
