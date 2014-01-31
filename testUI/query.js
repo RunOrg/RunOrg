@@ -18,6 +18,7 @@ Function.prototype.then = function(callback) {
 // token is an async string function
 function Query(verb, url, data, token) {
 
+    this.uid = ++Query.uid;
     this.verb = verb;
     this.url = url;
     this.data = data;
@@ -38,8 +39,18 @@ Query.prototype = {
     },
     
     send: function(callback) {
+
 	var query = this;
+
+	// Only run a query once
+	if (query.pending) {
+	    query.pending.push(callback);
+	    return;
+	}
+	
 	query.pending = [getClock,callback];
+
+	// Extract all the asynchronous data.
 	query.token(function(token) {
 	    query.usedToken = token;
 	    query.url(function(url) {
@@ -48,7 +59,9 @@ Query.prototype = {
 		query.usedUrl = url;
 		query.data(function(data) {		    
 		    data = JSON.stringify(data);
-		    query.usedData = data;
+		    query.usedData = data;		    
+
+		    // Send the request and save it.
 		    Test.ping();
 		    query.request = $.ajax({
 			url: url,
@@ -60,6 +73,7 @@ Query.prototype = {
 			    if (token) xhr.setRequestHeader('Authorization','RUNORG token=' + token);
 			}
 		    }).always(query.pending);
+
 		    query.pending = null;
 		});
 	    });
@@ -86,8 +100,7 @@ Query.prototype = {
 	var query = this;
 	return function(callback) {
 	    if (query.request != null) query.request.always(callback);
-	    else if (query.pending != null) query.pending.push(callback);
-	    else { query.send(callback);  }
+	    else query.send(callback);
 	}
     },
 
@@ -183,6 +196,8 @@ Query.create = function(verb, url, data, token) {
 
 		    objectLoop(0);
 		}
+
+		return;
 	    }
 	    
 	    // Only basic types are left
@@ -194,6 +209,8 @@ Query.create = function(verb, url, data, token) {
 
     return new Query(verb, url, data, token);
 };
+
+Query.uid = 0;
 
 Query.authAsServerAdmin = function() {
     return Query.create("POST","test/auth",{}).result('token');

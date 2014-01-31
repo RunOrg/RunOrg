@@ -140,6 +140,7 @@ var Test = (function() {
 			function testLoop(j) {
 			    fixtures[all[i]].rcount = j;
 			    if (j == tests.length) { return next(); }
+			    console.log("Starting: %s | %s", all[i], tests[j].name);
 			    Test.fail = fail(tests[j].name);
 			    Test.ping();
 			    tests[j].run(function(){ 
