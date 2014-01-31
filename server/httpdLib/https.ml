@@ -13,9 +13,39 @@ let context socket config =
   ignore (Ssl.embed_socket socket ctx) ;
   ctx 
 
-let send500 time req exn = 
-  Log.error "In /%s: %s" (String.concat "/" (req # path)) (Printexc.to_string exn) ;
-  return (Response.Make.error time `InternalServerError "Server encountered an unexpected error")
+(* Failure handlers 
+   ================ *)
+
+let handle_action_failure time req = function  
+  | Cqrs.Projection.LeftBehind ->
+    return (Response.Make.tryLater time 1
+	      ("Data is not yet available for the 'at' you specified. Try again later."))
+  | exn -> 
+    Log.error "In /%s: %s" (String.concat "/" (req # path)) (Printexc.to_string exn) ;
+    return (Response.Make.error time `InternalServerError "Server encountered an unexpected error")
+
+let handle_request_failure config time = function 
+  | Request.HeaderTooLong -> 
+    return (Response.Make.error time `RequestEntityTooLarge
+	      (!! "Header may not exceed %d bytes" config.max_header_size)) ;
+    
+  | Request.BodyTooLong -> 
+    return (Response.Make.error time `RequestEntityTooLarge
+	      (!! "Body may not exceed %d bytes" config.max_body_size)) ;
+    
+  | Request.SyntaxError reason ->
+    return (Response.Make.error time `BadRequest 
+	      ("Could not parse HTTP request: " ^ reason)) ;
+    
+  | Request.NotImplemented verb -> 
+    return (Response.Make.error time `NotImplemented 
+	      ("Method " ^ verb ^ " is not supported.")) ;	
+    
+  | exn -> raise exn
+
+
+(* Parsing and processing a request
+   ================================ *)
 
 let parse context socket config handler = 
   try   
@@ -44,31 +74,7 @@ let parse context socket config handler =
     (* To avoid locking up a thread, all socket operations are non-blocking. *)
     Unix.set_nonblock socket ;
 
-    let handle_request_failure = function 
-      | Request.HeaderTooLong -> 
-	return (Response.Make.error time `RequestEntityTooLarge
-		  (!! "Header may not exceed %d bytes" config.max_header_size)) ;
-
-      | Request.BodyTooLong -> 
-	return (Response.Make.error time `RequestEntityTooLarge
-		  (!! "Body may not exceed %d bytes" config.max_body_size)) ;
-
-      | Request.SyntaxError reason ->
-	return (Response.Make.error time `BadRequest 
-		  ("Could not parse HTTP request: " ^ reason)) ;
-
-      | Request.NotImplemented verb -> 
-	return (Response.Make.error time `NotImplemented 
-		  ("Method " ^ verb ^ " is not supported.")) ;	
-
-      | Cqrs.Projection.LeftBehind ->
-	return (Response.Make.tryLater time 1
-		  ("Data is not yet available for the 'at' you specified. Try again later."))
-
-      | exn -> raise exn
-    in
-
-    let! response = Run.on_failure handle_request_failure begin
+    let! response = Run.on_failure (handle_request_failure config time) begin
 
       let! request  = Request.parse config ssl_socket in
 
@@ -76,7 +82,7 @@ let parse context socket config handler =
 	  Log.trace "%s | Request parsed %.2fms" (Ssl.string_of_socket ssl_socket) 
 	    (1000. *. (Unix.gettimeofday () -. time)) in 
 	
-      let! response = Run.on_failure (send500 time request) (handler request) in 
+      let! response = Run.on_failure (handle_action_failure time request) (handler request) in 
 
       return (Response.for_request time request response)	
 
