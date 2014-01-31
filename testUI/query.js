@@ -101,7 +101,10 @@ Query.prototype = {
 	    });
 
 	return result.map(function(data){
+	    var original = data;
 	    for (var i = 0; data && i < path.length; ++i) data = data[path[i]];
+	    if (i != path.length || typeof data == 'undefined') 
+		Test.fail("No "+Array.prototype.slice.call(path,0,i).join(".")+" in "+JSON.stringify(original));
 	    return data;
 	});
     },
