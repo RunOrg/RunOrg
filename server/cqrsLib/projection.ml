@@ -231,7 +231,7 @@ exception LeftBehind
 
 (* This code does not perform any low-level work: it simply polls
    'clock' until it either times out or the condition is satisfied. *)
-let wait t after = 
+let wait_until_after t after = 
 
   (* On failure, waits 100 * 2^{2 * number of tries} milliseconds: 
        100 ; 400 ; 1600 ; 25600 ; raise LeftBehind
@@ -246,6 +246,16 @@ let wait t after =
   in
   
   retry 0
+
+let wait ?clock t = 
+
+  let! clock = 
+    match clock with Some clock -> return clock | None -> 
+      let! ctx = Run.context in 
+      return (ctx # after) 
+  in
+
+  if Clock.is_empty clock then return () else wait_until_after t clock 
 
 (* Meta tables
    =========== *)

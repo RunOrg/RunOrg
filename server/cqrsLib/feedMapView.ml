@@ -11,6 +11,7 @@ type ('key, 'id, 'value) t = {
   vpack : 'value Pack.packer ;
   vupack : 'value Pack.unpacker ;
   name : string ;
+  wait : (ctx, unit) Run.t ;
   dbname : (ctx, string) Run.t
 }
 
@@ -37,8 +38,10 @@ let make (type k) (type i) (type v) projection name version key id value =
 		 ^ "PRIMARY KEY (\"db\",\"key\",\"id\") "
 		 ^ ");") []
   end in 
+
+  let wait = Projection.wait projection in 
   
-  view, { name ; dbname ; 
+  view, { name ; dbname ; wait ;
     kpack = Key.pack ; kupack = Key.unpack ;
     ipack = Id.pack ; iupack = Id.unpack ;
     vpack = Value.pack ; vupack = Value.unpack }
@@ -52,6 +55,7 @@ let full_get map k i =
   let  i = Pack.to_string map.ipack i in 
   
   let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   let! result = Sql.query 
     ("SELECT \"t\", \"value\" FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1 AND \"key\" = $2 AND \"id\" = $3")
@@ -73,6 +77,7 @@ let exists map k i =
   let  i = Pack.to_string map.ipack i in 
   
   let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   let! result = Sql.query 
     ("SELECT 1 FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1 AND \"key\" = $2 AND \"id\" = $3")
@@ -130,6 +135,7 @@ let stats map k =
   let  k = Pack.to_string map.kpack k in 
   
   let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
 
   let! result = Sql.query 
@@ -157,6 +163,7 @@ let list map ?(limit=1000) ?(offset=0) k =
   let  k = Pack.to_string map.kpack k in 
   
   let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
 
   let! result = Sql.query 

@@ -7,6 +7,7 @@ type 'key t = {
   pack : 'key Pack.packer ;
   upack : 'key Pack.unpacker ;
   name : string ; 
+  wait : (ctx,unit) Run.t ; 
   dbname : (ctx,string) Run.t
 }
 
@@ -28,9 +29,11 @@ let make (type k) projection name version key =
 		 ^ "PRIMARY KEY(\"db\",\"k\") "
 		 ^ ");") [] 
   end in 
+
+  let wait = Projection.wait projection in 
   
   view, 
-  { name ; dbname ; pack = Key.pack ; upack = Key.unpack }
+  { name ; dbname ; wait ; pack = Key.pack ; upack = Key.unpack }
 
 (* Adding values to the set 
    ======================== *)
@@ -82,6 +85,7 @@ let remove set keys =
 let exists set key = 
   
   let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) set.wait in 
   let! dbname = Run.with_context (ctx :> ctx) set.dbname in 
     
   let! result = 

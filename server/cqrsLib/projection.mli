@@ -12,7 +12,7 @@ val name : t -> string
 val clock : t -> (#Common.ctx, Clock.t) Run.t
 val prefix : view -> Names.prefix
 val of_view : view -> t
-val wait : t -> Clock.t -> (#Common.ctx, unit) Run.t
+val wait : ?clock:Clock.t -> t -> (#Common.ctx, unit) Run.t
 
 exception LeftBehind
 

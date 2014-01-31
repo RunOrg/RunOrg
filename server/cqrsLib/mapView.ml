@@ -9,13 +9,14 @@ type ('key, 'value) t = {
   vpack  : 'value Pack.packer ; 
   vupack : 'value Pack.unpacker ; 
   name   : string ;
+  wait   : (ctx, unit) Run.t ; 
   dbname : (ctx, string) Run.t ;
 }
 
 (* Creating a new map 
    ================== *)
 
-let create (type k) (type v) name dbname key value = 
+let create (type k) (type v) name wait dbname key value = 
 
   let module Key = (val key : Fmt.FMT with type t = k) in
   let module Value = (val value : Fmt.FMT with type t = v) in 
@@ -30,20 +31,22 @@ let create (type k) (type v) name dbname key value =
 	     ^ ");") []
   end in
 
-  { name ; dbname ; kpack = Key.pack ; kupack = Key.unpack ; vpack = Value.pack ; vupack = Value.unpack }
+  { name ; dbname ; wait ; 
+    kpack = Key.pack ; kupack = Key.unpack ; vpack = Value.pack ; vupack = Value.unpack }
 
 let make projection name version key value = 
   
   let view = Projection.view projection name version in 
   let dbname = Names.view ~prefix:(Projection.prefix view) name version in
+  let wait = Projection.wait projection in 
 
-  let map = create name dbname key value in
+  let map = create name wait dbname key value in
   view, map 
 
 let standalone name version key value = 
 
   let dbname = Names.view name version in
-  create name dbname key value
+  create name (return ()) dbname key value
 
 (* Reading a value from the map
    ============================ *)
@@ -53,6 +56,7 @@ let full_get map k =
   let  k = Pack.to_string map.kpack k in
 
   let! ctx = Run.context in
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   let! result = Sql.query 
     ("SELECT \"value\" FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1 AND \"key\" = $2") 
@@ -72,6 +76,7 @@ let exists map k =
   let  k = Pack.to_string map.kpack k in
 
   let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   let! result = Sql.query 
     ("SELECT 1 FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1 AND \"key\" = $2") [ `Id (ctx # db) ; `Binary k ] in
@@ -106,6 +111,7 @@ let update map k f = mupdate map k (fun v -> Run.return (f v))
 let count map = 
 
   let! ctx = Run.context in
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   let! result = Sql.query ("SELECT COUNT(*) FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1") [ `Id (ctx # db) ] in
   Run.return (Option.default 0 (Result.int result))
@@ -116,6 +122,7 @@ let count map =
 let all ?(limit=1000) ?(offset=0) map = 
   
   let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   let! result = Sql.query 
     (!! "SELECT \"key\", \"value\" FROM \"%s\" WHERE \"db\" = $1 ORDER BY \"key\" LIMIT %d OFFSET %d" 
@@ -130,8 +137,10 @@ let all ?(limit=1000) ?(offset=0) map =
        (Array.to_list result))
 
 let all_global ?(limit=1000) ?(offset=0) map = 
-  
-  let! dbname = Run.edit_context (fun ctx -> (ctx :> ctx)) map.dbname in 
+
+  let! ctx = Run.context in   
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
+  let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   let! result = Sql.query 
     (!! "SELECT \"db\", \"key\", \"value\" FROM \"%s\" ORDER BY \"db\", \"key\" LIMIT %d OFFSET %d" 
 	dbname limit offset) 

@@ -30,6 +30,8 @@ end)
     
 let empty = Map.empty
 
+let is_empty t = t = empty
+
 let at s i = Map.add s i empty
 
 let merge ma mb = 

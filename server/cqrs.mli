@@ -20,6 +20,9 @@ module Clock : sig
   (** An empty vector clock : does not track any streams. *)
   val empty : t
 
+  (** Is a vector clock empty (void of constraints) ? *)
+  val is_empty : t -> bool
+
   (** Merge two clocks. If a stream is referenced by both clocks, the
       highest revision number if kept. *)
   val merge : t -> t -> t 
@@ -100,8 +103,9 @@ module Projection : sig
 
   (** Wait for a projection to reach a given clock. Returns once the
       clock has been reached. May throw [Projection.LeftBehind] if it
-      times out. *)
-  val wait : t -> Clock.t -> (#ctx, unit) Run.t
+      times out. If no clock is provided, uses the current [ctx # after]
+      instead. *)
+  val wait : ?clock:Clock.t -> t -> (#ctx, unit) Run.t
 
   (** Raised if waiting on a projection for too long. *)
   exception LeftBehind

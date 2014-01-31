@@ -9,6 +9,7 @@ type ('left, 'right) t = {
   rpack : 'right Pack.packer ;
   rupack : 'right Pack.unpacker ;
   name : string ;
+  wait : (ctx,unit) Run.t ; 
   dbname : (ctx,string) Run.t
 }
 
@@ -33,8 +34,11 @@ let make (type l) (type r) projection name version left right =
 		 ^ ");") []
   end in 
 
+  let wait = Projection.wait projection in 
+
   view, 
-  { name ; dbname ; lpack = Left.pack ; lupack = Left.unpack ; rpack = Right.pack ; rupack = Right.unpack }
+  { name ; dbname ; wait ;
+    lpack = Left.pack ; lupack = Left.unpack ; rpack = Right.pack ; rupack = Right.unpack }
 
 (* Adding values to the map 
    ======================== *)
@@ -106,6 +110,7 @@ let delete map left =
 let exists map left right = 
 
   let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   
   let! result = 
@@ -121,6 +126,7 @@ let exists map left right =
 let list ?(limit=1000) ?(offset=0) map left =
 
   let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
 
   let! result = Sql.query 
@@ -140,6 +146,7 @@ let list ?(limit=1000) ?(offset=0) map left =
 let count map left = 
 
   let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
 
   let! result = Sql.query 

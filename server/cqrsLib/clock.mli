@@ -5,6 +5,9 @@ type stream = int
 (** An empty vector clock : does not track any streams. *)
 val empty : t
 
+(** Is a vector clock empty (void of constraints) ? *)
+val is_empty : t -> bool
+
 (** A one-stream vector clock : marks the stream as being at the
     specified revision. *)
 val at : stream -> int -> t
