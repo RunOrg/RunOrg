@@ -106,7 +106,7 @@ var Test = (function() {
 			    if (finished) return;
 			    if (last == Test.ping_) Test.fail("Timeout");
 			    else timeout(Test.ping_);
-			}, 5000)
+			}, 10000)
 		    }
 
 		    timeout(Test.ping_);
