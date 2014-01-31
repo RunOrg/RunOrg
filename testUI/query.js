@@ -100,7 +100,7 @@ Query.prototype = {
 	    });
 
 	return result.map(function(data){
-	    for (var i = 0; i < path.length; ++i) data = data[path[i]];
+	    for (var i = 0; data && i < path.length; ++i) data = data[path[i]];
 	    return data;
 	});
     },
