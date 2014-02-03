@@ -14,8 +14,11 @@ It is very likely that your distribution of choice has packages
 equivalent to the following: 
 
     apt-get install git make postgresql m4 daemontools \
+        node-less \
         libssl-dev libssl-dev libcurl4-gnutls-dev libpq-dev \ 
         opam
+        
+Version 1.5.1 of `lessc` (from `node-less`) is required.
         
 ## Setting up a PostgreSQL database
 
@@ -112,6 +115,9 @@ need to change are:
     
     ; salt used to generate session tokens
     token.key = randomcharacters 
+    
+Make sure the server process has write access to the directory where
+logs will be written.
     
 ## Starting the server
 
