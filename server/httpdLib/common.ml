@@ -22,3 +22,7 @@ let verb = function
   | `DELETE -> "DELETE"    
 
 let trace_requests = false
+
+let delay retries timeout now =     
+  min (float_of_int (retries + 1) *. 10.) ((timeout -. now) /. 2. *. 1000.)
+

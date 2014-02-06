@@ -1,4 +1,4 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 open Std
 
@@ -22,8 +22,11 @@ type t
 
 type time = float
 
+(** Raised when sending data to the browser times out. *)
+exception Timeout
+
 (** Sends a response on a socket, then closes the socket. *)
-val send : Ssl.socket -> t -> unit
+val send : Ssl.socket -> Common.config -> t -> 'ctx Run.effect
 
 (** Binds a response to a request. There are no semantic consequences 
     of doing so, beyond having the request-response pair appear in the 

@@ -24,7 +24,7 @@ let handle_action_failure time req = function
 		"current", Cqrs.Clock.to_json current ;
 		"expected", Cqrs.Clock.to_json at ])
   | exn -> 
-    Log.error "In /%s: %s" (String.concat "/" (req # path)) (Printexc.to_string exn) ;
+    Log.error "In %s: %s" (Request.to_string req) (Printexc.to_string exn) ;
     return (Response.Make.error time `InternalServerError "Server encountered an unexpected error")
 
 let handle_request_failure config time = function 
@@ -45,6 +45,14 @@ let handle_request_failure config time = function
 	      ("Method " ^ verb ^ " is not supported.")) ;	
     
   | exn -> raise exn
+
+let handle_response_failure = function 
+  | Response.Timeout -> 
+    Log.error "Socket timed out during response" ;
+    return () 
+  | exn ->     
+    Log.error "While sending response: %s" (Printexc.to_string exn) ;
+    raise exn
 
 
 (* Parsing and processing a request
@@ -82,16 +90,22 @@ let parse context socket config handler =
       let! request  = Request.parse config ssl_socket in
 
       let () = if trace_requests then 
-	  Log.trace "%s | Request parsed %.2fms" (Ssl.string_of_socket ssl_socket) 
+	  Log.trace "%s | %s | parsed %.2fms" (Ssl.string_of_socket ssl_socket) (Request.to_string request)
 	    (1000. *. (Unix.gettimeofday () -. time)) in 
-	
+      
       let! response = Run.on_failure (handle_action_failure time request) (handler request) in 
+
+      let () = if trace_requests then 
+	  Log.trace "%s | %s | response computed %.2fms" (Ssl.string_of_socket ssl_socket) 
+	    (Request.to_string request)
+	    (1000. *. (Unix.gettimeofday () -. time)) in 
 
       return (Response.for_request time request response)	
 
     end in
 
-    return ( Response.send ssl_socket response )
+    Run.on_failure handle_response_failure 
+      (Response.send ssl_socket config response)
     
   with 
   | ( Ssl.Read_error Ssl.Error_syscall

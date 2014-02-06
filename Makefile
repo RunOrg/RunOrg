@@ -6,6 +6,7 @@ tests:
 	testc/testc.native
 
 depend: 
+	opam switch 4.00.0
 	opam install postgresql-ocaml ssl sha batteries ocurl menhir
 
 toolchain:

@@ -39,6 +39,15 @@ type t = <
   accept: [ `JSON | `MSGPACK ] ;
 > ;;
 
+let to_string req = 
+  !! "%s /%s" 
+    (match req # verb with
+    | `PUT -> "PUT"
+    | `GET -> "GET"
+    | `POST -> "POST"
+    | `DELETE -> "DELETE") 
+    (String.concat "/" req # path) 
+
 (* Decoding functions 
    ================== *)
 
@@ -83,9 +92,6 @@ let expected_body_size header =
 
 (* Reading requests from sockets
    ============================= *)
-
-let delay retries timeout now =     
-  min (float_of_int (retries + 1) *. 10.) ((timeout -. now) /. 2. *. 1000.)
 
 let read_request config ssl_socket = 
 
@@ -179,7 +185,7 @@ let read_request config ssl_socket =
     let size = expected_body_size header in 
 
     if log_enabled then 
-      Log.trace "Expecting header of size %d" size ; 
+      Log.trace "Expecting body of size %d" size ; 
 
     if size > config.max_body_size then raise BodyTooLong else 
 
@@ -190,7 +196,7 @@ let read_request config ssl_socket =
   end else
     
     ( if log_enabled then 
-	Log.trace "No header expected" ; 
+	Log.trace "No body expected" ; 
       
       return (header, None) ) 
   
@@ -303,7 +309,7 @@ let parse config ssl_socket =
 
   (* Pack everything in an object *)
 
-  return (object
+  let request = object
     method client_ip = ip 
     method host = host 
     method verb = verb
@@ -317,4 +323,10 @@ let parse config ssl_socket =
     method offset = offset 
     method accept = accept
     method body = body
-   end : t)
+  end in
+
+  if log_enabled then 
+    Log.trace "Parsed: %s" (to_string request) ;
+
+  return (request : t) 
+      

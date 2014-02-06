@@ -63,3 +63,5 @@ type t = <
 > ;;
 
 val parse : Common.config -> Ssl.socket -> ('any, t) Run.t
+
+val to_string : t -> string
