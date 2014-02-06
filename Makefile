@@ -22,7 +22,11 @@ runorg: toolchain tests
 
 clean: 
 	rm -f runorg
+	rm -rf _assets
+	make -C syntax clean 
 	make -C server clean
+	make -C testc clean
+	make -C plang clean
 
 start:
 	mkdir .server
