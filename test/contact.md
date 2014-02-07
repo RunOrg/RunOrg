@@ -8,5 +8,6 @@ using are:
    expect either individual contacts or groups of contacts as their 
    parameters.
  - Everyone who logs in, using any method, is bound to a contact. 
- - Access restrictions are based on which groups a contact belongs to.
+ - Access restrictions are based on which [groups](/docs/#/group.md) a 
+   contact belongs to.
    
