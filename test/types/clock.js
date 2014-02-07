@@ -13,6 +13,7 @@
 // 
 // This example illustrates that there are in fact **several queues** rather
 // than just one. The vector clock above means: 
+//
 //   - every event in queue 2 up to and including event 83 has been processed
 //   - every event in queue 3 up to and including event 117 has been processed
 // 
