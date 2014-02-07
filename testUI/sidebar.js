@@ -60,8 +60,6 @@
 	    data.done = (data.rcount * 100 / data.count).toFixed(2);
 	    data.root = true;
 
-	    console.log(data);
-
 	    R.sidebar(data);
 	    R.show();
 
