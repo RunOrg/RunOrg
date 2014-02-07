@@ -4,8 +4,8 @@
 // Alpha @ 0.1.22
 // 
 // `200 OK`, 
-// [Invariant](/docs/#/concept/invariant.js),
-// [Paginated](/docs/#/concept/paginated.js).
+// [Read-only](/docs/#/concept/read-only.md),
+// [Paginated](/docs/#/concept/paginated.md).
 //
 // Returns all the contacts in the database, in arbitrary order.
 // Supports `limit` and `offset` pagination. 

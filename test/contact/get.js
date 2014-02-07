@@ -3,7 +3,7 @@
 //
 // Alpha @ 0.1.21
 //
-// `200 OK`, [Invariant](/docs/#/concepts/invariant.js).
+// `200 OK`, [Read-only](/docs/#/concept/read-only.md).
 //
 
 TEST("The response has valid return code and content type.", function(next) {
