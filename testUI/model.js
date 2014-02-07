@@ -6,12 +6,12 @@ var Test = (function() {
 
 	// Returns all test fixtures, with the following format: 
 	// { <file>: {
-	//   verb: <string>, 
-	//   path: <string>, 
+	//   verb: <string> | null, 
+	//   path: <string> | null, 
 	//   file: <string>, 
 	//   categories: [ <string> ],
 	//   description: <string>, 
-	//   tests: <int>
+	//   tests: <int> | null
 	// }}
 	all: function(callback) {
 	    Test.all_ = [ callback ];
@@ -83,6 +83,7 @@ var Test = (function() {
 	    Test.all(function(fixtures){
 
 		for (var k in fixtures) {
+		    if (!fixtures[k].tests) continue;
 		    fixtures[k].ran = false;
 		    fixtures[k].rcount = 0;
 		    fixtures[k].failed = [];
