@@ -69,7 +69,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //       {"email":"test@example.com"} ]
 //
 // ### Example response
-//     201 Accepted
+//     202 Accepted
 //     Content-Type: application/json
 //
 //     { "created": [ "0Et9j0026rO", "0SMXP00G0ON" ],
