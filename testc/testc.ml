@@ -32,13 +32,13 @@
     Each {b markdown} file should contain a header as follows: 
 
     {[
-// Contacts / Short contact information 
+Contacts / Short contact information 
     }]
 
     This header is cut as such: 
 
     {[
-// [CATEGORY] / [DESCRIPTION]
+[CATEGORY] / [DESCRIPTION]
     ]}
 
     These elements are inserted into a JSON structure bound to the element: 
@@ -119,6 +119,7 @@ let parse_line1 =
       failwith "Could not parse first line."
 
 let parse_line2 = 
+  (* This does not require an initial //, so it works on both MD and JS files. *)
   let re = Str.regexp "[ \t]*/[ \t]*" in
   fun line ->
     let splits = List.filter (fun s -> s <> "") (Str.split re line) in
