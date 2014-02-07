@@ -29,6 +29,7 @@ var Test = (function() {
 	//     fixture: <test fixture> 
 	//   if __ = cat 
 	//     *: <node> 
+	//     _f: <test fixture> || null
 	// }
 	// 
 	// See Test.all for the format of <test fixture>. 
@@ -45,7 +46,12 @@ var Test = (function() {
 			root[cat] = root[cat] || { '__' : "cat" };
 			root = root[cat];
 		    }
-		    root[test.description] = { '__' : 'test', fixture: test };
+		    if (test.description in root) {
+			root[test.description]._f = test;
+			test.cat = root[test.description];
+		    } else {
+			root[test.description] = { '__' : 'test', fixture: test };
+		    }
 		}
 		Test.tree = function(callback) { callback(tree); };
 		for (var i = 0; i < Test.tree_.length; ++i) Test.tree(Test.tree_[i]);
@@ -64,7 +70,7 @@ var Test = (function() {
 	    } else {
 		cache.wait = [callback];
 		$.get("/docs/" + id, function(contents){
-		    cache.fixture = parseTestFixture(contents);
+		    cache.fixture = /.js$/.exec(id) ? parseTestFixture(contents) : parseDoc(contents);
 		    for (var i = 0; i < cache.wait.length; ++i) cache.wait[i](cache.fixture);
 		    delete cache.wait;
 		}, 'text');

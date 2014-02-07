@@ -12,18 +12,28 @@
 <ul>
   {< each sub }
     <li>
-      <div onclick="$(this).next().slideToggle('fast')">
-	{< if count}<span{< if ran } class="{< if ok }ok{else}failed{>}"{>}>{{ count }}</span>{>}{{ name }}
-      </div>
+      {< if file }
+	<a class="node{< if verb } verb{>}" href="{{file}}">
+	  {< if count}<span{< if ran } class="{< if ok }ok{else}failed{>}"{>}>{{ count }}</span>{>}
+	  {{ name }}
+	  {< if verb }<code>{{ verb }} {{ path }}</code>{>}
+	</a>
+      {else}
+        <div class="node" onclick="$(this).next().slideToggle('fast')">
+    	  {< if count}<span{< if ran } class="{< if ok }ok{else}failed{>}"{>}>{{ count }}</span>{>}
+	  {{ name }}
+	  {< if verb }<code>{{ verb }} {{ path }}</code>{>}
+        </div>
+      {>}
       {< sidebar >}
     </li>
   {>}
   {< each tests }
     <li>
-      <a href="{{ file }}">
+      <a {< if verb }class="verb"{>}href="{{ file }}">
 	{< if count }<span{< if ran } class="{< if ok }ok{else}failed{>}"{>}>{{ count }}</span>{>} 
 	{{ name }} 	
-	<code>{{ verb }} {{ path }}</code> 
+	{< if verb }<code>{{ verb }} {{ path }}</code>{>}
       </a>
       {< if failed }
 	 <ul class="failed">

@@ -7,18 +7,33 @@
 	window.$sidebar = R.$;
 
 	Test.tree(function(tree) {
+
+	    // This function is only called on category nodes
 	    function clean(tree) {
+
 		var out = { sub: [], tests: [], count: 0, ok: true, ran: true, rcount: 0 };
+
+		// If category node has an associated document
+		if (tree._f) {
+		    out.count += tree._f.tests || 0;
+		    out.rcount += tree._f.rcount || 0;
+		    out.ok = out.ok && !tree._f.failed;
+		    out.file = "/docs/#/" + tree._f.file;
+		    out.verb = tree._f.verb || "";
+		    out.path = tree._f.path || "";
+		}
+
+		// Recurse through subnodes to populate 'out.sub' and 'out.tests'
 		for (var k in tree) {
 		    var node = tree[k];
-		    if (k == '__') continue;
+		    if (k == '__' || k == '_f') continue;
 		    if (node['__'] == 'cat') {
 			var s = clean(node);
 			s.name = k;
 			out.sub.push(s);
 			out.count += s.count;
 			out.rcount += s.rcount;
-			out.ok = out.ok && s.ok;			
+			out.ok = out.ok && s.ok;
 		    } else {                
 			out.tests.push({ 
 			    name: k, 
@@ -45,11 +60,18 @@
 	    data.done = (data.rcount * 100 / data.count).toFixed(2);
 	    data.root = true;
 
+	    console.log(data);
+
 	    R.sidebar(data);
 	    R.show();
 
 	    var location = document.location.pathname + document.location.hash;
 	    var $a = $sidebar.find('a[href="' + location + '"]').addClass('active');
+
+	    // When clicked on category, show sub-elements
+	    $a.next().show();
+
+	    // Open all parent categories
 	    while ($a.length > 0) $a = $a.parent().closest('ul').show();	    
 
 	    if (!Test.running) {

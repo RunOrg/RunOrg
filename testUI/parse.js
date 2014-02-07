@@ -30,3 +30,17 @@ function parseTestFixture(script) {
 
     return parsed;
 }
+
+function parseDoc(md) {
+
+    var parsed = { tests: [], status: null, version: null, query: null };
+    var text = md.split("\n");
+
+    parsed.description = text.shift();   
+
+    while (text[0].trim() == '') text.shift();
+
+    parsed.body = markdown.toHTML(text.join('\n').trim());
+
+    return parsed;
+}
