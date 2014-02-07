@@ -43,7 +43,16 @@ var Test = (function() {
 		    var test = tests[path], root = tree;
 		    for (var i = 0; i < test.categories.length; ++i) {
 			var cat = test.categories[i];
-			root[cat] = root[cat] || { '__' : "cat" };
+			if (cat in root) {
+			    if (root[cat].__ == 'test') {
+				root[cat].__ = 'cat';
+				root[cat]._f = root[cat].fixture;
+				root[cat]._f.cat = root[cat];
+				delete root[cat].fixture;
+			    }
+			} else {
+			    root[cat] = { '__' : "cat" };
+			}
 			root = root[cat];
 		    }
 		    if (test.description in root) {
