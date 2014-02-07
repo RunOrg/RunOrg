@@ -134,3 +134,22 @@
   list-style-type: none;
   li { margin: 6px 12px; }
 }
+
+.body table.inner {
+  font-size: 13px;
+  border-collapse: collapse;
+  width: 600px;
+
+  td {
+    border: 1px solid #BBB;
+    padding: 4px 8px;
+  }
+
+  code {
+    color: #555;
+  }
+
+  a { 
+    text-decoration: none;
+  }
+}

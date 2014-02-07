@@ -5,4 +5,16 @@
 
 <div class="text">
   {< raw body >}
-</code>
+  {< if inner}
+    <table class="inner">
+      {< each inner }
+	 <tr>
+	   <td><code>{{ verb }}</code></td>
+	   <td><code>{{ path }}</code></td>
+	   <td><a href="/docs/#/{{ file }}">{{ description }}</a></td>
+	 </tr>
+      {>}
+    </table>
+  {>}
+</div>
+
