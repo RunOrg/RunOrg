@@ -53,9 +53,10 @@ imported contacts will be missing.
     
 ### Example response, no synchronization
     404 Not Found
-    COntent-Type: application/json
+    Content-Type: application/json
 
-    {"error":"Contact '0Et9j0026rO' does not exist","path":"/db/{db}/contacts/{cid}"}
+    { "error": "Contact '0Et9j0026rO' does not exist",
+      "path" : "/db/{db}/contacts/{cid}" }
 
 # Waiting for a clock value
 
@@ -74,7 +75,7 @@ The server will wait until the import has finished, then respond:
 
 ### Example response
     200 OK
-    COntent-Type: application/json
+    Content-Type: application/json
 
     { "id" : "0Et9j0026rO",
       "name" : "Victor Nicollet",
