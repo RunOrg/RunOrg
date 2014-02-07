@@ -33,7 +33,7 @@ TEST("The response has valid return code and content type.", function(next) {
 // # Examples
 // 
 // ### Example request
-//     GET /db/0SNQc00211H/contacts?limit=3?offset=213
+//     GET /db/0SNQc00211H/contacts?limit=3&offset=213
 // 
 // ### Example response
 //     200 OK
