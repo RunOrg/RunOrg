@@ -4,8 +4,8 @@
 // Alpha @ 0.1.22
 //
 // `202 Accepted`, 
-// [Delayed](/docs/#/concepts/delayed.js), 
-// [Sync Idempotent](/docs/#/concepts/sync-idempotent.js).
+// [Delayed](/docs/#/concept/delayed.md), 
+// [Sync Idempotent](/docs/#/concept/sync-idempotent.md).
 
 TEST("The response has valid return code and content type.", function(next) {
 

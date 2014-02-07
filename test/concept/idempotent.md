@@ -6,6 +6,9 @@ An API request is **Idempotent** if performing it twice in a row (with
 no intervening requests) is no different than performing it exactly
 once.
 
+If a network or client-side failure prevented the client from
+receiving the response, the request can be tried again without risk.
+
 Note that while the effect of the request will be the same, the API
 may provide different responses. For instance, sending an initial 
 `DELETE` request will return a `202 Accepted`, but subsequent `DELETE`
