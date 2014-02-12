@@ -1,11 +1,11 @@
 /* Authenticating with Persona. */
 
-API.onLoginRequired = function() {
-    var R = Route.replace();
+api.onLoginRequired = function() {
+    var R = Route.replace(), self = this;
     R["persona/page"]({ button: function(R) {
 	R.$[0].onclick = function() {
 	    navigator.id.get(function(assertion){
-		API.AUTH('/admin/auth/persona', {assertion:assertion}, function(r){
+		self.AUTH('/admin/auth/persona', {assertion:assertion}, function(r){
 		    Route.dispatch();
 		});		
 	    },{

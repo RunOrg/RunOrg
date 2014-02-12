@@ -1,0 +1,1 @@
+var api = new API('https://' + document.location.host, null);
