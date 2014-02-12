@@ -41,7 +41,9 @@ let rec filename = function
 
 (* Read the contents of a directory, returned as a list. *)
 let read_dir path = 
-  try Array.to_list (Sys.readdir path)  
+  try let list = List.sort compare (Array.to_list (Sys.readdir path))  in
+      List.iter print_endline list ;
+      list 
   with exn -> 
     print_endline 
       (Printf.sprintf "While reading directory %S:\n%s" path 
@@ -70,7 +72,7 @@ let fold_all_files f path acc =
 	fold (name :: prefix) path acc
       else
 	f (List.rev (name :: prefix)) name acc 
-    ) acc (read_dir path) 
+    ) acc (List.rev (read_dir path))
   in
   
   fold [] path acc
