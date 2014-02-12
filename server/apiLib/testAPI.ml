@@ -9,11 +9,11 @@ let () =
   if Configuration.test then begin
 
     (* Static entry point. *)
-    Endpoint.static "docs" "text/html" "static/testUI/index.html" ;
+    Endpoint.static "docs" "text/html" "sites/docs/.static/index.html" ;
 
     (* Static assets generated though the JS app compiler. *)
-    Endpoint.static "docs/script.js" "text/javascript" "_assets/testUI/all.js" ;
-    Endpoint.static "docs/style.css" "text/css" "_assets/testUI/all.css" ;
+    Endpoint.static "docs/script.js" "text/javascript" "sites/docs/.assets/all.js" ;
+    Endpoint.static "docs/style.css" "text/css" "sites/docs/.assets/all.css" ;
 
     (* Directory of all tests, from the test module. *)
     Endpoint.json "docs/all.json" Json.(of_assoc Test.all) ;

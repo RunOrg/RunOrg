@@ -8,10 +8,10 @@ plang/plang.byte
 plang/_build
 testc/testc.native
 testc/_build
+*/*/.assets
 *~
 *.cmo
 *.cmi
 *.byte
 *.out
 *.pem
-_assets

@@ -15,14 +15,14 @@ toolchain:
 
 runorg: toolchain tests
 	make -C server
-	make -C admin
-	make -C testUI
+	make -C sites/admin
+	make -C sites/docs
 	cp server/main.byte runorg
 	chmod a+x runorg
 
 clean: 
 	rm -f runorg
-	rm -rf _assets
+	rm -rf sites/*/.assets
 	make -C syntax clean 
 	make -C server clean
 	make -C testc clean
