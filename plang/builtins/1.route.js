@@ -28,7 +28,7 @@ var Route = {
     replace: function() {
 
 	Route.R.cancel();	
-	return Route.R = new R($('body'));
+	return Route.R = new Renderer('body');
     },
 
     // The current renderer, to be cancelled when the route changes

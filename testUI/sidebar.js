@@ -1,8 +1,6 @@
 /* Extend the layout to automatically render the sidebar. */
 (function() {
 
-    var layout = R.prototype.layout;
-
     function sidebar(R) {
 	window.$sidebar = R.$;
 
@@ -82,9 +80,6 @@
 	});
     }
 
-    R.prototype.layout = function(data) {
-	function body(R) { R.show() }
-	layout.call(this,$.extend({ sidebar : sidebar, body : body }, data || {}));
-    }
+    Renderer.fill('layout',{ sidebar: sidebar, body: function(R){ R.show(); }});
 
 })();
