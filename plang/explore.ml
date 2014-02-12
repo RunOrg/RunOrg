@@ -41,9 +41,7 @@ let rec filename = function
 
 (* Read the contents of a directory, returned as a list. *)
 let read_dir path = 
-  try let list = List.sort compare (Array.to_list (Sys.readdir path))  in
-      List.iter print_endline list ;
-      list 
+  try List.sort compare (Array.to_list (Sys.readdir path)) 
   with exn -> 
     print_endline 
       (Printf.sprintf "While reading directory %S:\n%s" path 
