@@ -59,7 +59,7 @@ let is_directory path =
       
 (* Iterate over all files in a directory. The directory 
    function is passed the path, the basename, and the 
-   accumulator. *)
+   accumulator. Directories that start with '.' are not explored. *)
 let fold_all_files f path acc = 
   
   (* The prefix is a *reverse* path. *)
@@ -67,7 +67,10 @@ let fold_all_files f path acc =
     List.fold_left (fun acc name ->
       let path = Filename.concat path name in 
       if is_directory path then
-	fold (name :: prefix) path acc
+	if name.[0] <> '.' then
+	  fold (name :: prefix) path acc
+	else 
+	  acc
       else
 	f (List.rev (name :: prefix)) name acc 
     ) acc (List.rev (read_dir path))
