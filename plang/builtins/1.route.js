@@ -36,7 +36,10 @@ var Route = {
 
     // Dispatch the provided path. Cancels the previous controller
     dispatch: function(path) {
-	path = path || document.location.pathname + document.location.hash;
+	path = (path || document.location.pathname + document.location.hash)
+	    .replace(/[\/#]+$/,'')
+	    .replace(/([^\/])#/,'$1/#')
+	    .replace(/#([^\/])/,'#/$1')
 	for (var i = 0; i < this.routes.length; ++i) 
 	    if (this.routes[i](path))
 		return;
