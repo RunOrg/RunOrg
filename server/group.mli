@@ -43,3 +43,6 @@ type info = <
 
 (** Get short information about a group. *)
 val get : I.t -> (#O.ctx, info option) Run.t 
+
+(** Get all the groups in the database. *)
+val all : limit:int -> offset:int -> (#O.ctx, info list * int) Run.t

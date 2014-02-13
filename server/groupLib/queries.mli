@@ -11,3 +11,5 @@ type info = <
 >
 
 val get : I.t -> (#O.ctx, info option) Run.t
+
+val all : limit:int -> offset:int -> (#O.ctx, info list * int) Run.t
