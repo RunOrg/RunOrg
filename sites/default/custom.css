@@ -4,5 +4,5 @@
 table a.cell {
     display: block;
     &:hover { text-decoration: none; }
-    img { max-width: 30px; max-height: 30px; }
+    img.avatar { width: 30px; height: 30px; }
 }
