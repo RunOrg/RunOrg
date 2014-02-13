@@ -108,3 +108,18 @@ module Delete = Endpoint.Delete(struct
       return (`Accepted (Out.make ~at))
 
 end)
+
+module AllPublic = Endpoint.Get(struct
+
+  module Arg = type module unit
+  module Out = type module < list : Info.t list ; count : int >
+  
+  let path = "groups/public"
+
+  let response req () = 
+    let limit = Option.default 1000 (req # limit) in
+    let offset = Option.default 0 (req # offset) in    
+    let! list, count = Group.all ~limit ~offset in
+    return (`OK (Out.make ~list ~count))
+
+end)
