@@ -1,6 +1,6 @@
 // Default controller
 
-Route.add(/(#\/?)?$/, function(R) {
+Route.add(/^[^#]*$/, function(R) {
     R.layout();
     R.show();
 });
