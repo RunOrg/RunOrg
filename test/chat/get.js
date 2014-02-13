@@ -1,6 +1,8 @@
 // GET /db/{db}/chat/{id}
 // Chatrooms / Read chatroom properties
 //
+// Alpha @ 0.1.22
+//
 // `200 OK`, 
 // [Read-only](/docs/#/concept/read-only.md).
 //
@@ -9,11 +11,12 @@
 //
 // ### Response format
 //     { "contacts": [ <shortcontact>, ... ],
-//       "groups": [ <groupinfo>, ... ],x
+//       "groups": [ <groupinfo>, ... ],
 //       "info": <chatinfo> }
 //  - `contacts` is a list of [short profiles](/docs/#/contact/short-contact.js) for 
 //    all participants in the chatroom.
-//  - `groups` is the basic information for all groups present in the chatroom.
+//  - `groups` is the [basic information](/docs/#/group/group-info.js)
+//    for all groups present in the chatroom.
 //  - `info` is a [chatroom information object](/docs/#/chat/chat-info.js).
 
 TEST("The response has valid return code and content type.", function(next) {
