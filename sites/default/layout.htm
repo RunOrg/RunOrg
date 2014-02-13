@@ -1,0 +1,19 @@
+<div id="wrapper">
+  <nav class="navbar navbar-default navbar-static-top" role="navigation">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">RunOrd Database Explorer</a>
+    </div>
+  </nav>
+  <nav class="navbar-default navbar-static-side" role="navigation">
+    <ul id="side-menu" class="nav">
+      {< each menu }
+	<li>
+	  <a href="{{url}}">{{label}}</a>
+	</li>
+      {>}
+    </ul>
+  </nav>
+  <div id="page-wrapper">
+    <div {$ body $}>
+  </div>
+</div>
