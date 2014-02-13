@@ -17,6 +17,7 @@ runorg: toolchain tests
 	make -C server
 	make -C sites/admin
 	make -C sites/docs
+	make -C sites/default
 	cp server/main.byte runorg
 	chmod a+x runorg
 
