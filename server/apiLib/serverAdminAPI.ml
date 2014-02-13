@@ -5,16 +5,6 @@ open Std
 let forbidden = `Unauthorized "Token is not a server administrator"
 let bad_auth  = `Forbidden "Could not log in as server administrator"
 
-(* Administration UI 
-   ================= *)
-
-let () = 
-  Endpoint.static "admin" "text/html" "sites/admin/.static/index.html" ;
-  Endpoint.static "admin/script.js" "text/javascript" "sites/admin/.assets/all.js" ;
-  Endpoint.static "admin/en.js" "text/javascript" "sites/admin/.assets/en.js" ;
-  Endpoint.static "admin/style.css" "text/css" "sites/admin/.assets/all.css" ;
-  Endpoint.static "admin/logo.png" "image/png" "sites/admin/.static/logo-runorg-50x50.png"
-
 (* Authenticate as a server administrator 
    ====================================== *)
 
