@@ -38,7 +38,7 @@ var API = (function(){
 		    type: method,
 		    
 		    url: self.root 
-			+ (path.charAt(0) == '/' ? '' : '/db/' + self.db) 
+			+ (path.charAt(0) == '/' ? '' : '/db/' + self.db + '/') 
 			+ path 
 			+ (clock ? '?at=' + clock : ''),
 		    
