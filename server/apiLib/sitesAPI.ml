@@ -31,6 +31,6 @@ let () =
 
 let () = 
   Endpoint.static "db/{-}/ui" "text/html" "sites/default/.static/index.html" ;
-  Endpoint.static "db/{-}/script.js" "text/javascript" "sites/default/.assets/all.js" ;
-  Endpoint.static "db/{-}/en.js" "text/javascript" "sites/default/.assets/en.js" ;
-  Endpoint.static "db/{-}/style.css" "text/css" "sites/default/.assets/all.css" 
+  Endpoint.static "db/{-}/ui/script.js" "text/javascript" "sites/default/.assets/all.js" ;
+  Endpoint.static "db/{-}/ui/en.js" "text/javascript" "sites/default/.assets/en.js" ;
+  Endpoint.static "db/{-}/ui/style.css" "text/css" "sites/default/.assets/all.css" 

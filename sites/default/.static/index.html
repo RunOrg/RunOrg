@@ -3,12 +3,16 @@
   <head>
     <meta content-type="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-    <link rel="stylesheet" href="style.css">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <script>
+      var baseUrl = document.location.pathname;
+      document.write('<link rel="stylesheet" href="'+baseUrl+'/style.css">')
+    </script>
     <title>RunOrg Database Explorer</title>    
   </head>
   <body>
-    <script src="script.js"></script>
-    <script src="en.js"></script>
+    <script>      
+      document.write('<script src="'+baseUrl+'/script.js"></s'+'cript>');
+      document.write('<script src="'+baseUrl+'/en.js"></s'+'cript>');
+    </script>
   </body>
 </html>
