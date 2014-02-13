@@ -1,0 +1,8 @@
+/* In tables, 'cell' links fill up the entire cell. Internal images are resized to avoid
+   expanding rows too much. */
+
+table a.cell {
+    display: block;
+    &:hover { text-decoration: none; }
+    img { max-width: 30px; max-height: 30px; }
+}
