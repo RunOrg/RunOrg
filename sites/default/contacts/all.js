@@ -10,7 +10,7 @@ Route.add(/#\/contacts$/,function(R){
 
     function body(R) {
 	api.GET('contacts',{},function(all){
-	    R.esc(JSON.stringify(all));
+	    R['contacts/all'](all);
 	    R.show();
 	});
     }
