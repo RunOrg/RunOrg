@@ -22,9 +22,9 @@ var Renderer = (function(){
     // Provide default values for a template
     R.fill = function(n,d) {
 	var old = Renderer.prototype[n];
-	R.prototype[n] = function(a) {
-	    return old.call(this,$.extend(d,a||{}))
-	}
+	R.prototype[n] = typeof d == "function" 
+	    ? function(a) { return old.call(this,d(a)) }
+	    : function(a) { return old.call(this,$.extend(d,a||{})) }
     };
 
     R.prototype = {
