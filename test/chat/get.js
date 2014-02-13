@@ -9,9 +9,11 @@
 //
 // ### Response format
 //     { "contacts": [ <shortcontact>, ... ],
+//       "groups": [ <groupinfo>, ... ],x
 //       "info": <chatinfo> }
 //  - `contacts` is a list of [short profiles](/docs/#/contact/short-contact.js) for 
 //    all participants in the chatroom.
+//  - `groups` is the basic information for all groups present in the chatroom.
 //  - `info` is a [chatroom information object](/docs/#/chat/chat-info.js).
 
 TEST("The response has valid return code and content type.", function(next) {
@@ -35,6 +37,10 @@ TEST("The response has valid return code and content type.", function(next) {
 //         "name" : "vnicollet@runorg.com",
 //         "gender" : null,
 //         "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060"} ],
+//       "groups": [
+//         { "id": "0SNQe0032JZ",
+//         "label": "Team members",
+//         "count" : 215 } ],
 //       "info": { 
 //         "id": 0SNQe0132FW,
 //         "contacts": ["0SNQe00311H","0SNQg00511H"],
