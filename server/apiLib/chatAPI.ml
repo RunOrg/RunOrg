@@ -99,6 +99,7 @@ module Get = Endpoint.Get(struct
   module Arg = type module < id : Chat.I.t >
   module Out = type module <
     contacts : ContactAPI.Short.t list ;
+    groups   : GroupAPI.Info.t list ;
     info     : ChatInfo.t ;
   >
 
@@ -108,7 +109,8 @@ module Get = Endpoint.Get(struct
     let! info = Chat.get (arg # id) in 
     match info with None -> return (not_found (arg # id)) | Some info -> 
       let! contacts = List.M.filter_map Contact.get (info # contacts) in 
-      return (`OK (Out.make ~contacts ~info))
+      let! groups   = List.M.filter_map Group.get (info # groups) in 
+      return (`OK (Out.make ~contacts ~groups ~info))
 
 end)
 
