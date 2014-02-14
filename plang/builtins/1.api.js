@@ -64,7 +64,7 @@ var API = (function(){
 			    }
 			    
 			    self.clock = JSON.stringify(c);
-			    success();
+			    success(data);
 			},			
 		    }
 		};
