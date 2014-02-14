@@ -4,7 +4,15 @@ Route.add(/#\/groups$/,function(R){
     R.show();
 
     function page(R) {
-	R.page({ title: i18n.groups.title, body: body });
+	R.page({ 
+	    title: i18n.groups.title, 
+	    body: body,
+	    buttons: [{
+		url: '#/groups/create',
+		style: 'success', 
+		label: i18n.groups.create.title
+	    }]
+	});
 	R.show();
     }
 
