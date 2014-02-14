@@ -5,7 +5,15 @@ Route.add(/#\/groups\/([a-zA-Z0-9]{1,11})$/,function(R,id){
 
     function page(R) {
 	api.GET('groups/'+id+'/info',{},function(info){	
-	    R.page({ title: info.label || info.id, body: body });
+	    R.page({ 
+		title: info.label || info.id, 
+		body: body, 
+		buttons: [{
+		    url: '#/groups/' + id + '/import',
+		    style: 'success',
+		    label: i18n.groups.import.title
+		}]
+	    });
 	    R.show();
 	})
     }
