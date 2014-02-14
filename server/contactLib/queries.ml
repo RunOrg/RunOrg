@@ -30,3 +30,9 @@ let all ~limit ~offset =
   let! list = Cqrs.MapView.all ~limit ~offset View.short in
   let! count = Cqrs.MapView.count View.short in 
   return (List.map (fun (cid,short) -> format_short cid short) list, count)
+
+(* Filtered access 
+   =============== *)
+
+let search ?(limit=10) prefix = 
+  assert false

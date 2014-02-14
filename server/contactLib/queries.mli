@@ -12,3 +12,5 @@ type short = <
 val get : CId.t -> (# O.ctx, short option) Run.t
 
 val all : limit:int -> offset:int -> (# O.ctx, short list * int) Run.t
+
+val search : ?limit:int -> string -> (#O.ctx, short list) Run.t
