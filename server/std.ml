@@ -99,6 +99,7 @@ module String = struct
 
   module Label = StdLib.Label
   module Rich = StdLib.Rich
+  module Word = StdLib.Word
     
 end
 
