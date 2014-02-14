@@ -70,6 +70,8 @@ var Renderer = (function(){
 		})(this,sub);
 		
 	    }
+
+	    return this.$;
 	},
 	
 	// Cancel the rendering. Any elements that are not yet rendered will
