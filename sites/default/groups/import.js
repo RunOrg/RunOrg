@@ -12,7 +12,28 @@ Route.add(/#\/groups\/([a-zA-Z0-9]{1,11})\/import$/,function(R,id){
 
     function body(R) {
 	R["groups/import"]();
-	var $form = R.show().find('form').submit(function(){
+	var sent = false, $form = R.show().find('form').submit(function(){
+
+	    if (sent) return;
+
+	    var emails = $(this).find('textarea').val().split('\n'),
+                imported = [];
+
+	    for(var i = 0; i < emails.length; ++i) {
+		var email = emails[i].trim();
+		if (/@/.exec(email)) imported.push({ email: email });		
+	    }	    
+
+	    if (imported.length > 0) {
+		sent = true;
+		$form.find('button').attr('disabled',true);
+		api.POST('contacts/import',imported,function(result){
+		    api.POST('groups/'+id+'/add',result.created,function(){
+			go('#/groups/'+id);
+		    });
+		});
+	    }
+	    
 	    return false;
 	});
     }
