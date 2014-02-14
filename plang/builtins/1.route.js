@@ -36,10 +36,7 @@ var Route = {
 
     // Dispatch the provided path. Cancels the previous controller
     dispatch: function(path) {
-	path = (path || document.location.pathname + document.location.hash)
-	    .replace(/[\/#]+$/,'')
-	    .replace(/([^\/])#/,'$1/#')
-	    .replace(/#([^\/])/,'#/$1')
+	path = Route.clean(path);
 	for (var i = 0; i < this.routes.length; ++i) 
 	    if (this.routes[i](path))
 		return;
@@ -47,6 +44,12 @@ var Route = {
 
     getBase : function(loc) { 
 	return loc.protocol + '//' + loc.host 
+    },
+
+    clean: function(path) {
+	if (!path) path = document.location.pathname + document.location.hash;
+	if (/^#/.exec(path)) path = document.location.pathname + path;
+	return path.replace(/[\/#]+$/,'').replace(/([^\/])#/,'$1/#').replace(/#([^\/])/,'#/$1');
     },
 
     // Set this value to false if you do not wish for the initial page load
@@ -64,6 +67,7 @@ var go;
 if ('history' in this) { 
 
     go = function(path) {
+	path = Route.clean(path);
 	history.pushState(null, null, path);
 	Route.dispatch(path);
     }
@@ -83,7 +87,7 @@ if ('history' in this) {
 else {
 
     go = function(path) {
-	document.location = Route.here + path;
+	document.location = Route.here + Route.clean(path);
     }
 
 }
