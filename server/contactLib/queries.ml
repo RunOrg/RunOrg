@@ -35,4 +35,25 @@ let all ~limit ~offset =
    =============== *)
 
 let search ?(limit=10) prefix = 
-  assert false
+  let  exact, prefix = String.Word.for_prefix_search prefix in 
+  let! ids = 
+    if exact = [] then Cqrs.SearchView.find ~limit View.search prefix else
+
+      let limit = limit * 10 in
+      let! lists = List.M.map identity 
+	(Cqrs.SearchView.find ~limit View.search prefix 
+	 :: List.map (Cqrs.SearchView.find_exact ~limit View.search) exact) in
+      
+      (* [id, n] where n is the number of times id was returned by a search *)
+      let ids = List.map (function 
+	| [] -> assert false (* Cannot be returned by List.group *)
+	| (h :: _) as l -> h, List.length l) 
+	(List.group compare (List.flatten lists)) in
+      
+      let ids = List.sort (fun (_,a) (_,b) -> compare b a) ids in 
+      
+      return (List.map fst (List.take limit ids))
+  in  
+  List.M.filter_map get ids 
+  
+
