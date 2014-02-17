@@ -79,3 +79,20 @@ module All = Endpoint.Get(struct
     return (`OK (Out.make ~list ~count))
 
 end)
+
+module Search = Endpoint.Get(struct
+
+  module Arg = type module < q : string >
+  module Out = type module <
+    list  : Short.t list ; 
+  >
+
+  let path = "contacts/search"
+
+  let response req arg = 
+    let limit  = Option.default 10 (req # limit) in
+    let prefix = arg # q in 
+    let! list = Contact.search ~limit prefix in
+    return (`OK (Out.make ~list))
+
+end)
