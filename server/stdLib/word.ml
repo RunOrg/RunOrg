@@ -75,3 +75,8 @@ let index str =
 	      match BatString.nsplit s "." with [x] -> [x] | l -> s :: l)
 	  (BatString.nsplit clean " ")))
 	  
+let for_prefix_search str = 
+  let clean = collapse str in 
+  match List.rev (BatString.nsplit clean " ") with 
+  | [] -> [], ""
+  | h :: t -> BatList.sort_unique compare t, h 

@@ -22,3 +22,12 @@
 *)
 val index : string -> string list 
 
+(** Splits a string into searchable words, to be used as a search term.
+
+    The output format is compatible with [index], with a few exceptions: 
+    the words are returned without cutting dots (so ["I'm"] would only
+    generate ["i.m"] instead of ["i"], ["m"] and ["i.m"]), and the last
+    word is returned separately (since it will be used for a prefix 
+    search). 
+*)
+val for_prefix_search : string -> string list * string
