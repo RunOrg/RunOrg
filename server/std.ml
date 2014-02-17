@@ -97,6 +97,24 @@ module String = struct
     done ;
     output
 
+  (** Escapes all characters in the provided list, by prepending the provided
+      character. [escape '\\' ['\\';'%'] "he\\lo%"] returns ["he\\\\lo\\%"]. *)
+  let escape escape_character replaced_characters str = 
+    let n   = String.length str in
+    let buf = Buffer.create (n * 2) in
+    let rec loop s i = 
+      if i = n then
+	Buffer.add_substring buf str s (i - s) 
+      else if List.mem str.[i] replaced_characters then
+	( Buffer.add_substring buf str s (i - s) ; 
+	  Buffer.add_char buf escape_character ; 
+	  loop i (i+1))
+      else
+	loop s (i+1)
+    in
+    loop 0 0 ;
+    Buffer.contents buf	 	
+
   module Label = StdLib.Label
   module Rich = StdLib.Rich
   module Word = StdLib.Word
