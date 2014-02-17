@@ -324,6 +324,31 @@ module ManyToManyView : sig
 
 end
 
+(** Search views index elements by their text contents. *)
+module SearchView : sig
+
+  type ('id) t
+
+  (** Create a new search index that contains values of type ['id] indexed
+      by strings. *)
+  val make : Projection.t -> string -> int ->
+    (module Fmt.FMT with type t = 'id) ->
+    Projection.view * 'id t
+
+  (** Bind a value to several words. Provide an empty list to 
+      completely unbind a value. *)
+  val set : 'id t -> 'id -> string list -> # ctx Run.effect
+
+  (** Finds all values tied to a specific string. Unlike [find_exact], 
+      prefix matches are allowed. *)
+  val find : ?limit:int -> 'id t -> string -> (#ctx, 'id list) Run.t
+
+  (** Finds all values tied to a specific string. Only exact matches are 
+      allowed. *)
+  val find_exact : ?limit:int -> 'id t -> string -> (#ctx, 'id list) Run.t
+
+end
+
 (** Keeping track of running instances. *)
 module Running : sig
 
