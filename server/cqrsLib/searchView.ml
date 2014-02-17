@@ -60,7 +60,7 @@ let set index key words =
       "INSERT INTO \""
       ^ dbname
       ^ "\" (\"db\",\"k\",\"word\") VALUES "
-      ^ String.concat "," List.(map (fun i -> !! "($1,$2,$%d::bytea)" (i+3)) (0 -- wordN))
+      ^ String.concat "," List.(map (fun i -> !! "($1,$2,$%d)" (i+3)) (0 -- wordN))
     in
 
     Sql.command query args

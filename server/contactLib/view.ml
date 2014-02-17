@@ -81,7 +81,7 @@ let short =
 
 let search = 
 
-  let searchV, search = Cqrs.SearchView.make projection "search" 0
+  let searchV, search = Cqrs.SearchView.make projection "search" 2
     (module CId : Fmt.FMT with type t = CId.t) in
 
   let update id =
