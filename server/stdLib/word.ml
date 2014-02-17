@@ -17,12 +17,11 @@ let collapse str =
       (* ASCII *)
 
       | 0x27 
-      | 0x2D 
-      | 0x40 -> '.'
+      | 0x2D -> '.'
 
       | i when i >= 0x41 && i <= 0x5A -> Char.chr (i + 0x20)
 
-      | i when i >= 0x61 && i <= 0x79 || i >= 0x30 && i <= 0x39 -> Char.chr i      
+      | i when i >= 0x61 && i <= 0x7A || i >= 0x30 && i <= 0x39 -> Char.chr i      
 
       | i when i >= 0xC0 && i <= 0xC5 || i >= 0xE0 && i <= 0xE5 -> 'a'
 
@@ -60,7 +59,8 @@ let collapse str =
 
       (* Other characters are dropped *)
 
-      | _ -> ' ')
+      | _ -> ' ') ;
+      loop i 
   in
 
   loop 0 ; Buffer.contents buf 
@@ -73,7 +73,7 @@ let index str =
 	  (fun s -> 
 	    if s = "" then [] else 
 	      match BatString.nsplit s "." with [x] -> [x] | l -> s :: l)
-	  (BatString.nsplit clean " ")))
+	  (BatString.nsplit clean " "))) 
 	  
 let for_prefix_search str = 
   let clean = collapse str in 
