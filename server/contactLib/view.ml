@@ -76,3 +76,27 @@ let short =
   end in    
 
   short
+
+(* Search index (by short.name) *)
+
+let search = 
+
+  let searchV, search = Cqrs.SearchView.make projection "search" 0
+    (module CId : Fmt.FMT with type t = CId.t) in
+
+  let update id =
+    let! info  = Cqrs.MapView.get short id in 
+    let  words = match info with 
+      | None -> [] 
+      | Some info -> String.Word.index (String.Label.to_string (info # name)) in
+    Cqrs.SearchView.set search id words 
+  in
+
+  let () = Store.track searchV begin function 
+
+    | `Created ev -> update (ev # id) 
+    | `InfoUpdated ev -> update (ev # id) 
+
+  end in    
+
+  search
