@@ -15,7 +15,6 @@ Route.add(/#\/chat\/create$/,function(R,id){
 	    if (sent) return false;
 
 	    var subject  = $form.find('#subject').val().trim(),
-                body     = $form.find('#message').val().trim(),
                 contacts = [],
 	        groups   = [];
 
