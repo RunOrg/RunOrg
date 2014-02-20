@@ -14,28 +14,61 @@ Route.add(/#\/chat\/create$/,function(R,id){
 
 	    if (sent) return false;
 
-	    var title = $form.find('input').val().trim(),
-                body  = $form.find('textarea').val().trim(),
+	    var subject  = $form.find('#subject').val().trim(),
+                body     = $form.find('#message').val().trim(),
                 contacts = [],
-	        groups = [];
+	        groups   = [];
 
-	    $form.find('.contact').children().each(function(){
+	    $form.find('.contacts tr').each(function(){
 		contacts.push(this.dataset.id);
 	    });
 	    
-	    $form.find('.group:checked').children().each(function(){
+	    $form.find('.group:checked').each(function(){
 		groups.push(this.dataset.id);
 	    });
 	   
-	    if (label && (groups.length || contacts.length)) {
+	    if (subject && (groups.length > 0 || contacts.length > 1)) {
 		sent = true;
 		$form.find('button').attr('disabled',true);
 		api.POST('chat/create',{contacts:contacts,groups:groups},function(result){
-		    go('#/groups/'+result.id);
+		    if (result.id) {			
+			go('#/chat/'+result.id);			
+		    }
 		});
 	    }
 
 	    return false;
+	});
+
+	$form.find('#contact-search').keyup(function(){
+
+	    var $self = $(this),
+	        q = $self.val().trim();
+	        R = new Renderer($self.next());
+
+	    api.GET('contacts/search',{q:q},function(result){
+		R['chat/create-contacts'](result);
+		R.show();
+	    });
+
+	})
+
+        .next().on('click','a',function(){	    
+
+	    var $contacts = $form.find('.contacts'),
+                $tr = $(this).closest('tr');
+
+	    $contacts.find('tr').each(function(){
+		if (this.dataset.id == $tr[0].dataset.id) $(this).remove();
+	    });
+
+	    $tr.appendTo($contacts);
+	    $('#contact-search').val('').next().html('');	    
+
+	})
+
+        .next().on('click','a',function() {
+	    $(this).closest('tr').remove();
 	});
     }
 

@@ -1,7 +1,7 @@
 {< each @ }
    <div class="checkbox">
      <label>
-       <input data-id="{{ id }}" type="checkbox"/>
+       <input data-id="{{ id }}" class="group" type="checkbox"/>
        {< if label }{{ label }}{ else }<code>{{ id }}</code>{>}
        <span class="badge">{{ count }}</span>
      </label>
