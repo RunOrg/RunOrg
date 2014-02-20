@@ -3,9 +3,9 @@
 Renderer.fill("layout",function(data) {
     return $.extend({
 	menu: [
+	    { url: "#", label: i18n.chat.title },
 	    { url: "#/contacts", label: i18n.contacts.title },
-	    { url: "#/groups", label: i18n.groups.title },
-	    { url: "#", label: i18n.chat.title }
+	    { url: "#/groups", label: i18n.groups.title }
 	],
 	body: function(R) { R.show() }
     }, data);
