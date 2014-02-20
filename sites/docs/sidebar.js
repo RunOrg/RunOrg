@@ -43,8 +43,8 @@
 			    count: node.fixture.tests,
 			    failed: node.fixture.failed
 			});
-			out.count += node.fixture.tests;
-			out.rcount += node.fixture.rcount;
+			out.count += node.fixture.tests || 0;
+			out.rcount += node.fixture.rcount || 0;
 			out.ok = out.ok && !node.fixture.failed;
 			out.ran = out.ran && node.fixture.ran;
 		    }
@@ -73,7 +73,7 @@
 	    if (!Test.running) {
 		var $button = $sidebar.find('button').click(function(){
 		    Test.run(function(fixture,test) {
-			sidebar(new window.R($sidebar))
+			sidebar(new Renderer($sidebar))
 		    });
 		});
 	    }
