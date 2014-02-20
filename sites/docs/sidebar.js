@@ -46,7 +46,7 @@
 			out.count += node.fixture.tests || 0;
 			out.rcount += node.fixture.rcount || 0;
 			out.ok = out.ok && !node.fixture.failed;
-			out.ran = out.ran && node.fixture.ran;
+			out.ran = out.ran && (!node.fixture.tests || node.fixture.ran);
 		    }
 		}
 		out.ran = out.ran && out.count > 0;
