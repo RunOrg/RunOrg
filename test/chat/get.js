@@ -48,7 +48,8 @@ TEST("The response has valid return code and content type.", function(next) {
 //       "info": { 
 //         "id": 0SNQe0132FW,
 //         "contacts": ["0SNQe00311H","0SNQg00511H"],
-//         "groups": [],
+//         "groups": ["0SNQe0032JZ"],
+//         "subject": "Preparation for the next meeting",
 //         "count": 118 }}
 
 TEST("Returns correct list of contacts.", function(next) {
@@ -60,6 +61,10 @@ TEST("Returns correct list of groups.", function(next) {
 });
 
 TEST("Returns correct message count.", function(next) {
+    Assert.fail();
+});
+
+TEST("Returns correct subject.", function(next) {
     Assert.fail();
 });
 
