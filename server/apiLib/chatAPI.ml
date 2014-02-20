@@ -6,6 +6,7 @@ module Create = Endpoint.Post(struct
     
   module Arg = type module unit
   module Post = type module <
+    ?subject  : String.Label.t option ; 
     ?contacts : CId.t list     = [] ;
     ?groups   : Group.I.t list = [] ;
     ?pm       : bool           = false ;
@@ -20,16 +21,19 @@ module Create = Endpoint.Post(struct
 
   let response req () post =
     if post # pm then 
-      match post # contacts with 
-      | [ a ; b ] when a <> b -> 
-	let! id, at = Chat.createPM a b in
-	return (`Accepted (Out.make ~id ~at))
-      | _ -> return (`BadRequest "Invalid parameters for private message thread")
+      if post # subject = None then 
+	match post # contacts with 
+	| [ a ; b ] when a <> b -> 
+	  let! id, at = Chat.createPM a b in
+	  return (`Accepted (Out.make ~id ~at))
+	| _ -> return (`BadRequest "Invalid parameters for private message thread")
+      else
+	return (`BadRequest "No subject allowed for private message thread")
     else
       if post # contacts = [] && post # groups = [] then
 	return (`BadRequest "Please provide at least one contact or group")
       else
-	let! id, at = Chat.create (post # contacts) (post # groups) in 
+	let! id, at = Chat.create ?subject:(post # subject) (post # contacts) (post # groups) in 
 	return (`Accepted (Out.make ~id ~at))
 	
 end)
@@ -89,6 +93,7 @@ let not_found id =
 
 module ChatInfo = type module <
   id : Chat.I.t ;
+  subject : String.Label.t option ;
   contacts : CId.t list ;
   groups : Group.I.t list ;
   count : int ;

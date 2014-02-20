@@ -13,7 +13,7 @@ module MI : sig
 end
 
 (** Create a new chatroom. *)
-val create : CId.t list -> Group.I.t list -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+val create : ?subject:String.Label.t -> CId.t list -> Group.I.t list -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
 (** Create a new private chatroom between two contacts. *)
 val createPM : CId.t -> CId.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
@@ -31,6 +31,7 @@ val deleteItem : I.t -> MI.t -> (#O.ctx, Cqrs.Clock.t) Run.t
 type info = <
   id : I.t ; 
   count : int ;
+  subject : String.Label.t option ; 
   contacts : CId.t list ;
   groups : Group.I.t list ;
 >

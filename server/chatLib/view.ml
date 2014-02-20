@@ -65,6 +65,7 @@ let items =
 
 module Info = type module <
   count : int ;
+ ?subject : String.Label.t option ; 
   contacts : CId.t list ;
   groups : Group.I.t list ;
 >
@@ -79,7 +80,11 @@ let info =
     let! stats = Cqrs.FeedMapView.stats items id in
     Cqrs.MapView.update info id (function None -> `Keep | Some info ->
       if info # count = stats # count then `Keep else `Put
-	(Info.make ~count:(stats#count) ~contacts:(info#contacts) ~groups:(info#groups)))
+	(Info.make 
+	   ~subject:(info#subject) 
+	   ~count:(stats#count) 
+	   ~contacts:(info#contacts) 
+	   ~groups:(info#groups)))
   in
 
   let () = Store.track infoV begin function 
@@ -87,12 +92,12 @@ let info =
     | `PrivateMessageCreated ev -> 
       let ida, idb = ev # who in 
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~count:0 ~contacts:[ida;idb] ~groups:[])
+        | None -> `Put (Info.make ~subject:None ~count:0 ~contacts:[ida;idb] ~groups:[])
 	| Some _ -> `Keep)
 
     | `ChatCreated ev ->
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~count:0 ~contacts:(ev#contacts) ~groups:(ev#groups))
+        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~contacts:(ev#contacts) ~groups:(ev#groups))
 	| Some _ -> `Keep)
 
     | `ChatDeleted ev -> 

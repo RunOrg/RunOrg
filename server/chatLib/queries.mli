@@ -7,6 +7,7 @@ type info = <
   count : int ;
   contacts : CId.t list ;
   groups : Group.I.t list ;
+  subject : String.Label.t option ; 
 >
 
 val get : I.t -> (#O.ctx, info option) Run.t

@@ -3,10 +3,11 @@
 open Std
 
 type info = <
-  id : I.t ; 
-  count : int ;
-  contacts : CId.t list ;
-  groups : Group.I.t list ;
+   id : I.t ; 
+   count : int ;
+   contacts : CId.t list ;
+   groups : Group.I.t list ;
+   subject : String.Label.t option ;
 >
 
 let get id = 
@@ -16,6 +17,7 @@ let get id =
     method count = info # count
     method contacts = info # contacts
     method groups = info # groups
+    method subject = info # subject
   end))
 
 type item = <
