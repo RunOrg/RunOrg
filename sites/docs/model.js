@@ -182,7 +182,7 @@ var Test = (function() {
 	},
 
 	// Run a query.
-	query: Query.create, 
+	query: function() { return Query.create.apply(Query, arguments); } 
 
     };   
 

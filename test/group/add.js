@@ -16,18 +16,23 @@
 // The contacts are passed as an array of identifiers. 
 
 TEST("The response has valid return code and content type.", function(next) {
+    Assert.fail();
 });
 
 TEST("An empty list is acceptable.", function(next) {
+    Assert.fail();
 });
 
 TEST("Duplicate contacts in list are acceptable.", function(next) {
+    Assert.fail();
 });
 
 TEST("Contacts already in group are ignored.", function(next) {
+    Assert.fail();
 });
 
 TEST("Added contacts can be found in the group.", function(next) {
+    Assert.fail();
 });
 
 // # Examples
@@ -50,16 +55,19 @@ TEST("Added contacts can be found in the group.", function(next) {
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(next) {
+    Assert.fail();
 });
 
 // - ... if group `{id}` does not exist in database `{db}`
 
 TEST("Returns 404 when group does not exist.", function(next) {
+    Assert.fail();
 });
 
 // - ... if one of the added contacts does not exist in database `{db}`
 
 TEST("Returns 404 when contact does not exist.", function(next) {
+    Assert.fail();
 });
 
 // ## Returns `401 Unauthorized` 
@@ -67,6 +75,7 @@ TEST("Returns 404 when contact does not exist.", function(next) {
 //   or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(next) {
+    Assert.fail();
 });
  
 // # Access restrictions

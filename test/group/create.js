@@ -20,6 +20,7 @@
 //       "at" : <clock> }
 
 TEST("The response has valid return code and content type.", function(next) {
+    Assert.fail();
 });
 
 // 
@@ -47,9 +48,11 @@ TEST("The response has valid return code and content type.", function(next) {
 //       "at" : [[2,218]] }
 
 TEST("Group with forced id appears.", function(next) {
+    Assert.fail();
 });
 
 TEST("New group with forced id created after deletion.", function(next) {
+    Assert.fail();
 });
 
 // # Generate-id mode
@@ -71,6 +74,7 @@ TEST("New group with forced id created after deletion.", function(next) {
 //       "at" : [[2,219]] }
 
 TEST("Multiple creations create multiple groups.", function(next) {
+    Assert.fail();
 });
 
 // # Errors
@@ -79,6 +83,7 @@ TEST("Multiple creations create multiple groups.", function(next) {
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(next) {
+    Assert.fail();
 });
 
 // ## Returns `400 Bad Request`
@@ -86,15 +91,18 @@ TEST("Returns 404 when database does not exist.", function(next) {
 //   identifier](/docs/#/types/custom-id.js)
 
 TEST("Returns 400 when custom id is invalid.", function(next) {
+    Assert.fail();
 });
 
 // ## Returns `400 Conflict`
 // - ... if a group already exists with the provided identifier.
 
 TEST("Returns 409 when the group exists.", function(next) {
+    Assert.fail();
 });
 
 TEST("Returns 409 when re-creating the admin group.", function(next) {
+    Assert.fail();
 });
 
 // ## Returns `401 Unauthorized` 
@@ -102,6 +110,7 @@ TEST("Returns 409 when re-creating the admin group.", function(next) {
 //   or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(next) {
+    Assert.fail();
 });
 
 // # Access restrictions

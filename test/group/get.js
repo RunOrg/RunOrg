@@ -18,6 +18,7 @@
 // - `count` is the total number of contacts in the group.
 
 TEST("The response has valid return code and content type.", function(next) {
+    Assert.fail();
 });
 
 // # Examples
@@ -41,9 +42,11 @@ TEST("The response has valid return code and content type.", function(next) {
 //       "count" : 215 }
 
 TEST("Returns correct number of contacts in count.", function(next) {
+    Assert.fail();
 });
 
 TEST("Returns data for all contacts.", function(next) {
+    Assert.fail();
 });
 
 // # Errors
@@ -52,11 +55,13 @@ TEST("Returns data for all contacts.", function(next) {
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(next) {
+    Assert.fail();
 });
 
 // - ... if group `{id}` does not exist in database `{db}`
 
 TEST("Returns 404 when group does not exist.", function(next) {
+    Assert.fail();
 });
 
 // ## Returns `401 Unauthorized` 
@@ -64,6 +69,7 @@ TEST("Returns 404 when group does not exist.", function(next) {
 //   or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(next) {
+    Assert.fail();
 });
  
 // # Access restrictions

@@ -53,9 +53,11 @@ TEST("Returns correct number of groups in count.", function(next) {
 });
 
 TEST("Returns data for all public groups.", function(next) {
+    Assert.fail();
 });
 
 TEST("Do not return non-public groups.", function(next) {
+    Assert.fail();
 });
 
 // # Errors
