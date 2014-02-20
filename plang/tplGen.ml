@@ -69,7 +69,7 @@ let rec expression = function
   | `Compare (a,b,c) -> "(" ^ expression a ^ ")" ^ compare c ^ "(" ^ expression b ^ ")"
 
 let rec body ast = 
-  String.concat ";" (List.map statement ast)
+  String.concat ";\n\t\t" (List.map statement ast)
 
 and statement = function 
   | `HTML html -> Js.render_raw_html html
@@ -91,9 +91,9 @@ and statement = function
 (* Compiles an individual template to the JavaScript code that defines it. *)
 let compile_template path ast = 
   let name = Filename.chop_extension (String.concat "/" path) in
-  Printf.sprintf ",%S:function(__){%s}" name (body ast)
+  Printf.sprintf ",%S:function(__){\n\t\t%s}" name (body ast)
 
 (* Generates the code that is inserted as "{{ TEMPLATES }}" into the builtins *)
 let compile templates = 
-  String.concat "" (List.map (fun (path,ast) -> compile_template path ast) templates) 
+  String.concat "\n\n\t" (List.map (fun (path,ast) -> compile_template path ast) templates) 
   
