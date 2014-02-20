@@ -30,7 +30,7 @@ Route.add(/#\/chat\/create$/,function(R,id){
 	    if (subject && (groups.length > 0 || contacts.length > 1)) {
 		sent = true;
 		$form.find('button').attr('disabled',true);
-		api.POST('chat/create',{contacts:contacts,groups:groups},function(result){
+		api.POST('chat/create',{subject:subject,contacts:contacts,groups:groups},function(result){
 		    if (result.id) {			
 			go('#/chat/'+result.id);			
 		    }
