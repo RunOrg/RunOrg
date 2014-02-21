@@ -18,4 +18,3 @@ let create ?fullname ?firstname ?lastname ?gender email =
 
     let! clock = Store.append events in
     return (id, clock) 
-

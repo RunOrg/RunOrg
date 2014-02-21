@@ -31,3 +31,8 @@ val all : limit:int -> offset:int -> (# O.ctx, short list * int) Run.t
 (** Search a contact by a prefix of a word in the fullname. *)
 val search : ?limit:int -> string -> (#O.ctx, short list) Run.t
 
+(** Attempt to log in with persona. Returns a token and the short profile for
+    the authenticated token, or [None] if the authentication failed. May create a
+    brand new contact. *)
+val auth_persona : string -> (# O.ctx, ([`Contact] Token.I.id * short * Cqrs.Clock.t) option) Run.t
+  

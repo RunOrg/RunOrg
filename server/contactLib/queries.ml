@@ -19,6 +19,13 @@ let format_short cid short = object
   method pic    = Gravatar.pic_of_email (String.Label.to_string (short # email))
 end
 
+let initial_short cid email = object
+  method id     = cid
+  method name   = email
+  method gender = None
+  method pic    = Gravatar.pic_of_email (String.Label.to_string email)
+end  
+
 (* Unfiltered access
    ================= *)
 
