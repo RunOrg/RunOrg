@@ -2,6 +2,35 @@
 
 open Std
 
+module Short = type module <
+  id     : CId.t ;
+  name   : String.Label.t ; 
+  gender : [`F|`M] option ;
+  pic    : string ; 
+>
+
+let bad_auth  = `Forbidden "Could not log in"
+
+module Auth_Persona = Endpoint.Post(struct
+
+  module Arg  = type module unit
+  module Post = type module < assertion : string > 
+  module Out = type module < 
+    token : Token.I.t ; 
+    self  : Short.t ; 
+    at    : Cqrs.Clock.t ;
+  >
+
+  let path = "contacts/auth/persona"
+
+  let response req () p = 
+    let! result = Contact.auth_persona (p # assertion) in 
+    match result with None -> return bad_auth | Some (token, self, at) -> 
+      let token = Token.I.decay token in 
+      return (`Accepted (Out.make ~token ~self ~at))
+
+end)
+
 module Import = Endpoint.Post(struct
 
   module Arg = type module unit
@@ -40,13 +69,6 @@ module Import = Endpoint.Post(struct
     return (`Accepted out) 
 			      
 end)
-
-module Short = type module <
-  id     : CId.t ;
-  name   : String.Label.t ; 
-  gender : [`F|`M] option ;
-  pic    : string ; 
->
 
 module Get = Endpoint.Get(struct
 
