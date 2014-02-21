@@ -1,5 +1,7 @@
 Route.add(/#\/chat\/create$/,function(R,id){
 
+    if (!api.self) return api.onLoginRequired();
+
     R.layout({ body: page });
     R.show();
 

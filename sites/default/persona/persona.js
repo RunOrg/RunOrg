@@ -5,7 +5,7 @@ api.onLoginRequired = function() {
     R["persona/page"]({ button: function(R) {
 	R.$[0].onclick = function() {
 	    navigator.id.get(function(assertion){
-		self.AUTH('auth/persona', {assertion:assertion}, function(r){
+		self.AUTH('contacts/auth/persona', {assertion:assertion}, function(r){
 		    Route.dispatch();
 		});		
 	    },{
