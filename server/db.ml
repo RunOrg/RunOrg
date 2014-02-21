@@ -1,4 +1,4 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 open Std
 
@@ -73,3 +73,6 @@ let ctx id =
   let  ctx = ctx # with_db id in 
   let! exists = Run.with_context ctx (Cqrs.MapView.exists View.all ()) in
   return (if exists then Some ctx else None) 
+
+let persona_audience () = 
+  return Configuration.admin_audience
