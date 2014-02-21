@@ -17,3 +17,18 @@ table a.cell {
 	margin: -5px 2px;
     }
 }
+
+/* Group avatars contain the number of contacts in that group. */
+
+span.group-avatar {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    background-color: #BBB;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    text-shadow: 0 -1px 0 #888;
+}

@@ -1,4 +1,5 @@
 i18n({
+    "chat.view.participants": "Participants",
     "chat.create.subject.label": "Topic",
     "chat.create.subject.placeholder": "What's up?",
     "chat.create.contacts.label": "To contacts",
