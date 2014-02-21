@@ -1,4 +1,4 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 (** Validates an assertion, returning the corresponding e-mail. *)
 val validate : audience:string -> string -> ('ctx, string option) Run.t
