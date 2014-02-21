@@ -9,6 +9,7 @@ var API = (function(){
 	this.root = root;
 	
 	this.token = null;
+	this.self = null;
 
         // The clock is stored in JSON serialized format. The corresponding JSON
         // is an array of [stream,pos] integer pairs. 
@@ -89,6 +90,7 @@ var API = (function(){
 	    var self = this; 
 	    this.ajax("POST",p,d,function(data) {
 		if ('token' in data) self.token = data.token;
+		if ('self' in data) self.self = data.self;
 		f(data);
 	    }) 
 	},
