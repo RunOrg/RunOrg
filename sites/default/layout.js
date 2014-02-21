@@ -7,6 +7,21 @@ Renderer.fill("layout",function(data) {
 	    { url: "#/contacts", label: i18n.contacts.title },
 	    { url: "#/groups", label: i18n.groups.title }
 	],
+	self: api.self, 
+	login: function(R) { 
+	    R.esc(i18n.login); 
+	    R.show();
+	    R.$.click(function() { api.onLoginRequired(); });
+	},
+	logout: function(R) {
+	    R.esc(i18n.logout);
+	    R.show();
+	    R.$.click(function() {
+		api.self = null;
+		api.token = null;
+		Route.dispatch();
+	    });
+	},
 	body: function(R) { R.show() }
     }, data);
 });

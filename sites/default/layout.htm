@@ -1,8 +1,18 @@
 <div id="wrapper">
   <nav class="navbar navbar-default navbar-static-top" style="margin-bottom:0" role="navigation">
     <div class="navbar-header">
-      <a class="navbar-brand" href="#">RunOrg Database Explorer</a>
+      <a class="navbar-brand" href="#">{: title :}</a>
     </div>
+    <ul class="nav navbar-top-links navbar-right">
+      {< if self }
+	 <li>
+	   <a href="#/contacts/{{self.id}}"><img class="avatar" src="{{self.pic}}"> {{ self.name }}</a>
+	 </li>
+	 <li><a {$logout$} href="javascript:void(0)"></a></li>
+      {else}
+	 <li><a {$login$} href="javascript:void(0)"></a></li>
+      {>}
+    </ul>
   </nav>
   <nav class="navbar-default navbar-static-side" role="navigation">
     <ul id="side-menu" class="nav">

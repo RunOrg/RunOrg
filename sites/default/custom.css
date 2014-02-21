@@ -6,3 +6,14 @@ table a.cell {
     &:hover { text-decoration: none; }
     img.avatar { width: 30px; height: 30px; }
 }
+
+/* In the navigation bar, avatars should still be 30x30, but not 
+   expand the 20px height. */
+
+.navbar {
+    img.avatar {
+	width: 30px; 
+	height: 30px; 
+	margin: -5px 2px;
+    }
+}
