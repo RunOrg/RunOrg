@@ -155,8 +155,8 @@ let list ?(limit=1000) ?(offset=0) map left =
   let  l, r = lr map in
 
   let! result = Sql.query 
-    (!! "SELECT \"r\" FROM \"%s\" WHERE \"db\" = $1 AND %s = $2 ORDER BY %s LIMIT %d OFFSET %d"
-	dbname l r limit offset)
+    (!! "SELECT %s FROM \"%s\" WHERE \"db\" = $1 AND %s = $2 ORDER BY %s LIMIT %d OFFSET %d"
+	r dbname l r limit offset)
     [ `Id (ctx # db) ; `Binary (Pack.to_string map.lpack left) ] 
   in
 
@@ -165,6 +165,36 @@ let list ?(limit=1000) ?(offset=0) map left =
        (fun a -> Pack.of_string map.rupack (Postgresql.unescape_bytea a.(0)))
        (Array.to_list result))
 
+let join ?(limit=100) ?(offset=0) map lefts = 
+  
+  let leftN = List.length lefts in
+  match lefts with [] -> return [] | [x] -> list ~limit ~offset map x | _ -> 
+
+    let! ctx = Run.context in
+    let! ()  = Run.with_context (ctx :> ctx) map.wait in
+    let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
+    
+    let  l, r = lr map in 
+    
+    let  args = 
+      `Id (ctx # db) :: List.map (fun l -> `Binary (Pack.to_string map.lpack l)) lefts in
+
+    let  query = 
+      "SELECT "^r^" FROM \""
+      ^ dbname 
+      ^ "\" WHERE "^l^" IN (" 
+      ^ String.concat "," List.(map (fun i -> !! "$%d" (i + 2)) (0 -- leftN))
+      ^ ") ORDER BY "^r
+      ^ (!! " LIMIT %d OFFSET %d" limit offset)
+    in
+
+    let! result = Sql.query query args in 
+    
+    return 
+      (List.map
+	 (fun a -> Pack.of_string map.rupack (Postgresql.unescape_bytea a.(0)))
+	 (Array.to_list result))
+      
 (* Counting members
    ================ *)
 	

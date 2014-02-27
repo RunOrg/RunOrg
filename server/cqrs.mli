@@ -322,6 +322,10 @@ module ManyToManyView : sig
   (** List all the bindings with the specified left member. *)
   val list : ?limit:int -> ?offset:int -> ('left, 'right) t -> 'left -> (# ctx, 'right list) Run.t
 
+  (** List all the right-values that are bound to at least one left-value in the
+      provided list. *)
+  val join : ?limit:int -> ?offset:int -> ('left, 'right) t -> 'left list -> (# ctx, 'right list) Run.t
+
   (** Count the bindings with the specified left value. *)
   val count : ('left, 'right) t -> 'left -> (# ctx, int) Run.t 
 
