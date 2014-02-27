@@ -10,7 +10,8 @@ type ('left, 'right) t = {
   rupack : 'right Pack.unpacker ;
   name : string ;
   wait : (ctx,unit) Run.t ; 
-  dbname : (ctx,string) Run.t
+  flip : bool ; 
+  dbname : (ctx,string) Run.t 
 }
 
 (* Creating a new map 
@@ -37,11 +38,22 @@ let make (type l) (type r) projection name version left right =
   let wait = Projection.wait projection in 
 
   view, 
-  { name ; dbname ; wait ;
+  { name ; dbname ; wait ; flip = false ;
     lpack = Left.pack ; lupack = Left.unpack ; rpack = Right.pack ; rupack = Right.unpack }
 
 let flip map = 
-  assert false
+  { name = map.name ;
+    dbname = map.dbname ;
+    lpack = map.rpack ;
+    lupack = map.rupack ;
+    rpack = map.lpack ;
+    rupack = map.lupack ;
+    wait = map.wait ;
+    flip = not map.flip }
+
+let lr map = 
+  if map.flip then "\"r\"", "\"l\""
+  else "\"l\"", "\"r\""
 
 (* Adding values to the map 
    ======================== *)
@@ -58,16 +70,18 @@ let add map lefts rights =
       @ List.map (fun l -> `Binary (Pack.to_string map.lpack l)) lefts 
       @ List.map (fun r -> `Binary (Pack.to_string map.rpack r)) rights in
 
+    let l, r = lr map in
+
     let query = 
       "INSERT INTO \"" 
       ^ dbname 
-      ^ "\" (\"db\",\"l\",\"r\") SELECT DISTINCT $1::char(11), l.v, r.v FROM (VALUES "
+      ^ "\" (\"db\","^l^","^r^") SELECT DISTINCT $1::char(11), l.v, r.v FROM (VALUES "
       ^ String.concat "," List.(map (fun i -> !! "($%d::bytea)" (i + 2)) (0 -- leftN)) 
       ^ ") as l(v) CROSS JOIN (VALUES "
       ^ String.concat "," List.(map (fun i -> !! "($%d::bytea)" (i + 2 + leftN)) (0 -- rightN))
       ^ ") as r(v) WHERE NOT EXISTS (SELECT 1 FROM \""
       ^ dbname
-      ^ "\" WHERE \"db\" = $1 AND \"l\" = l.v AND \"r\" = r.v)"
+      ^ "\" WHERE \"db\" = $1 AND "^l^" = l.v AND "^r^" = r.v)"
     in
     
     Sql.command query args
@@ -87,12 +101,14 @@ let remove map lefts rights =
       @ List.map (fun l -> `Binary (Pack.to_string map.lpack l)) lefts 
       @ List.map (fun r -> `Binary (Pack.to_string map.rpack r)) rights in
 
+    let l, r = lr map in
+
     let query = 
       "DELETE FROM \"" 
       ^ dbname 
-      ^ "\" WHERE \"db\" = $1 AND \"l\" IN ("
+      ^ "\" WHERE \"db\" = $1 AND "^l^" IN ("
       ^ String.concat "," List.(map (fun i -> !! "$%d" (i + 2)) (0 -- leftN))
-      ^ ") AND \"r\" IN ("
+      ^ ") AND "^r^" IN ("
       ^ String.concat "," List.(map (fun i -> !! "$%d" (i + 2 + leftN)) (0 -- rightN))
       ^ ")"
     in
@@ -103,8 +119,10 @@ let delete map left =
 
   let! ctx = Run.context in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
+
+  let l, _ = lr map in
   
-  Sql.command ("DELETE FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1 AND \"l\" = $2")
+  Sql.command ("DELETE FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1 AND "^l^" = $2")
     [ `Id (ctx # db) ; `Binary (Pack.to_string map.lpack left) ] 
 
 (* Testing for existence  
@@ -116,8 +134,10 @@ let exists map left right =
   let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   
+  let  l, r = lr map in
+
   let! result = 
-    Sql.query ("SELECT 1 FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1 AND \"l\" = $2 AND \"r\" = $3")
+    Sql.query ("SELECT 1 FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1 AND "^l^" = $2 AND "^r^" = $3")
     [ `Id (ctx # db) ; `Binary (Pack.to_string map.lpack left) ; `Binary (Pack.to_string map.rpack right) ]
   in
   
@@ -132,9 +152,11 @@ let list ?(limit=1000) ?(offset=0) map left =
   let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
 
+  let  l, r = lr map in
+
   let! result = Sql.query 
-    (!! "SELECT \"r\" FROM \"%s\" WHERE \"db\" = $1 AND \"l\" = $2 ORDER BY \"r\" LIMIT %d OFFSET %d"
-	dbname limit offset)
+    (!! "SELECT \"r\" FROM \"%s\" WHERE \"db\" = $1 AND %s = $2 ORDER BY %s LIMIT %d OFFSET %d"
+	dbname l r limit offset)
     [ `Id (ctx # db) ; `Binary (Pack.to_string map.lpack left) ] 
   in
 
@@ -152,8 +174,10 @@ let count map left =
   let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
 
+  let  l, _ = lr map in
+
   let! result = Sql.query 
-    (!! "SELECT COUNT(*) FROM \"%s\" WHERE \"db\" = $1 AND \"l\" = $2" dbname)
+    (!! "SELECT COUNT(*) FROM \"%s\" WHERE \"db\" = $1 AND %s = $2" dbname l)
     [ `Id (ctx # db) ; `Binary (Pack.to_string map.lpack left) ] 
   in
 
