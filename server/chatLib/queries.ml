@@ -2,6 +2,9 @@
 
 open Std
 
+(* Reading generic information 
+   =========================== *)
+
 type info = <
    id : I.t ; 
    count : int ;
@@ -19,6 +22,33 @@ let get id =
     method groups = info # groups
     method subject = info # subject
   end))
+
+(* Reading multiple chatrooms 
+   ========================== *)
+
+let all_as ?(limit=100) ?(offset=0) cid = 
+
+  let! gids = Group.of_contact cid in 
+  let  accessors = View.Accessor.( Contact cid :: List.map (fun gid -> Group gid) gids ) in
+
+  let rec fetch limit offset = 
+
+    let! ids = Cqrs.ManyToManyView.join ~limit ~offset View.access accessors in 
+    let  idN = List.length ids in    
+    
+    let! infos = List.M.filter_map get ids in 
+    let  infoN = List.length infos in 
+    
+    if idN = infoN || idN < limit then return infos else 
+      let! more = fetch (limit - infoN) (offset + limit) in
+      return (infos @ more)
+
+  in
+  
+  fetch limit offset
+
+(* Reading items 
+   ============= *)
 
 type item = <
   id : MI.t ;

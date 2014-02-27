@@ -20,3 +20,5 @@ type item = <
 >
 
 val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, item list) Run.t
+
+val all_as : ?limit:int -> ?offset:int -> CId.t -> (#O.ctx, info list) Run.t

@@ -39,6 +39,9 @@ type info = <
 (** Get short information about a chatroom. *)
 val get : I.t -> (#O.ctx, info option) Run.t
 
+(** Get all chatrooms that a given user participates in. *)
+val all_as : ?limit:int -> ?offset:int -> CId.t -> (#O.ctx, info list) Run.t
+
 (** An item. *)
 type item = <
   id : MI.t ;
@@ -49,3 +52,4 @@ type item = <
 
 (** Get items from a chatroom, in reverse chronological order. *)
 val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, item list) Run.t
+
