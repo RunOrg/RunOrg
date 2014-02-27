@@ -7,6 +7,8 @@ val make : Projection.t -> string -> int ->
   (module Fmt.FMT with type t = 'right) ->
   Projection.view * ('left, 'right) t
 
+val flip : ('left, 'right) t -> ('right, 'left) t 
+
 val add : ('left, 'right) t -> 'left list -> 'right list -> # Common.ctx Run.effect
   
 val remove : ('left, 'right) t -> 'left list -> 'right list -> # Common.ctx Run.effect

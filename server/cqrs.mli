@@ -302,6 +302,9 @@ module ManyToManyView : sig
     (module Fmt.FMT with type t = 'right) ->
     Projection.view * ('left, 'right) t
 
+  (** Flips a view to allow queries in the other direction. *)
+  val flip : ('left, 'right) t -> ('right, 'left) t 
+
   (** Adds the cartesian product of the two provided sets to the 
       map. Nothing happens to bindings already in the map. *)
   val add : ('left, 'right) t -> 'left list -> 'right list -> # ctx Run.effect

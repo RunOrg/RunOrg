@@ -40,6 +40,9 @@ let make (type l) (type r) projection name version left right =
   { name ; dbname ; wait ;
     lpack = Left.pack ; lupack = Left.unpack ; rpack = Right.pack ; rupack = Right.unpack }
 
+let flip map = 
+  assert false
+
 (* Adding values to the map 
    ======================== *)
 
