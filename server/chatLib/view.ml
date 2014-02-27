@@ -109,3 +109,41 @@ let info =
   end in 
 
   info
+
+(* Chat access 
+   =========== *)
+
+module Accessor = type module 
+  | Group of Group.I.t 
+  | Contact of CId.t
+
+let access = 
+
+  let accessV, access = Cqrs.ManyToManyView.make projection "access" 0 
+    (module Accessor : Fmt.FMT with type t = Accessor.t)
+    (module I : Fmt.FMT with type t = I.t) in
+
+  let () = Store.track accessV begin function 
+
+    | `PrivateMessageCreated ev ->
+
+      let ida, idb = ev # who in 
+      Cqrs.ManyToManyView.add access Accessor.([ Contact ida ; Contact idb ]) [ev # id]
+
+    | `ChatCreated ev ->
+
+      let accessors = 
+	List.map (fun cid -> Accessor.Contact cid) (ev # contacts)
+	@ List.map (fun gid -> Accessor.Group gid) (ev # groups) in
+      Cqrs.ManyToManyView.add access accessors [ev # id]
+
+    | `ChatDeleted ev ->
+      
+      Cqrs.ManyToManyView.(delete (flip access) (ev # id))
+
+    | `ItemPosted _ 
+    | `ItemDeleted _ -> return ()
+
+  end in
+  
+  access
