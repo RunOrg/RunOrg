@@ -46,3 +46,6 @@ val get : I.t -> (#O.ctx, info option) Run.t
 
 (** Get all the groups in the database. *)
 val all : limit:int -> offset:int -> (#O.ctx, info list * int) Run.t
+
+(** List all the groups of a contact. *)
+val of_contact : CId.t -> (#O.ctx, I.t list) Run.t 

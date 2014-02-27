@@ -34,3 +34,9 @@ let list ?limit ?offset gid =
   let! list  = Cqrs.ManyToManyView.list ?limit ?offset View.contacts gid in
   return (list, count)
 
+(* Groups of a member
+   ================== *)
+
+let of_contact cid = 
+  let groups = Cqrs.ManyToManyView.flip View.contacts in 
+  Cqrs.ManyToManyView.list groups cid 
