@@ -119,6 +119,29 @@ module Get = Endpoint.Get(struct
 
 end)
 
+module GetAllAs = Endpoint.Get(struct
+
+  module Arg = type module < cid : CId.t >
+  module Out = type module <
+    contacts : ContactAPI.Short.t list ;
+    groups   : GroupAPI.Info.t list ;
+    list     : ChatInfo.t list ;
+  >
+
+  let path = "chat/as/{cid}"
+
+  let response req arg = 
+    let  limit  = Option.default 100 (req # limit) in
+    let  offset = Option.default 0 (req # offset) in
+    let! list = Chat.all_as ~limit ~offset (arg # cid) in
+    let! groups = List.(M.filter_map Group.get 
+			  (unique (flatten (map (#groups) list)))) in
+    let! contacts = List.(M.filter_map Contact.get
+			    (unique (flatten (map (#contacts) list)))) in
+    return (`OK (Out.make ~contacts ~groups ~list))
+
+end)
+
 (* Obtaining chat contents 
    ======================= *)
 
