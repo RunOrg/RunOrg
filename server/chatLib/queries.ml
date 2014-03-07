@@ -8,6 +8,7 @@ open Std
 type info = <
    id : I.t ; 
    count : int ;
+   last : Time.t ;
    contacts : CId.t list ;
    groups : Group.I.t list ;
    subject : String.Label.t option ;
@@ -19,6 +20,7 @@ let get id =
   match info with None -> return None | Some info -> return (Some (object
     method id = id 
     method count = info # count
+    method last = info # last 
     method contacts = info # contacts
     method groups = info # groups
     method subject = info # subject

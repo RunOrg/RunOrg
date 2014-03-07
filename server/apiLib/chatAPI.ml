@@ -116,6 +116,7 @@ module ChatInfo = type module <
   contacts : CId.t list ;
   groups : Group.I.t list ;
   count : int ;
+  last : Time.t ; 
   public : bool ; 
 >
 

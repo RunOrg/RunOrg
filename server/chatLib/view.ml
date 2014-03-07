@@ -67,6 +67,7 @@ let items =
 
 module Info = type module <
   count : int ;
+  last : Time.t ; 
   subject : String.Label.t option ; 
   contacts : CId.t list ;
   groups : Group.I.t list ;
@@ -79,7 +80,13 @@ let info =
     (module I : Fmt.FMT with type t = I.t) 
     (module Info : Fmt.FMT with type t = Info.t) in
 
+  let time () = 
+    let! ctx = Run.context in 
+    return (ctx # time)  
+  in
+
   let recount id = 
+    let! time = time () in
     let! stats = Cqrs.FeedMapView.stats items id in
     Cqrs.MapView.update info id (function None -> `Keep | Some info ->
       if info # count = stats # count then `Keep else `Put
@@ -88,26 +95,32 @@ let info =
 	   ~count:(stats#count) 
 	   ~contacts:(info#contacts) 
 	   ~groups:(info#groups)
-	   ~public:(info#public)))
+	   ~public:(info#public)
+	   ~last:(max (info#last) time)))
   in
 
   let () = Store.track infoV begin function 
 
     | `PrivateMessageCreated ev -> 
-      let ida, idb = ev # who in 
+      let ida, idb = ev # who in
+      let! time = time () in 
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:None ~count:0 ~contacts:[ida;idb] ~groups:[] ~public:false)
+        | None -> `Put (Info.make ~subject:None ~count:0 ~contacts:[ida;idb] ~groups:[] ~public:false
+			  ~last:time)
 	| Some _ -> `Keep)
 
     | `ChatCreated ev ->
+      let! time = time () in 
       Cqrs.MapView.update info (ev # id) (function 
         | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~contacts:(ev#contacts) ~groups:(ev#groups) 
-			  ~public:false)
+			  ~public:false ~last:time)
 	| Some _ -> `Keep)
 
     | `PublicChatCreated ev -> 
+      let! time = time () in
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~contacts:[] ~groups:[] ~public:true)
+        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~contacts:[] ~groups:[] ~public:true
+			  ~last:time)
 	| Some _ -> `Keep)
 
     | `ChatDeleted ev -> 

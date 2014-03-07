@@ -34,6 +34,7 @@ val deleteItem : I.t -> MI.t -> (#O.ctx, Cqrs.Clock.t) Run.t
 type info = <
   id : I.t ; 
   count : int ;
+  last : Time.t ; 
   subject : String.Label.t option ; 
   contacts : CId.t list ;
   groups : Group.I.t list ;
