@@ -9,6 +9,7 @@ module Create = Endpoint.Post(struct
     ?subject  : String.Label.t option ; 
     ?contacts : CId.t list     = [] ;
     ?groups   : Group.I.t list = [] ;
+    ?public   : bool           = false ; 
     ?pm       : bool           = false ;
   >
 
@@ -19,22 +20,40 @@ module Create = Endpoint.Post(struct
 
   let path = "chat/create"
 
-  let response req () post =
-    if post # pm then 
-      if post # subject = None then 
-	match post # contacts with 
-	| [ a ; b ] when a <> b -> 
-	  let! id, at = Chat.createPM a b in
-	  return (`Accepted (Out.make ~id ~at))
-	| _ -> return (`BadRequest "Invalid parameters for private message thread")
-      else
-	return (`BadRequest "No subject allowed for private message thread")
-    else
-      if post # contacts = [] && post # groups = [] then
-	return (`BadRequest "Please provide at least one contact or group")
-      else
-	let! id, at = Chat.create ?subject:(post # subject) (post # contacts) (post # groups) in 
+  let create_pm post = 
+    if post # subject <> None then 
+      return (`BadRequest "No subject allowed for pm chatroom")
+    else if post # public then
+      return (`BadRequest "A pm chatroom may not be public")
+    else if post # groups <> [] then
+      return (`BadRequest "A pm chatroom may not involve groups")
+    else      
+      match post # contacts with 
+      | [ a ; b ] when a <> b -> 
+	let! id, at = Chat.createPM a b in
 	return (`Accepted (Out.make ~id ~at))
+      | _ -> return (`BadRequest "Invalid parameters for pm chatroom")
+
+  let create_public post = 
+    if post # groups <> [] then
+      return (`BadRequest "A public chatroom may not involve groups")
+    else if post # contacts <> [] then
+      return (`BadRequest "A private chatroom may not involve contacts")
+    else 
+      let! id, at = Chat.createPublic (post # subject) in
+      return (`Accepted (Out.make ~id ~at))
+
+  let create post = 
+    if post # contacts = [] && post # groups = [] then
+      return (`BadRequest "Please provide at least one contact or group")
+    else
+      let! id, at = Chat.create ?subject:(post # subject) (post # contacts) (post # groups) in 
+      return (`Accepted (Out.make ~id ~at))
+
+  let response req () post =
+    if post # pm then create_pm post
+    else if post # public then create_public post 
+    else create post 
 	
 end)
 
@@ -97,6 +116,7 @@ module ChatInfo = type module <
   contacts : CId.t list ;
   groups : Group.I.t list ;
   count : int ;
+  public : bool ; 
 >
 
 module Get = Endpoint.Get(struct
