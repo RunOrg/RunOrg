@@ -50,6 +50,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //         "contacts": ["0SNQe00311H","0SNQg00511H"],
 //         "groups": ["0SNQe0032JZ"],
 //         "subject": "Preparation for the next meeting",
+//         "public": false,
 //         "count": 118 }}
 
 TEST("Returns correct list of contacts.", function(next) {
