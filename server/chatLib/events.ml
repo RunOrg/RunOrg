@@ -13,4 +13,8 @@ include type module
     | `ChatDeleted of < id : I.t >
     | `ItemPosted of < id : I.t ; item : MI.t ; author : CId.t ; body : String.Rich.t >
     | `ItemDeleted of < id : I.t ; item : MI.t > 
+    | `PublicChatCreated of <
+	id : I.t ;
+        subject : String.Label.t option ;
+      >
     ]

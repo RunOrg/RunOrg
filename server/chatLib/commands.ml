@@ -14,6 +14,11 @@ let createPM c1 c2 =
   let! clock = Store.append [ Events.privateMessageCreated ~id ~who:(c1,c2) ] in
   return (id, clock) 
 
+let createPublic subject =
+  let  id = I.gen () in 
+  let! clock = Store.append [ Events.publicChatCreated ~id ~subject ] in
+  return (id, clock) 
+
 let delete id = 
   Store.append [ Events.chatDeleted ~id ]
 

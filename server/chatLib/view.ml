@@ -15,6 +15,7 @@ let exists =
   let () = Store.track existsV begin function 
     | `PrivateMessageCreated ev -> Cqrs.SetView.add exists [ev # id]
     | `ChatCreated ev -> Cqrs.SetView.add exists [ev # id]
+    | `PublicChatCreated ev -> Cqrs.SetView.add exists [ev # id]
     | `ChatDeleted ev -> Cqrs.SetView.remove exists [ev # id] 
     | `ItemPosted _ 
     | `ItemDeleted _ -> return () 
@@ -40,6 +41,7 @@ let items =
   let () = Store.track itemsV begin function 
 
     | `PrivateMessageCreated _ 
+    | `PublicChatCreated _ 
     | `ChatCreated _ -> return () 
 
     | `ChatDeleted ev -> Cqrs.FeedMapView.delete items (ev # id)
@@ -65,14 +67,15 @@ let items =
 
 module Info = type module <
   count : int ;
- ?subject : String.Label.t option ; 
+  subject : String.Label.t option ; 
   contacts : CId.t list ;
   groups : Group.I.t list ;
+  public : bool ; 
 >
 
 let info = 
 
-  let infoV, info = Cqrs.MapView.make projection "info" 0
+  let infoV, info = Cqrs.MapView.make projection "info" 1
     (module I : Fmt.FMT with type t = I.t) 
     (module Info : Fmt.FMT with type t = Info.t) in
 
@@ -84,7 +87,8 @@ let info =
 	   ~subject:(info#subject) 
 	   ~count:(stats#count) 
 	   ~contacts:(info#contacts) 
-	   ~groups:(info#groups)))
+	   ~groups:(info#groups)
+	   ~public:(info#public)))
   in
 
   let () = Store.track infoV begin function 
@@ -92,12 +96,18 @@ let info =
     | `PrivateMessageCreated ev -> 
       let ida, idb = ev # who in 
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:None ~count:0 ~contacts:[ida;idb] ~groups:[])
+        | None -> `Put (Info.make ~subject:None ~count:0 ~contacts:[ida;idb] ~groups:[] ~public:false)
 	| Some _ -> `Keep)
 
     | `ChatCreated ev ->
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~contacts:(ev#contacts) ~groups:(ev#groups))
+        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~contacts:(ev#contacts) ~groups:(ev#groups) 
+			  ~public:false)
+	| Some _ -> `Keep)
+
+    | `PublicChatCreated ev -> 
+      Cqrs.MapView.update info (ev # id) (function 
+        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~contacts:[] ~groups:[] ~public:true)
 	| Some _ -> `Keep)
 
     | `ChatDeleted ev -> 
@@ -116,10 +126,11 @@ let info =
 module Accessor = type module 
   | Group of Group.I.t 
   | Contact of CId.t
+  | Public
 
 let access = 
 
-  let accessV, access = Cqrs.ManyToManyView.make projection "access" 0 
+  let accessV, access = Cqrs.ManyToManyView.make projection "access" 1
     (module Accessor : Fmt.FMT with type t = Accessor.t)
     (module I : Fmt.FMT with type t = I.t) in
 
@@ -136,6 +147,9 @@ let access =
 	List.map (fun cid -> Accessor.Contact cid) (ev # contacts)
 	@ List.map (fun gid -> Accessor.Group gid) (ev # groups) in
       Cqrs.ManyToManyView.add access accessors [ev # id]
+
+    | `PublicChatCreated ev ->
+      Cqrs.ManyToManyView.add access [Accessor.Public] [ev # id]
 
     | `ChatDeleted ev ->
       

@@ -11,6 +11,7 @@ type info = <
    contacts : CId.t list ;
    groups : Group.I.t list ;
    subject : String.Label.t option ;
+   public : bool ;
 >
 
 let get id = 
@@ -21,6 +22,7 @@ let get id =
     method contacts = info # contacts
     method groups = info # groups
     method subject = info # subject
+    method public = info # public
   end))
 
 (* Reading multiple chatrooms 
@@ -29,7 +31,7 @@ let get id =
 let all_as ?(limit=100) ?(offset=0) cid = 
 
   let! gids = Group.of_contact cid in 
-  let  accessors = View.Accessor.( Contact cid :: List.map (fun gid -> Group gid) gids ) in
+  let  accessors = View.Accessor.( Public :: Contact cid :: List.map (fun gid -> Group gid) gids ) in
 
   let rec fetch limit offset = 
 

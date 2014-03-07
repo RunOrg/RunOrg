@@ -18,6 +18,9 @@ val create : ?subject:String.Label.t -> CId.t list -> Group.I.t list -> (#O.ctx,
 (** Create a new private chatroom between two contacts. *)
 val createPM : CId.t -> CId.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
+(** Create a new public chatroom with a label. *)
+val createPublic : String.Label.t option -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+
 (** Delete a chatroom (does not apply to private chatrooms). *)
 val delete : I.t -> (#O.ctx, Cqrs.Clock.t) Run.t
 
@@ -34,6 +37,7 @@ type info = <
   subject : String.Label.t option ; 
   contacts : CId.t list ;
   groups : Group.I.t list ;
+  public : bool ; 
 >
 
 (** Get short information about a chatroom. *)
