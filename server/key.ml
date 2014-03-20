@@ -67,13 +67,15 @@ let create ip hash key =
 (* Queries 
    ======= *)
     
-let hmac id bytes = 
+let hmac id assertion = 
   let! info = Cqrs.MapView.get value id in
   match info with None -> return None | Some info -> 
     if not (info # enabled) then return None else 
       return (Some begin match info # hash with 
 	
-      | `SHA1 -> Sha1.hmac (info # key) bytes
+      | `SHA1 -> ( Sha1.hmac (info # key) assertion,
+		   `SHA1, 
+		   lazy (Sha1.hmac "" assertion) )
 	
       end)
 

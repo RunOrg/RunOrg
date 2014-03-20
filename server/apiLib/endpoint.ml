@@ -32,42 +32,59 @@ let without_wildcards path_segs =
 (* General response types
    ====================== *)
 
+type error =   
+  [ `Forbidden of string 
+  | `BadRequest of string
+  | `Unauthorized of string
+  | `NotFound of string 
+  ]
+
 type 'a read_response = 
   [ `OK of 'a 
-  | `Forbidden of string 
-  | `Unauthorized of string
-  | `BadRequest of string
-  | `NotFound of string ]
+  | error
+  | `WithJSON of Json.t * error ]
 
 type 'a write_response = 
   [ 'a read_response | `Accepted of 'a ]
 
-let not_found path error = 
-  Httpd.json ~status:`NotFound (Json.Object [ "error", Json.String error ; "path", Json.String path ])
+let error_body more path error = 
+  let list = [ "error", Json.String error ; "path", Json.String path ] in
+  let list = match more with None -> list | Some json -> ( "details", json ) :: list in
+  Json.Object list 
 
-let forbidden path error = 
-  Httpd.json ~status:`Forbidden (Json.Object [ "error", Json.String error ; "path", Json.String path ])
+let not_found more path error = 
+  Httpd.json ~status:`NotFound (error_body more error path)
 
-let unauthorized path error = 
-  Httpd.json ~status:`Unauthorized (Json.Object [ "error", Json.String error ; "path", Json.String path ])
+let forbidden more path error = 
+  Httpd.json ~status:`Forbidden (error_body more error path)
 
-let bad_request path error = 
-  Httpd.json ~status:`BadRequest (Json.Object [ "error", Json.String error ; "path", Json.String path ])
+let unauthorized more path error = 
+  Httpd.json ~status:`Unauthorized (error_body more error path)
+
+let bad_request more path error = 
+  Httpd.json ~status:`BadRequest (error_body more error path)
 
 let method_not_allowed path allowed = 
   Httpd.json ~headers:[ "Allowed", String.concat ", " allowed] ~status:`MethodNotAllowed
-    (Json.Object [ "error", Json.String "Method not allowed" ; "path", Json.String path ])
+    (error_body None "Method not allowed" path)
 
 let bad_request ?(more=[]) path error = 
   Httpd.json ~status:`BadRequest 
     (Json.Object (("error", Json.String error) :: ("path", Json.String path) :: 
       (List.map (fun (a,b) -> a, Json.String b) more)))
 
-let respond path to_json = function
-  | `Forbidden error -> forbidden path error
-  | `NotFound error -> not_found path error
-  | `Unauthorized error -> unauthorized path error
+let respond more path to_json = function
+  | `Forbidden error -> forbidden (Some more) path error
+  | `NotFound error -> not_found (Some more) path error
+  | `Unauthorized error -> unauthorized (Some more) path error
   | `BadRequest error -> bad_request path error
+
+let respond path to_json = function
+  | `Forbidden error -> forbidden None path error
+  | `NotFound error -> not_found None path error
+  | `Unauthorized error -> unauthorized None path error
+  | `BadRequest error -> bad_request path error
+  | `WithJSON (more,what) -> respond more path to_json what 
   | `OK out -> Httpd.json (to_json out)
   | `Accepted out -> Httpd.json ~status:`Accepted (to_json out)
 
@@ -165,7 +182,7 @@ module Dictionary = struct
       | `DELETE -> delete) in
 
     match find (req # path) with 
-      | [] -> return (not_found ("/" ^ String.concat "/" (req # path)) "No such resource") 
+      | [] -> return (not_found None ("/" ^ String.concat "/" (req # path)) "No such resource") 
       | [r] -> begin match lens r with 
 	| None -> return (method_not_allowed (r.path) (allow r))
 	| Some action -> action req 
@@ -219,7 +236,7 @@ module Get = functor(A:GET_ARG) -> struct
       | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
       | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
-	match ctx with None -> return (not_found logPath (!! "Database %s does not exist" db)) | Some ctx ->
+	match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
 	  Run.with_context ctx begin
 	    let! out = A.response req args in
 	    return (respond logPath A.Out.to_json out)
@@ -253,7 +270,7 @@ module Delete = functor(A:DELETE_ARG) -> struct
       | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
       | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
-	match ctx with None -> return (not_found logPath (!! "Database %s does not exist" db)) | Some ctx ->
+	match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
 	  Run.with_context ctx begin
 	    let! out = A.response req args in
 	    return (respond logPath A.Out.to_json out)
@@ -319,7 +336,7 @@ module Post = functor(A:POST_ARG) -> struct
 	| Bad more -> return (bad_request ?more logPath "Could not parse body") 
 	| Ok post ->
 	  let! ctx = Db.ctx (Id.of_string db) in
-	  match ctx with None -> return (not_found logPath (!! "Database %s does not exist" db)) | Some ctx ->
+	  match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
 	    Run.with_context ctx begin
 	      let! out = A.response req args post in
 	      return (respond logPath A.Out.to_json out)

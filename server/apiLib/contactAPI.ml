@@ -31,6 +31,58 @@ module Auth_Persona = Endpoint.Post(struct
 
 end)
 
+module Auth_Hmac = Endpoint.Post(struct
+
+  module Arg = type module unit 
+  module Post = type module <
+    id      : CId.t ;
+    expires : Time.t ;
+    key     : Key.I.t ;
+    proof   : string ;
+  >
+
+  module Out = type module <
+    token : Token.I.t ;
+    self  : Short.t ;
+  >  
+
+  module Error = type module <
+    assertion : string ;
+    debug     : string ;
+    hash      : Key.Hash.t ;
+  >
+
+  let path = "contacts/auth/hmac"
+
+  let response req () p = 
+    match try Some (String.decode_base36 (p # proof)) with _ -> None with 
+      | None -> return (`BadRequest "Could not decode hexadecimal proof.")
+      | Some uproof -> 
+
+	let  assertion = "auth:" ^ CId.to_string (p # id) ^ ":until:" ^ Time.to_iso8601 (p # expires) in
+	let! hmac = Key.hmac (p # key) assertion in 
+
+	match hmac with 
+	| None -> 
+	  return (`NotFound (!! "Key '%s' does not exist" (Key.I.to_string (p # key))))
+
+	| Some (proof, hash, zeroproof) when proof <> uproof ->       
+	  let json = Error.to_json (Error.make ~assertion ~debug:(Lazy.force zeroproof) ~hash) in
+	  return (`WithJSON (json, `Forbidden "Invalid proof"))
+
+	| Some _ -> 
+	  let! contact_opt = Contact.get (p # id) in 
+	  match contact_opt with 
+	  | None -> 
+	    return (`NotFound (!! "Contact '%s' does not exist" (CId.to_string (p # id))))
+	  
+	  | Some self -> 
+	    let! ctx   = Run.context in
+	    let! token = Token.create (`Contact (ctx # db, p # id)) in
+	    return (`OK (Out.make ~self ~token))
+
+end)
+
 module Import = Endpoint.Post(struct
 
   module Arg = type module unit

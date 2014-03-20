@@ -1,12 +1,18 @@
 (* © 2014 RunOrg *)
 
+type error =   
+  [ `Forbidden of string 
+  | `BadRequest of string
+  | `Unauthorized of string
+  | `NotFound of string 
+  ]
+
 (** The type of an API GET response. *)
 type 'a read_response = 
   [ `OK of 'a 
-  | `Forbidden of string 
-  | `BadRequest of string
-  | `Unauthorized of string
-  | `NotFound of string ]
+  | error 
+  | `WithJSON of Json.t * error 
+  ]
 
 (** The type of an API POST, PUT or DELETE response. *)
 type 'a write_response = 
