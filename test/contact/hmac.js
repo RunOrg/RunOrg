@@ -59,7 +59,43 @@
 //         "name" : "Victor Nicollet",
 //         "gender" : "M", 
 //         "pic" : "https://www.gravatar.com/avatar/648e25e4372728b2d3e0c0b2b6e26f4e" } }
-//
+
+TEST("Correctly authenticates user.", function(next) {
+
+    var example = { "email" : "vnicollet@runorg.com",
+		    "fullname" : "Victor Nicollet",
+		    "gender" : "M" };
+
+    var db = Query.mkdb(),
+        token = Query.auth(db),
+        id = Test.query("POST",["db/",db,"/contacts/import"],[example],token).result('created',0);
+
+    var key  = "74e6f7298a9c2d168935f58c001bad88",
+        kid  = Test.query("POST",["db/",db,"/keys/create"],{"hash":"SHA-1","key":key,"encoding":"hex"},token)
+               .result('id');
+
+    id(function(id){
+
+	var date = "2020-12-31T23:59:59Z",
+	    assertion = "login:" + id + ":until:" + date;
+
+	var sha1 = new jsSHA(assertion,"TEXT"),
+            hmac = sha1.getHMAC(key,"HEX","SHA-1","HEX");
+
+	var r = Test.query("POST",["db/",db,"/contacts/auth/hmac"],
+			   {"id":id,"expires":date,"proof":hmac,"key":kid}).result("self");
+
+	var expected = { "id": id, 
+			 "name": "Victor Nicollet",
+			 "gender": "M", 
+			 "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060" };
+	
+	Assert.areEqual(expected, r).then(next);
+
+    });
+
+});
+
 // # Errors 
 // 
 // ## Returns `404 Not Found`
