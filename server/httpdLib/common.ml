@@ -1,4 +1,4 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 type config = { 
   port: int ; 
@@ -11,9 +11,7 @@ type config = {
 }
 
 let ip ssl_socket = 
-  match Unix.getpeername (Ssl.file_descr_of_socket ssl_socket) with
-  | Unix.ADDR_UNIX str -> "local:" ^ str
-  | Unix.ADDR_INET (addr,_) -> Unix.string_of_inet_addr addr
+  IpAddress.of_sockaddr (Unix.getpeername (Ssl.file_descr_of_socket ssl_socket))
 
 let verb = function
   | `GET -> "GET"

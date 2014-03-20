@@ -20,7 +20,7 @@ let log_enabled = false
 type t = <
 
   host : string ; 
-  client_ip : string ; 
+  client_ip : IpAddress.t ; 
   path : string list ; 
 
   verb : [ `GET | `PUT | `POST | `DELETE ] ;

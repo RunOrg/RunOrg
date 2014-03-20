@@ -10,7 +10,7 @@ type request = <
   host : string ; 
 
   (** The IP of the client who sent this request. *)
-  client_ip : string ; 
+  client_ip : IpAddress.t ; 
 
   (** The path requested. [/foo/bar//quux/] becomes [["foo";"bar";"quux"]] *)
   path : string list ; 
