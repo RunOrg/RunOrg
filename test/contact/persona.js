@@ -1,4 +1,4 @@
-// GET /db/{db}/contacts/auth/persona
+// POST /db/{db}/contacts/auth/persona
 // Contacts / Authenticate with Mozilla Persona
 //
 // Alpha @ 0.1.30
