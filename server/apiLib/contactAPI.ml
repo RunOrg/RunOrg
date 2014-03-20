@@ -55,7 +55,7 @@ module Auth_Hmac = Endpoint.Post(struct
   let path = "contacts/auth/hmac"
 
   let response req () p = 
-    match try Some (String.decode_base36 (p # proof)) with _ -> None with 
+    match try Some (String.hex_decode (p # proof)) with _ -> None with 
       | None -> return (`BadRequest "Could not decode hexadecimal proof.")
       | Some uproof -> 
 
@@ -72,7 +72,9 @@ module Auth_Hmac = Endpoint.Post(struct
 	    return (`NotFound (!! "Key '%s' does not exist" (Key.I.to_string (p # key))))
 	      
 	  | Some (proof, hash, zeroproof) when proof <> uproof ->       
-	    let json = Error.to_json (Error.make ~assertion ~debug:(Lazy.force zeroproof) ~hash) in
+	    let json = Error.to_json (Error.make ~assertion 
+					~debug:(String.hex_encode (Lazy.force zeroproof)) ~hash) in
+
 	    return (`WithJSON (json, `Forbidden "Invalid proof"))
 	      
 	  | Some _ -> 

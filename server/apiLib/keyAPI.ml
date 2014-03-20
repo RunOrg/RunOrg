@@ -24,7 +24,7 @@ module Create = Endpoint.Post(struct
   let response req () post = 
 
     let key = match post # encoding with 
-      | `hex -> String.decode_base36 (post # key) 
+      | `hex -> String.hex_decode (post # key) 
     in
 
     let! id, at = Key.create (req # client_ip) (post # hash) key in

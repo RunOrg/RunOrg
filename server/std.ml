@@ -30,6 +30,9 @@ module Char = struct
   let base62_encode =
     let chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" in
     fun i -> chars.[i]
+
+  (** Encodes an integer in range [0..35] as a character in base 36. *)
+  let base36_encode = base62_encode
     
 end
 
@@ -116,10 +119,16 @@ module String = struct
     Buffer.contents buf	 	
 
   (** Decodes a hexadecimal string as bytes *)
-  let decode_base36 hex = 
+  let hex_decode hex = 
     let len = String.length hex in
     init (len/2) 
       (fun i -> Char.(chr (base36_decode hex.[2*i] * 16 + base36_decode hex.[2*i+1])))
+
+  let hex_encode bytes = 
+    let len = String.length bytes in 
+    init (len*2) 
+      (fun i -> if i mod 2 = 0 then Char.(base36_encode (code bytes.[i/2] / 16))
+	else Char.(base36_encode (code bytes.[i/2] mod 16)))
 
   module Label = StdLib.Label
   module Rich = StdLib.Rich
