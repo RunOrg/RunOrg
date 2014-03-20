@@ -115,6 +115,12 @@ module String = struct
     loop 0 0 ;
     Buffer.contents buf	 	
 
+  (** Decodes a hexadecimal string as bytes *)
+  let decode_base36 hex = 
+    let len = String.length hex in
+    init (len/2) 
+      (fun i -> Char.(chr (base36_decode hex.[2*i] * 16 + base36_decode hex.[2*i+1])))
+
   module Label = StdLib.Label
   module Rich = StdLib.Rich
   module Word = StdLib.Word
