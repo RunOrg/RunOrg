@@ -77,11 +77,11 @@ TEST("Correctly authenticates user.", function(next) {
     id(function(id){
 
 	var date = "2020-12-31T23:59:59Z",
-	    assertion = "login:" + id + ":until:" + date;
-
+            assertion = "login:" + id + ":until:" + date;
+	    
 	var sha1 = new jsSHA(assertion,"TEXT"),
             hmac = sha1.getHMAC(key,"HEX","SHA-1","HEX");
-
+	
 	var r = Test.query("POST",["db/",db,"/contacts/auth/hmac"],
 			   {"id":id,"expires":date,"proof":hmac,"key":kid}).result("self");
 
@@ -102,7 +102,8 @@ TEST("Correctly authenticates user.", function(next) {
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(next) {
-    Test.query("POST","/db/00000000001/contacts/auth/hmac",{assertion:'x'}).error(404).then(next);
+    Test.query("POST","/db/00000000001/contacts/auth/hmac",
+	       {"id":"","expires":"1970-01-01","key":"","proof":""}).error(404).then(next);
 });
 
 // - ... if key `{key}` does not exist in database `{db}`
