@@ -42,13 +42,14 @@ Query.prototype = {
 	query.token(function(token) {
 	    query.usedToken = token;
 	    query.url(function(url) {
-		if (! /^\//.exec(url)) url = "/" + url;
-		if (Query.clock) url = url + (/\?/.exec(url) ? '&' : '?') + 'at=' + Query.clock; 
-		query.usedUrl = url;
 		query.data(function(data) {		    
 		    data = JSON.stringify(data);
 		    query.usedData = data;		    
 
+		    if (! /^\//.exec(url)) url = "/" + url;
+		    if (Query.clock) url = url + (/\?/.exec(url) ? '&' : '?') + 'at=' + Query.clock; 
+		    query.usedUrl = url;
+		    
 		    // Send the request and save it.
 		    Test.ping();
 		    query.request = $.ajax({
