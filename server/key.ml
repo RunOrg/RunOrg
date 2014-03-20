@@ -27,11 +27,17 @@ end)
 
 let projection = Cqrs.Projection.make "key" (fun () -> new O.ctx)
 
-module Value = type module < hash : Hash.t ; key : string > 
+module Value = type module < 
+  hash : Hash.t ; 
+  key : string ; 
+  ip : IpAddress.t ;
+  time : Time.t ;
+  enabled : bool 
+>
 
 let value = 
   
-  let valueV, value = Cqrs.MapView.make projection "value" 0
+  let valueV, value = Cqrs.MapView.make projection "value" 1
     (module I : Fmt.FMT with type t = I.t)
     (module Value : Fmt.FMT with type t = Value.t) in
 
@@ -39,9 +45,11 @@ let value =
 
     | `Created ev -> 
 
+      let! ctx = Run.context in      
       Cqrs.MapView.update value (ev # id)
 	(function 
-	| None   -> `Put (ev :> Value.t)
+	| None   -> `Put (Value.make ~hash:(ev # hash) ~key:(ev # key) ~ip:(ev # ip)
+			    ~time:(ctx # time) ~enabled:true)
 	| Some _ -> `Keep)
 
   end in
@@ -62,9 +70,30 @@ let create ip hash key =
 let hmac id bytes = 
   let! info = Cqrs.MapView.get value id in
   match info with None -> return None | Some info -> 
-    return (Some begin match info # hash with 
+    if not (info # enabled) then return None else 
+      return (Some begin match info # hash with 
+	
+      | `SHA1 -> Sha1.hmac (info # key) bytes
+	
+      end)
 
-    | `SHA1 -> Sha1.hmac (info # key) bytes
+type info = <
+  id : I.t ;
+  hash : Hash.t ;
+  ip : IpAddress.t ;
+  time : Time.t ;
+  enabled : bool ;
+>
 
-    end)
+let format_info id value = object
+  method id      = id
+  method hash    = value # hash 
+  method ip      = value # ip
+  method time    = value # time
+  method enabled = value # enabled 
+end
 
+let list ~limit ~offset = 
+  let! list = Cqrs.MapView.all ~limit ~offset value in
+  let! count = Cqrs.MapView.count value in 
+  return (List.map (fun (id, value) -> format_info id value) list, count) 
