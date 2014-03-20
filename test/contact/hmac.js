@@ -22,12 +22,12 @@
 //
 // The server generates the **assertion**, which is constructed as follows: 
 // 
-//     login:<id>:until:<expires>
+//     auth:<id>:until:<expires>
 // 
 // For instance, if authenticating as user `0Et9j0026rO` until midnight on 
 // the first of may 2014, the assertion would be: 
 // 
-//     login:0Et9j0026rO:until:2014-05-01T23:59:59Z
+//     auth:0Et9j0026rO:until:2014-05-01T23:59:59Z
 //
 // Once the assertion is generated, the HMAC is computed using the stored key,
 // and compared with the hex proof. On success, a token and the user's profile
@@ -77,7 +77,7 @@ TEST("Correctly authenticates user.", function(next) {
     id(function(id){
 
 	var date = "2020-12-31T23:59:59Z",
-            assertion = "login:" + id + ":until:" + date;
+            assertion = "auth:" + id + ":until:" + date;
 	    
 	var sha1 = new jsSHA(assertion,"TEXT"),
             hmac = sha1.getHMAC(key,"HEX","SHA-1","HEX");
@@ -126,7 +126,7 @@ TEST("Returns 404 when database does not exist.", function(next) {
 //     { "error" : "Invalid proof",
 //       "path"  : "/db/{db}/contacts/auth/hmac",
 //       "detail": {
-//         "assertion": "login:0Et9j0026rO:until:2014-05-01T23:59:59Z",
+//         "assertion": "auth:0Et9j0026rO:until:2014-05-01T23:59:59Z",
 //         "debug": "d8ca358c10f5913f3e8f1b32a496116d6a6bfafb",
 //         "hash": "SHA-1" } }
 //
