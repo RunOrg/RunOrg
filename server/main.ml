@@ -15,6 +15,7 @@ module OpenHack = struct
   open Test
   open CustomId
   open Key
+  open Form
 end
 
 let () = Printexc.record_backtrace true
