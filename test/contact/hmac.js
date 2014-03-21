@@ -45,6 +45,7 @@
 // ### Example request
 //     POST /db/0Et4X0016om/contacts/auth/hmac
 //     Content-Type: application/json
+//
 //     { "id": "0Et9j0026rO",
 //       "expires": "2014-05-01T23:59:59Z",
 //       "key": "0wt3s0566xO",
@@ -53,6 +54,7 @@
 // ### Example response
 //     200 OK
 //     Content-Type: application/json
+//
 //     { "token": "7Rq03AsR92W",
 //       "self": { 
 //         "id" : "0Et9j0026rO",
