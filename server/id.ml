@@ -12,6 +12,25 @@ let of_string = identity
 let to_string = identity	
 let str = identity
 
+(* Validation 
+   ========== *)
+
+let char_is_alphanumeric = function 
+  | 'a' .. 'z'
+  | 'A' .. 'Z' 
+  | '0' .. '9' -> true
+  | _ -> false
+
+let is_valid str = 
+  let n = String.length str in 
+  if n = 0 || n > 11 then false else 
+    let ok = ref true and i = ref 0 in
+    while !ok && !i < n do ok := char_is_alphanumeric str.[!i] ; incr i done ;
+    !ok
+
+let of_string_checked str = 
+  if is_valid str then Some str else None
+
 let sel id = "#"^id
 
 let gen = 
@@ -51,6 +70,8 @@ module Phantom = struct
   let to_string = identity
   let of_string = identity
 
+  let of_string_checked = of_string_checked
+
   let gen () = gen ()
   let decay id = id
 
@@ -80,6 +101,7 @@ module type PHANTOM = sig
 
   val to_string : 'any id -> string
   val of_string : string -> t
+  val of_string_checked : string -> t option 
 
   val decay : 'any id -> t
 

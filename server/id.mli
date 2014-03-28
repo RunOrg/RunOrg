@@ -83,9 +83,13 @@ val of_id : t -> t
     This is purely a type-casting operation, so that the following is true:
     {[ id == Id.of_string (Id.to_string id) ]}
 
-    The input string {b must} respect regular expression [[a-zA-Z9-9]{11}].
+    The input string {b must} respect regular expression [[a-zA-Z0-9]{1,11}].
 *)
 val of_string : string -> t
+
+(** Convert a string to an identifier, while performing checks. As [of_string], but
+    returns [None] if regular expression [[a-zA-Z0-9]{1,11}] is not respected. *)
+val of_string_checked : string -> t option 
 
 (** Convert an identifier to a string. 
 
@@ -156,6 +160,7 @@ module type PHANTOM = sig
 
   val to_string : 'any id -> string
   val of_string : string -> t
+  val of_string_checked : string -> t option 
 
   (** Any identifier can be converted to the bottom type identifier. *)
   val decay : 'any id -> t
