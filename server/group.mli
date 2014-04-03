@@ -7,6 +7,7 @@ open Std
 module I : sig
   include Id.PHANTOM
   val is_admin : 'a id -> bool 
+  val admin : t
 end
 
 (** Create a new group. 
