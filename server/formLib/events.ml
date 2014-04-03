@@ -7,9 +7,9 @@ include type module
 	id : I.t ; 
         label : String.Label.t option ; 
 	owner : Owner.t ; 
-	fields : Field.t list 
+	fields : Field.t list ;
+	custom : Json.t ;
       >
-    | `CustomUpdated of < id : I.t ; custom : Json.t >
     | `Filled of <
         id : I.t ;
 	fid : FilledI.t ;
