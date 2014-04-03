@@ -128,13 +128,19 @@ end) -> struct
       if Array.length result = 0 then start else 
 	1 + int_of_string result.(Array.length result - 1).(0) in
 
-    let list = List.map (fun line -> 
-      let n = int_of_string line.(0) in
-      let db = Id.of_string line.(1) in
-      let time, event = Pack.of_string Data.unpack (Postgresql.unescape_bytea line.(2)) in 
-      new wrapper id db n time event) (Array.to_list result) in
+      let list = List.map begin fun line -> 
+	let n = int_of_string line.(0) in
+	let db = Id.of_string line.(1) in
+	try 
+	  let time, event = Pack.of_string Data.unpack (Postgresql.unescape_bytea line.(2)) in 
+	  new wrapper id db n time event	    
+	with exn -> 
+	  Log.exn exn (!! "When unpacking event %s:%d" Event.name n) ;
+	  raise exn 
+      end (Array.to_list result) in
+      
+      Run.return (list, next) 
 
-    Run.return (list, next) 
 
   let start_revision clock = 
     let! id = id () in 
@@ -168,9 +174,17 @@ end) -> struct
 	 defined in) *)
       let actions = List.rev actions in 
       Seq.map begin fun wrap -> 
+
 	let ev = wrap # event and clock = wrap # clock and db = wrap # db and time = wrap # time in 
+
+	let () = 
+	  if trace_events then 
+	    Log.trace "Stream event %s:%s@%s" Event.name (Time.to_iso8601 time) (Id.to_string db)
+	in
+
 	(Run.edit_context (fun ctx -> (ctx # with_time time) # with_db db)
 	   (List.M.iter_seq (fun action -> action ev) actions)), clock
+
       end (follow clock)
     in
 
