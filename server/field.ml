@@ -78,7 +78,7 @@ let check_multipleChoice l = function
   | _ -> return false
 
 let check_singleChoice l = function
-  | Json.Int i -> let n = List.Length l in
+  | Json.Int i -> let n = List.length l in
 		  return (i >= 0 && i < n)
   | Json.Null -> return true
   | _ -> return false
