@@ -64,7 +64,7 @@
 // 
 // # Date/time fields
 //
-//    "kind" : "time",
+//     "kind" : "time",
 //
 // A date or date-time field. Usually rendered as a `<input type="date">` or 
 // `<input type="datetime">` in HTML5.    
@@ -78,8 +78,8 @@
 //
 // # Single choice field
 //
-//    "kind" : "single",
-//    "choices" : [...],
+//     "kind" : "single",
+//     "choices" : [...],
 // 
 // A single-choice question. Uses the list of `choices` to determine what the 
 // possible choices are. Usually rendered as a list of `<input type="radio"/>` 
@@ -94,8 +94,8 @@
 //
 // # Multiple choice field
 //
-//    "kind" : "multiple",
-//    "choices" : [...], 
+//     "kind" : "multiple",
+//     "choices" : [...], 
 // 
 // A multiple choice question. Uses the list of `choices` to determine what the 
 // possible choices are. Usually rendered as a list of `<input type="checkbox"/>` 
@@ -113,8 +113,8 @@
 // When marked as `required`, the field will accept neither `null` nor `[]`. 
 //
 // # Arbitrary JSON fields
-//
-//    "kind" : "json",
+// 
+//     "kind" : "json",
 // 
 // A custom field, for your convenience. Stores arbitrary JSON data and returns it
 // as-is. No server-side processing will occur (including statistics). 
@@ -131,7 +131,7 @@
 //
 // # Contact fields
 // 
-//    "kind" : "contact",
+//     "kind" : "contact",
 //
 // A field that references a contact in the current database, through its ID. 
 // Usually displayed as an auto-completion component that uses the 
