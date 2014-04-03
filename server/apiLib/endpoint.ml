@@ -346,6 +346,65 @@ module Post = functor(A:POST_ARG) -> struct
 
 end
 
+(* PUT JSON endpoints
+   ================== *)
+
+module type PUT_ARG = sig
+  module Arg : Fmt.FMT
+  module Put : Fmt.FMT
+  module Out : Fmt.FMT
+  val path : string
+  val response : Httpd.request -> Arg.t -> Put.t -> (O.ctx, Out.t write_response) Run.t
+end
+  
+module SPut = functor(A:PUT_ARG) -> struct
+
+  let path = split A.path
+  let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+
+  let logPath = "/" ^ A.path
+
+  let action req =    
+    match argparse req with 
+    | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+    | Ok args ->
+      match parse_body A.Put.of_json req with 
+      | Bad more -> return (bad_request ?more logPath "Could not parse body") 
+      | Ok post -> let! out = A.response req args post in 
+		   return (respond logPath A.Out.to_json out)
+
+  let () = Dictionary.add (snd Dictionary.put action) path
+
+end
+
+module Put = functor(A:PUT_ARG) -> struct
+
+  let path = split ("db/{-}/" ^ A.path) 
+  let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+
+  let logPath = "/db/{db}/" ^ A.path
+    
+  let action req = 
+    let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
+    match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
+      match argparse req with 
+      | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+      | Ok args -> 
+	match parse_body A.Put.of_json req with 
+	| Bad more -> return (bad_request ?more logPath "Could not parse body") 
+	| Ok post ->
+	  let! ctx = Db.ctx (Id.of_string db) in
+	  match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
+	    Run.with_context ctx begin
+	      let! out = A.response req args post in
+	      return (respond logPath A.Out.to_json out)
+	    end
+
+  let () = Dictionary.add (snd Dictionary.put action) path
+
+end
+
+
 (* Static content 
    ============== *)
 

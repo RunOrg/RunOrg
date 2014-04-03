@@ -100,6 +100,37 @@ module SPost : functor(A:POST_ARG) -> sig end
 (** Create a post endpoint at the database level (/db/aaaaaaaaaaa/ prefix). *)
 module Post : functor(A:POST_ARG) -> sig end
 
+(** The type of a configuration module for a PUT endpoint
+    (at the server level) *)
+module type PUT_ARG = sig
+
+  (** A format that is able to parse an array of arguments 
+      extracted from the url. *)
+  module Arg : Fmt.FMT
+
+  (** A format that is able to parse the JSON put body. *)
+  module Put : Fmt.FMT
+
+  (** A format that is able to generate the JSON to be sent back to the
+      client. *)
+  module Out : Fmt.FMT
+
+  (** The string path. Any '{foo}' in the path will match an arbitrary 
+      segment and will be provided to [Arg] for parsing. *)
+  val path : string
+
+  (** The response function. Starts with a request and argument and
+      returns the corresponding result. *)
+  val response : Httpd.request -> Arg.t -> Put.t -> (O.ctx, Out.t write_response) Run.t
+
+end
+
+(** Create a put endpoint at the server level (no URL path prefix). *)
+module SPut : functor(A:PUT_ARG) -> sig end
+
+(** Create a put endpoint at the database level (/db/aaaaaaaaaaa/ prefix). *)
+module Put : functor(A:PUT_ARG) -> sig end
+
 (** Create a static endpoint. [static url mimetype path] responds to GET requests with 
     data loaded from the specified path, with the provided mime-type. *)
 val static : string -> string -> string -> unit
