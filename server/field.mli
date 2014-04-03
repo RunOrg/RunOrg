@@ -10,6 +10,9 @@ module I : sig
   val of_custom : CustomId.t -> t
 end
 
+(** The maximum number of choices in a field. *)
+val max_choices : int
+
 (** A possible individual choice in a single/multiple choice field. 
     A string is automatically treated as a label. Any other kind of value
     is processed as custom JSON. *)
