@@ -220,7 +220,7 @@ module Unpack = struct
       if c >= 0xE0 || c <= 0x7F || c >= 0xCC && c <= 0xD3 then
 	apply "integer" int (_int i)
       else if c = 0xC0 then
-	(match null with None -> fail "Unexpected null" | Some v -> v)
+	(match null with None -> fail "Unexpected null" | Some v -> fwd i 1 ; v)
       else if c = 0xC2 || c = 0xC3 then
 	apply "boolean" bool (c == 0xC3)
       else if c >= 0x80 && c <= 0x8F || c = 0xDE || c = 0xDF then
