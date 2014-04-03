@@ -125,7 +125,7 @@ include Fmt.Make(struct
     label    : String.Label.t ;
    ?custom   : Json.t = Json.Null ;
    ?choices  : Choice.t list = [] ;
-    required : bool ;
+   ?required : bool = false ;
   >
     
   let t_of_json json = 
