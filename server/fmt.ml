@@ -87,3 +87,25 @@ end) -> struct
   let pack t p = Json.pack (json_of_t t) p
   let unpack u = t_of_json (Json.unpack u)
 end
+
+(* Applying a function between OCaml type and serialized type. 
+   =========================================================== *)
+
+module Map = functor (Type : sig
+  module Inner : FMT
+  type t 
+  val from_inner : Inner.t -> t
+  val to_inner : t -> Inner.t
+end) -> struct
+
+  include Make(struct
+
+    type t = Type.t
+    let t_of_json json = Type.from_inner (Type.Inner.of_json json)
+    let json_of_t t = Type.Inner.to_json (Type.to_inner t)
+    let pack t p = Type.Inner.pack (Type.to_inner t) p
+    let unpack u = Type.from_inner (Type.Inner.unpack u)
+      
+  end)
+
+end

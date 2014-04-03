@@ -65,3 +65,10 @@ end) -> sig
   val of_json_string_safe : string -> t option 
   val unpack : t Pack.unpacker
 end
+
+module Map : functor (Type : sig
+  module Inner : FMT
+  type t 
+  val from_inner : Inner.t -> t
+  val to_inner : t -> Inner.t
+end) -> FMT with type t = Type.t
