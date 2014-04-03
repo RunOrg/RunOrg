@@ -39,3 +39,8 @@ include Fmt.FMT with type t = <
 
 (** Handy constructor. *)
 val make : required:bool -> custom:Json.t -> label:String.Label.t -> kind:Kind.t -> id:I.t -> t
+
+(** Returns true if the data is valid for the provided kind. 
+    [Null] is always valid for any data (absence of data is handled by the [required] 
+    property, rather than by individual kinds). *)
+val check : Kind.t -> Json.t -> (#O.ctx, bool) Run.t

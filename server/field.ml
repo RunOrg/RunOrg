@@ -57,3 +57,43 @@ include type module <
   required : bool ;
 >
 
+(* Data validation 
+   =============== *)
+
+let check_text = function
+  | Json.String _ 
+  | Json.Null -> return true
+  | _ -> return false
+
+let check_richText json = 
+  return (json = Json.Null || None <> Std.String.Rich.of_json_safe json)
+
+let check_dateTime json = 
+  return (json = Json.Null || None <> Time.of_json_safe json)
+
+let check_multipleChoice l = function 
+  | Json.Array a -> let n = List.length l in 
+		    return (List.for_all (function Json.Int i -> i >= 0 && i < n | _ -> false) a)
+  | Json.Null -> return true
+  | _ -> return false
+
+let check_singleChoice l = function
+  | Json.Int i -> let n = List.Length l in
+		  return (i >= 0 && i < n)
+  | Json.Null -> return true
+  | _ -> return false
+
+let check_contact json = 
+  if json = Json.Null then return true else 
+    match CId.of_json_safe json with None -> return false | Some id ->
+      let! contact = Contact.get cid in 
+      return (contact <> None) 
+
+let check = function 
+  | `Text     -> check_text
+  | `RichText -> check_richText    
+  | `DateTime -> check_dateTime
+  | `SingleChoice   l -> check_singleChoice l 
+  | `MultipleChoice l -> check_multipleChoice l 
+  | `Json     -> (fun _ -> return true)
+  | `Contact  -> check_contact
