@@ -1,6 +1,7 @@
 ChatAPI
 ContactAPI
 Endpoint
+FormAPI
 GroupAPI
 ServerAdminAPI
 TestAPI
