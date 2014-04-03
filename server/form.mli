@@ -21,6 +21,12 @@ module Owner : Fmt.FMT with type t =
 module FilledI : Fmt.FMT with type t = 
   [ `Contact of CId.t ]
 
+(** The audience of a form. *)
+module Audience : Fmt.FMT with type t = <
+  admin : Audience.t ;
+  fill  : Audience.t ;
+>
+
 (** Current information about a form. *)
 type info = <
   id     : I.t ;
