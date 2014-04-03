@@ -138,6 +138,17 @@ end
 
 module Map = BatMap
 
+(* Extend the set module from batteries with a few helper functions. *)
+module Set = struct
+
+  include BatSet
+
+  (** [to_list set] returns the list of all elements in the set. *)
+  let to_list s = 
+    fold (fun k l -> k :: l) s []
+
+end
+
 (* Extend the option module from batteries with a few helper functions. *)
 module Option = struct
     
