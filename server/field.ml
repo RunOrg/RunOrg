@@ -85,7 +85,7 @@ let check_singleChoice l = function
 
 let check_contact json = 
   if json = Json.Null then return true else 
-    match CId.of_json_safe json with None -> return false | Some id ->
+    match CId.of_json_safe json with None -> return false | Some cid ->
       let! contact = Contact.get cid in 
       return (contact <> None) 
 

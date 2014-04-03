@@ -15,7 +15,7 @@ include Fmt.Make(struct
     | Json.Object l -> 
       List.fold_left (fun map (fid,json) ->
 	match Field.I.of_string_checked fid with 
-	| None -> raise Json.Error ([], !! "Not a field identifier: %S" fid)
+	| None -> raise (Json.Error ([], !! "Not a field identifier: %S" fid))
 	| Some fid -> Map.add fid json map) Map.empty l
     | json -> Json.parse_error "Expected field data dictionary." json
 
