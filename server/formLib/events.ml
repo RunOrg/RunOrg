@@ -11,6 +11,14 @@ include type module
 	custom : Json.t ;
 	audience : FormAudience.t ; 
       >
+    | `Updated of <
+	id : I.t ;
+        label : String.Label.t option option ;    
+	owner : Owner.t option ;
+	fields : Field.t list option ;
+	custom : Json.t option ;
+	audience : FormAudience.t option ;
+      >
     | `Filled of <
         id : I.t ;
 	fid : FilledI.t ;

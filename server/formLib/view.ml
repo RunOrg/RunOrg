@@ -33,6 +33,21 @@ let info =
 			    ~audience:(ev # audience) ~empty:true)
 	| Some _ -> `Keep) 
 
+    | `Updated ev -> 
+
+      let if_empty = ev # fields <> None in
+      Cqrs.MapView.update info (ev # id) 
+	(function 
+	| None -> `Keep
+	| Some f when if_empty && not (f # empty) -> `Keep
+	| Some f -> `Put (Info.make
+			    ~owner:(Option.default (f # owner) (ev # owner))
+			    ~label:(Option.default (f # label) (ev # label))
+			    ~fields:(Option.default (f # fields) (ev # fields))
+			    ~custom:(Option.default (f # custom) (ev # custom))
+			    ~audience:(Option.default (f # audience) (ev # audience))
+			    ~empty:(f # empty)))
+
     | `Filled ev -> 
 
       Cqrs.MapView.update info (ev # id) 

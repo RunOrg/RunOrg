@@ -50,6 +50,18 @@ val create :
   Json.t -> 
   Field.t list -> (#O.ctx, I.t option * Cqrs.Clock.t) Run.t
 
+(** Update an existing form. If the form was filled and the [fields] are updated, 
+    will fail atomically (either immediately, or a short while later). *)
+val update : 
+  ?label:String.Label.t option ->
+  ?owner:Owner.t ->
+  ?audience:Audience.t ->
+  ?custom:Json.t ->
+  ?fields:Field.t list ->
+  I.t -> (# O.ctx, [ `OK of Cqrs.Clock.t
+		   | `NoSuchForm of I.t 
+		   | `FormFilled of I.t ] ) Run.t
+
 (** Get short information about a form. *)
 val get : I.t -> (#O.ctx, info option) Run.t
 

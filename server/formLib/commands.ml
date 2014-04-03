@@ -20,6 +20,25 @@ let create ?label ?id owner audience custom fields =
     let! clock = Store.append [ Events.created ~id ~label ~owner ~audience ~fields ~custom ] in 
     return (Some id, clock) 
 
+(* Updating a form 
+   =============== *)
+
+let update ?label ?owner ?audience ?custom ?fields id = 
+  
+  let! form = Cqrs.MapView.get View.info id in 
+
+  match form with None -> return (`NoSuchForm id) | Some form -> 
+
+    if label = None && owner = None && audience = None && custom = None && fields = None then
+      return (`OK Cqrs.Clock.empty)
+    else 
+      
+      if fields <> None && not (form # empty) then return (`FormFilled id) else
+
+	let! clock = Store.append [ Events.updated ~id ~label ~owner ~audience ~fields ~custom ] in
+	return (`OK clock) 
+
+
 (* Filling the form
    ================ *)
 
