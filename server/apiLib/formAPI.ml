@@ -28,7 +28,7 @@ module Create = Endpoint.Post(struct
     match Option.bind (post # id) CustomId.validate, post # id with 
     | None, Some id -> return (`BadRequest (!! "%S is not a valid identifier" id))
     | id, _ -> let! id, at = Form.create ?id ?label:(post # label) 
-		 (post # owner) (post # custom) (post # fields) in
+		 (post # owner) (post # audience) (post # custom) (post # fields) in
 	       match id with 
 	       | None -> return (`BadRequest "Identifier is already taken")
 	       | Some id -> return (`Accepted (Out.make ~id ~at))

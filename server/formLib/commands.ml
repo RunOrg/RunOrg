@@ -5,7 +5,7 @@ open Std
 (* Creating a form 
    =============== *)
 
-let create ?label ?id owner custom fields =   
+let create ?label ?id owner audience custom fields =   
 
   (* If a custom id is used, make sure it is not already in use. *)
   let! id = match id with 
@@ -17,7 +17,7 @@ let create ?label ?id owner custom fields =
   in
 
   match id with None -> return (None, Cqrs.Clock.empty) | Some id -> 
-    let! clock = Store.append [ Events.created ~id ~label ~owner ~fields ~custom ] in 
+    let! clock = Store.append [ Events.created ~id ~label ~owner ~audience ~fields ~custom ] in 
     return (Some id, clock) 
 
 (* Filling the form

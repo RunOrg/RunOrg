@@ -9,6 +9,7 @@ include type module
 	owner : Owner.t ; 
 	fields : Field.t list ;
 	custom : Json.t ;
+	audience : FormAudience.t ; 
       >
     | `Filled of <
         id : I.t ;

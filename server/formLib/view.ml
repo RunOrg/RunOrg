@@ -12,6 +12,7 @@ module Info = type module <
   fields : Field.t list ;
   custom : Json.t ;
   empty : bool ; 
+  audience : FormAudience.t ; 
 >
 
 let info = 
@@ -29,7 +30,7 @@ let info =
 	| None   -> `Put (Info.make 
 			    ~owner:(ev # owner) ~label:(ev # label) 
 			    ~fields:(ev # fields) ~custom:(ev # custom)
-			    ~empty:true)
+			    ~audience:(ev # audience) ~empty:true)
 	| Some _ -> `Keep) 
 
     | `Filled ev -> 
@@ -39,7 +40,7 @@ let info =
 	| Some f when f # empty -> `Put (Info.make 
 					   ~owner:(f # owner) ~label:(f # label) 
 					   ~fields:(f # fields) ~custom:(f # custom)
-					   ~empty:false) 
+					   ~audience:(f # audience) ~empty:false) 
 	| _ -> `Keep) 
 
   end in
