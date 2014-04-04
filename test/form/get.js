@@ -89,9 +89,18 @@ TEST("Returns 404 when database does not exist.", function(next) {
 
 // - ... if form `{id}` does not exist in database `{db}`
 
-TEST("Returns 404 when group does not exist.", function(next) {
+TEST("Returns 404 when form does not exist.", function(next) {
     Assert.fail();
 });
+
+// - ... if contact `{as}` does not have at least **fill** 
+//   access to view form `{id}`, to ensure [absence 
+//   equivalence](/docs/#/concept/absence-equivalence.md). 
+
+TEST("Returns 404 when form not viewable.", function(next) {
+    Assert.fail();
+});
+
 
 // ## Returns `401 Unauthorized` 
 // - ... if the provided token does not grant access as the named 
@@ -101,13 +110,6 @@ TEST("Returns 401 when token is not valid.", function(next) {
     Assert.fail();
 });
 
-// ## Returns `403 Forbidden` 
-// - ... if the specified contact does not have at least **fill** 
-//   access to the form.
-
-TEST("Returns 401 when token is not valid.", function(next) {
-    Assert.fail();
-});
 
  // # Access restrictions
 //

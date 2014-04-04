@@ -1,4 +1,4 @@
-// PUT /db/{db}/forms/{id}
+// PUT /db/{db}/forms/{id}?as={as}
 // Forms / Update a form
 //
 // Alpha @ 0.1.36
@@ -77,7 +77,14 @@ TEST("Returns 404 when database does not exist.", function(next) {
 
 // - ... if form `{id}` does not exist in database `{db}` 
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TEST("Returns 404 when form does not exist.", function(next) {
+    Assert.fail();
+});
+
+// - ... if contact `{as}` cannot view form `{id}`, to ensure [absence 
+//   equivalence](/docs/#/concept/absence-equivalence.md). 
+
+TEST("Returns 404 when form cannot be viewed.", function(next) {
     Assert.fail();
 });
 
@@ -89,8 +96,16 @@ TEST("Returns 409 when filled.", function(next) {
     Assert.fail();
 });
 
+// ## Returns `403 Forbidden` 
+// - ... if contact `{as}` does not have the **admin** access required to 
+//   update the form.
+
+TEST("Returns 403 no admin access.", function(next) {
+    Assert.fail();
+});
+
 // ## Returns `401 Unauthorized` 
-// - ... if the provided token does not allow updating that form,
+// - ... if the provided token does not match contact `{as}`,
 //   or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(next) {
