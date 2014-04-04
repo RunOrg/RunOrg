@@ -5,6 +5,9 @@ open Std
 (* Creating a form 
    =============== *)
 
+(* Who is allowed to create new forms ? *)
+let create_audience = Audience.admin 
+
 let create cid ?label ?id ~owner ~audience ~custom fields =   
 
   (* If a custom id is used, make sure it is not already in use. *)
@@ -17,9 +20,17 @@ let create cid ?label ?id ~owner ~audience ~custom fields =
   in
 
   match newId with Bad id -> return (`AlreadyExists id) | Ok id -> 
-    let! clock = Store.append [ Events.created ~id ~cid ~label ~owner ~audience ~fields ~custom ] in 
-    return (`OK (id, clock)) 
 
+    let! allowed = Audience.is_member cid create_audience in 
+
+    if not allowed then 
+      let! ctx = Run.context in 
+      return (`NeedAccess (ctx # db))
+    else
+      
+      let! clock = Store.append [ Events.created ~id ~cid ~label ~owner ~audience ~fields ~custom ] in 
+      return (`OK (id, clock)) 
+      
 (* Updating a form 
    =============== *)
 
