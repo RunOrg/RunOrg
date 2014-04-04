@@ -136,7 +136,20 @@ module String = struct
     
 end
 
-module Map = BatMap
+(* Extend the map module from batteries with a few helper functions *)
+module Map = struct
+
+  include BatMap
+
+  (** [to_list map] returns an associative list of all key-value pairs in the map. *)
+  let to_list m = 
+    foldi (fun k v l -> (k,v) :: l) m []
+
+  (** [of_list map] turns an associative list into a map. *)
+  let of_list l = 
+    List.fold_left (fun map (k,v) -> add k v map) empty l
+
+end
 
 (* Extend the set module from batteries with a few helper functions. *)
 module Set = struct
