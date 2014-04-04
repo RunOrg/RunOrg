@@ -30,7 +30,8 @@ type t = <
   params : (string, string) Map.t ;
 
   token : Token.I.t option ;
-  at : Cqrs.Clock.t option ; 
+  at : Cqrs.Clock.t option ;
+  as_ : CId.t option ;  
   limit : int option ;
   offset : int option ; 
 
@@ -286,6 +287,14 @@ let parse config ssl_socket =
     try Some (int_of_string (Map.find "offset" params)) 
     with Not_found -> None | _ -> raise (SyntaxError "Invalid offset parameter") in   
 
+  let as_ = 
+    try 
+      let cid = Map.find "as" params in
+      match CId.of_string_checked cid with 
+      | Some id -> Some id 
+      | None -> raise (SyntaxError (!! "'as' parameter is not a contact id: '%s'" cid)) 
+    with Not_found -> None in   
+
   let at = 
     try Some (Cqrs.Clock.of_json (Json.unserialize (Map.find "at" params))) 
     with Not_found -> None | _ -> raise (SyntaxError "Invalid at parameter") in   
@@ -319,6 +328,7 @@ let parse config ssl_socket =
     method params = params
     method token = token
     method at = at
+    method as_ = as_
     method limit = limit
     method offset = offset 
     method accept = accept
