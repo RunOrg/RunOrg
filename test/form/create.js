@@ -1,13 +1,13 @@
-// POST /db/{db}/forms/create
+// POST /db/{db}/forms/create?as={as}
 // Forms / Create a form
 //
-// Alpha @ 0.1.35
+// Alpha @ 0.1.38
 //
 // `202 Accepted`, [Delayed](/docs/#/concept/delayed.md), 
 //  sometimes [Idempotent](/docs/#/concept/idempotent.md).
 //
-// Creates a new form. Initially unfilled. 
-// 
+// Contact `{as}` creates a new form, initially unfilled.
+//
 // ### Request format
 //     { "id" : <customid> | null,
 //       "label" : <label> | null,
@@ -122,6 +122,13 @@ TEST("Returns 404 when database does not exist.", function(next) {
     Assert.fail();
 });
 
+// ## Returns `403 Forbidden`
+// - ... if contact `{as}` cannot create a form.
+
+TEST("Returns 403 when contact cannot create a form.", function(next) {
+    Assert.fail();
+});
+
 // ## Returns `400 Bad Request`
 // - ... if the provided identifier is not a valid [custom 
 //   identifier](/docs/#/types/custom-id.js)
@@ -138,7 +145,7 @@ TEST("Returns 409 when the form exists.", function(next) {
 });
 
 // ## Returns `401 Unauthorized` 
-// - ... if the provided token does not allow group creation,
+// - ... if the provided token does not match contact `{as}`,
 //   or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(next) {
@@ -147,5 +154,4 @@ TEST("Returns 401 when token is not valid.", function(next) {
 
 // # Access restrictions
 //
-// Currently, anyone can create a form with a token for the corresponding database. 
-// This is subject to change in future versions.
+// Contact `{as}` must be an [administrator](/docs/#/group/admin.md). 
