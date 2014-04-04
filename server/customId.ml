@@ -2,6 +2,7 @@
 
 type t = string
 let to_id = Id.of_string
+let to_string = Std.identity
 
 (* Validation 
    ========== *)

@@ -11,6 +11,9 @@ type t
 (** Convert a custom identifier to a normal identifier. *)
 val to_id : t -> Id.t
 
+(** The string representation of a custom identifier. *)
+val to_string : t -> string
+
 (** Attempt to turn a string into a custom identifier. Returns [None] if
     the string is not valid. *)
 val validate : string -> t option 
