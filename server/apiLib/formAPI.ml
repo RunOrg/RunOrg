@@ -84,7 +84,6 @@ module FormInfo = type module <
   label : String.Label.t option ;
   fields : Field.t list ;
   custom : Json.t ;
-  empty : bool ;
 >
 
 module Get = Endpoint.Get(struct
