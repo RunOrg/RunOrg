@@ -1,8 +1,8 @@
-count: clean
-	./count.sh
-
 all: runorg
 	./runorg reset
+
+count: clean
+	./count.sh
 
 tests: 
 	make -C testc
