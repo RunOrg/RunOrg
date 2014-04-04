@@ -2,13 +2,14 @@
 
 open Std
 
-type info = <
-  id     : I.t ;
-  owner  : Owner.t ;
-  label  : String.Label.t option ; 
-  fields : Field.t list ;
-  custom : Json.t ;
-  empty  : bool ; 
+type info =  <
+  id       : I.t ;
+  owner    : Owner.t ;
+  label    : String.Label.t option ; 
+  fields   : Field.t list ;
+  custom   : Json.t ;
+  audience : FormAccess.Audience.t ;
+  empty    : bool ; 
 > 
 
 val get : I.t -> (#O.ctx, info option) Run.t

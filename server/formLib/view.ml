@@ -12,7 +12,7 @@ module Info = type module <
   fields : Field.t list ;
   custom : Json.t ;
   empty : bool ; 
-  audience : FormAudience.t ; 
+  audience : FormAccess.Audience.t ; 
 >
 
 let info = 

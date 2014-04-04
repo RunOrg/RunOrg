@@ -9,7 +9,7 @@ include type module
 	owner : Owner.t ; 
 	fields : Field.t list ;
 	custom : Json.t ;
-	audience : FormAudience.t ; 
+	audience : FormAccess.Audience.t ; 
       >
     | `Updated of <
 	id : I.t ;
@@ -17,7 +17,7 @@ include type module
 	owner : Owner.t option ;
 	fields : Field.t list option ;
 	custom : Json.t option ;
-	audience : FormAudience.t option ;
+	audience : FormAccess.Audience.t option ;
       >
     | `Filled of <
         id : I.t ;

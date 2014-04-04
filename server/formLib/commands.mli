@@ -6,14 +6,14 @@ val create :
   ?label:String.Label.t ->
   ?id:CustomId.t -> 
   Owner.t ->
-  FormAudience.t -> 
+  FormAccess.Audience.t -> 
   Json.t -> 
   Field.t list -> (#O.ctx, I.t option * Cqrs.Clock.t) Run.t
 
 val update : 
   ?label:String.Label.t option ->
   ?owner:Owner.t ->
-  ?audience:FormAudience.t ->
+  ?audience:FormAccess.Audience.t ->
   ?custom:Json.t ->
   ?fields:Field.t list ->
   I.t -> (# O.ctx, [ `OK of Cqrs.Clock.t

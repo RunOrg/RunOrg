@@ -6,21 +6,23 @@ open Std
    ================ *)
 
 type info = <
-  id     : I.t ;
-  owner  : Owner.t ;
-  label  : String.Label.t option ; 
-  fields : Field.t list ;
-  custom : Json.t ;
-  empty  : bool ; 
+  id       : I.t ;
+  owner    : Owner.t ;
+  label    : String.Label.t option ; 
+  fields   : Field.t list ;
+  custom   : Json.t ;
+  audience : FormAccess.Audience.t ;
+  empty    : bool ; 
 > 
 
 let make_info id info = object
-  method id     = id
-  method owner  = info # owner
-  method label  = info # label
-  method fields = info # fields
-  method custom = info # custom
-  method empty  = info # empty
+  method id       = id
+  method owner    = info # owner
+  method label    = info # label
+  method fields   = info # fields
+  method custom   = info # custom
+  method empty    = info # empty
+  method audience = info # audience
 end
 
 let get id = 

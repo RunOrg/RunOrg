@@ -22,19 +22,18 @@ module FilledI : Fmt.FMT with type t =
   [ `Contact of CId.t ]
 
 (** The audience of a form. *)
-module Audience : Fmt.FMT with type t = <
-  admin : Audience.t ;
-  fill  : Audience.t ;
->
+module Access : Access.T with type t = 
+  [ `Admin | `Fill ]
 
 (** Current information about a form. *)
 type info = <
-  id     : I.t ;
-  owner  : Owner.t ;
-  label  : String.Label.t option ; 
-  fields : Field.t list ;
-  custom : Json.t ;
-  empty  : bool ; 
+  id       : I.t ;
+  owner    : Owner.t ;
+  label    : String.Label.t option ; 
+  fields   : Field.t list ;
+  custom   : Json.t ;
+  empty    : bool ; 
+  audience : Access.Audience.t ;
 > 
 
 (** Create a new form. 
@@ -46,7 +45,7 @@ val create :
   ?label:String.Label.t ->
   ?id:CustomId.t -> 
   Owner.t ->
-  Audience.t -> 
+  Access.Audience.t -> 
   Json.t -> 
   Field.t list -> (#O.ctx, I.t option * Cqrs.Clock.t) Run.t
 
@@ -55,7 +54,7 @@ val create :
 val update : 
   ?label:String.Label.t option ->
   ?owner:Owner.t ->
-  ?audience:Audience.t ->
+  ?audience:Access.Audience.t ->
   ?custom:Json.t ->
   ?fields:Field.t list ->
   I.t -> (# O.ctx, [ `OK of Cqrs.Clock.t

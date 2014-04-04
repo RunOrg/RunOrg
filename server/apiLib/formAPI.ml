@@ -14,7 +14,7 @@ module Create = Endpoint.Post(struct
     ?custom : Json.t = Json.Null ; 
      owner : Form.Owner.t ;
      fields : Field.t list ;
-     audience : Form.Audience.t ; 
+     audience : Form.Access.Audience.t ; 
   > 
 
   module Out = type module <
@@ -46,7 +46,7 @@ module Update = Endpoint.Put(struct
     ?custom : Json.t = Json.Null ;
     ?owner : Form.Owner.t option ;
     ?fields : Field.t list option ;
-    ?audience : Form.Audience.t option ;
+    ?audience : Form.Access.Audience.t option ;    
   >
 
   module Out = type module <
@@ -84,6 +84,8 @@ module FormInfo = type module <
   label : String.Label.t option ;
   fields : Field.t list ;
   custom : Json.t ;
+  audience : Form.Access.Audience.t ; 
+  access : Form.Access.Set.t ;
 >
 
 module Get = Endpoint.Get(struct
@@ -97,7 +99,16 @@ module Get = Endpoint.Get(struct
 
     let! form = Form.get (arg # id) in
     match form with 
-    | Some f -> return (`OK (f :> FormInfo.t)) 
-    | None   -> return (`NotFound (!! "Form '%s' does not exist." (Form.I.to_string (arg # id))))
-	
+    | None -> return (`NotFound (!! "Form '%s' does not exist." (Form.I.to_string (arg # id))))
+    | Some f -> 
+      let! access = Form.Access.compute None (f # audience) in
+      return (`OK (FormInfo.make 
+	~id:(f # id)
+	~owner:(f # owner)
+	~label:(f # label)
+	~fields:(f # fields)
+	~custom:(f # custom)
+	~audience:(f # audience)
+	~access))
+    	
 end)
