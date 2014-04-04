@@ -7,9 +7,19 @@ module type ACCESS_LEVEL = sig
   val all : (t * (t list)) list 
 end
 
+module type T = sig
+  include Fmt.FMT 
+  module Audience : Fmt.FMT with type t = ( t, Audience.t ) Map.t
+  module Set : Fmt.FMT with type t = t Set.t
+  val compute : CId.t option -> Audience.t -> (#O.ctx, Set.t) Run.t				   
+end
+
+
 module Make = functor (Access:ACCESS_LEVEL) -> struct
 
   open Audience
+
+  include Access
 
   (* Audience serialization 
      ====================== *)
@@ -85,5 +95,7 @@ module Make = functor (Access:ACCESS_LEVEL) -> struct
     in
 
     fill Set.empty sorted_by_size
+
+  module Set = AccessSet
 
 end

@@ -16,18 +16,22 @@ module type ACCESS_LEVEL = sig
 
 end
 
-(** Representing an audience set based on a list of access levels. *)
-module Make : functor (Access:ACCESS_LEVEL) -> sig
+module type T = sig
+
+  include Fmt.FMT 
 
   (** A set of audiences, one for each access level. Serializable as a 
       dictionary with the access levels as the string keys. *)
-  module Audience : Fmt.FMT with type t = ( Access.t, Audience.t ) Map.t
+  module Audience : Fmt.FMT with type t = ( t, Audience.t ) Map.t
 
   (** A set of access levels. Serializable as a list of strings.  *)
-  module AccessSet : Fmt.FMT with type t = Access.t Set.t
+  module Set : Fmt.FMT with type t = t Set.t
 
   (** Based on an audience set, find the access levels granted to a specific
       user. *)
-  val compute : CId.t -> Audience.t -> (#O.ctx, AccessSet.t) Run.t
+  val compute : CId.t option -> Audience.t -> (#O.ctx, Set.t) Run.t
 				   
 end
+
+(** Representing an audience set based on a list of access levels. *)
+module Make : functor (Access:ACCESS_LEVEL) -> T with type t = Access.t
