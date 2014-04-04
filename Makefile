@@ -1,3 +1,6 @@
+count: clean
+	./count.sh
+
 all: runorg
 	./runorg reset
 
@@ -22,6 +25,7 @@ runorg: toolchain tests
 	chmod a+x runorg
 
 clean: 
+	find . -name '*~' | xargs rm -f 
 	rm -f runorg
 	rm -rf sites/*/.assets
 	make -C syntax clean 
