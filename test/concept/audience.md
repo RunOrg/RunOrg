@@ -1,6 +1,6 @@
 Concepts / Audience and Access
 
-An **audience** is a data type used to describe an audience&mdash;a list of contacts&mdash;without 
+An **audience** is a data type used to describe an audience—a list of contacts—without 
 having to create a dedicated group and keeping it updated. For instance, an audience might specify
 _everyone_ and be applicable to all contacts, even those created after the audience itself. Or it
 might specify _members of groups A and B_ and be applicable to all contacts in those groups, 
