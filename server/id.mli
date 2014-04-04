@@ -1,4 +1,4 @@
-(* Ohm is © 2011 Victor Nicollet *)
+(* © 2014 RunOrg *)
 
 (** Unique 11-character string identifiers. *)
 
