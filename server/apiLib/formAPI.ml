@@ -74,3 +74,31 @@ module Update = Endpoint.Put(struct
     | `FormFilled id ->  return (`BadRequest (!! "Form '%s' is already filled." (Form.I.to_string id)))
 
 end)
+
+(* Reading form data 
+   ================= *)
+
+module FormInfo = type module <
+  id : Form.I.t ;
+  owner : Form.Owner.t ;
+  label : String.Label.t option ;
+  fields : Field.t list ;
+  custom : Json.t ;
+  empty : bool ;
+>
+
+module Get = Endpoint.Get(struct
+
+  module Arg = type module < id : Form.I.t >
+  module Out = FormInfo
+
+  let path = "forms/{id}"
+
+  let response req arg = 
+
+    let! form = Form.get (arg # id) in
+    match form with 
+    | Some f -> return (`OK (f :> FormInfo.t)) 
+    | None   -> return (`NotFound (!! "Form '%s' does not exist." (Form.I.to_string (arg # id))))
+	
+end)
