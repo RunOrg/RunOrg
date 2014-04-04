@@ -19,19 +19,19 @@
 //       "custom"   : <json>,
 //       "access"   : [ <access>, ... ],
 //       "audience" : <audience>, }
-// - `id` [_fill_] is the identifier of the form.
-// - `owner` [_fill_] is the nature of the owners associated with each filled instance
+// - `id` is the identifier of the form.
+// - `owner` is the nature of the owners associated with each filled instance
 //   of the form. In the current version of the API, this is always `"contact"`
 //   (each instance is owned by a contact). 
-// - `label` [_fill_] is an optional [human-readable name](/docs/#/types/label.js).
-// - `fields` [_fill_] is an ordered list of [fields](/docs/#/form/field.js) to be 
+// - `label` is an optional [human-readable name](/docs/#/types/label.js).
+// - `fields` is an ordered list of [fields](/docs/#/form/field.js) to be 
 //   filled.
-// - `custom` [_fill_] is an arbitrary block of JSON provided by the creator of the
+// - `custom` is an arbitrary block of JSON provided by the creator of the
 //   form, and returned as-is by the API. 
-// - `access` [_fill_] is the list of access levels the contact `{as}` has over the
-//   form. See [audience and access](/docs/#/concept/audience.js) for more 
+// - `access` is the list of access levels the contact `{as}` has over the
+//   form. See [audience and access](/docs/#/concept/audience.md) for more 
 //   information.
-// - `audience` [_admin_] is the [audience](/docs/#/form/audience.js) of the form.
+// - `audience` (**admin**-only) is the [audience](/docs/#/form/audience.js) of the form.
 
 TEST("The response has valid return code and content type.", function(next) {
     Assert.fail();
@@ -94,13 +94,21 @@ TEST("Returns 404 when group does not exist.", function(next) {
 });
 
 // ## Returns `401 Unauthorized` 
-// - ... if the provided token does not grant access to the form,
-//   or no token was provided
+// - ... if the provided token does not grant access as the named 
+//   contact, or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(next) {
     Assert.fail();
 });
- 
-// # Access restrictions
+
+// ## Returns `403 Forbidden` 
+// - ... if the specified contact does not have at least **fill** 
+//   access to the form.
+
+TEST("Returns 401 when token is not valid.", function(next) {
+    Assert.fail();
+});
+
+ // # Access restrictions
 //
 // Subject to the form's `fill` [audiences](/docs/#/form/audience.md). 
