@@ -57,8 +57,10 @@ val update :
   ?audience:Access.Audience.t ->
   ?custom:Json.t ->
   ?fields:Field.t list ->
+  CId.t option -> 
   I.t -> (# O.ctx, [ `OK of Cqrs.Clock.t
 		   | `NoSuchForm of I.t 
+		   | `NeedAdmin of I.t
 		   | `FormFilled of I.t ] ) Run.t
 
 (** Get short information about a form. *)

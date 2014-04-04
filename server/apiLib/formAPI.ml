@@ -2,6 +2,11 @@
 
 open Std
 
+
+let notFound id = `NotFound (!! "Form '%s' does not exist." (Form.I.to_string id)) 
+let needAdmin id = `Forbidden (!! "You need 'admin' access to on form '%s'." (Form.I.to_string id)) 
+let formFilled id = `BadRequest (!! "Form '%s' is already filled." (Form.I.to_string id))
+
 (* Creating a form 
    =============== *)
 
@@ -38,6 +43,14 @@ end)
 (* Updating a form
    =============== *)
 
+let access cid id = 
+  let! form = Form.get id in 
+  match form with None -> return `None | Some f -> 
+    let! access = Form.Access.compute cid (f # audience) in 
+    if Set.mem `Admin access then return `Admin else
+      if Set.mem `Fill access then return `Fill else
+	return `None
+
 module Update = Endpoint.Put(struct
 
   module Arg = type module < id : Form.I.t >
@@ -56,7 +69,7 @@ module Update = Endpoint.Put(struct
   let path = "forms/{id}"
 
   let response req arg put = 
-    
+
     (* Special treatment to separate "null" fields from missing fields *)
     let label = match req # body with 
       | Some (`JSON (Json.Object obj)) when List.exists (fun (k,_) -> k = "label") obj -> Some (put # label)
@@ -65,13 +78,14 @@ module Update = Endpoint.Put(struct
       | Some (`JSON (Json.Object obj)) when List.exists (fun (k,_) -> k = "custom") obj -> Some (put # custom)
       | _ -> None
     and owner = put # owner and fields = put # fields and audience = put # audience in 
-
-    let! result = Form.update ?label ?custom ?owner ?fields ?audience (arg # id) in
-
+    
+    let! result = Form.update ?label ?custom ?owner ?fields ?audience (req # as_) (arg # id) in
+    
     match result with 
     | `OK at -> return (`Accepted (Out.make ~at))
-    | `NoSuchForm id -> return (`NotFound (!! "Form '%s' does not exist." (Form.I.to_string id)))
-    | `FormFilled id ->  return (`BadRequest (!! "Form '%s' is already filled." (Form.I.to_string id)))
+    | `NoSuchForm id -> return (notFound id)
+    | `NeedAdmin  id -> return (needAdmin id)
+    | `FormFilled id -> return (formFilled id)
 
 end)
 
