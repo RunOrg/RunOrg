@@ -84,7 +84,7 @@ module FormInfo = type module <
   label : String.Label.t option ;
   fields : Field.t list ;
   custom : Json.t ;
-  audience : Form.Access.Audience.t ; 
+  audience : Form.Access.Audience.t option ; 
   access : Form.Access.Set.t ;
 >
 
@@ -97,18 +97,19 @@ module Get = Endpoint.Get(struct
 
   let response req arg = 
 
+    let  notFound = `NotFound (!! "Form '%s' does not exist." (Form.I.to_string (arg # id))) in
+
     let! form = Form.get (arg # id) in
-    match form with 
-    | None -> return (`NotFound (!! "Form '%s' does not exist." (Form.I.to_string (arg # id))))
-    | Some f -> 
-      let! access = Form.Access.compute None (f # audience) in
-      return (`OK (FormInfo.make 
-	~id:(f # id)
-	~owner:(f # owner)
-	~label:(f # label)
-	~fields:(f # fields)
-	~custom:(f # custom)
-	~audience:(f # audience)
-	~access))
+    match form with None -> return notFound | Some f -> 
+      let! access = Form.Access.compute (req # as_) (f # audience) in
+      if not (Set.mem `Fill access) then return notFound else 
+	return (`OK (FormInfo.make 
+		       ~id:(f # id)
+		       ~owner:(f # owner)
+		       ~label:(f # label)
+		       ~fields:(f # fields)
+		       ~custom:(f # custom)
+		       ~audience:(if Set.mem `Admin access then Some (f # audience) else None)
+		       ~access))
     	
 end)
