@@ -18,7 +18,7 @@
 //       "fields"   : [ <field>, ... ],       
 //       "custom"   : <json>,
 //       "access"   : [ <access>, ... ],
-//       "audience" : <audience>, }
+//       "audience" : <form-audience>, }
 // - `id` is the identifier of the form.
 // - `owner` is the nature of the owners associated with each filled instance
 //   of the form. In the current version of the API, this is always `"contact"`
@@ -111,4 +111,4 @@ TEST("Returns 401 when token is not valid.", function(next) {
 
  // # Access restrictions
 //
-// Subject to the form's `fill` [audiences](/docs/#/form/audience.md). 
+// Subject to the form's `fill` [audience](/docs/#/form/audience.md). 
