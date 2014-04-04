@@ -8,6 +8,7 @@ module OpenHack = struct
   open Persona
   open ServerAdmin
   open Audience
+  open Access
   open Db
   open Contact
   open Gravatar

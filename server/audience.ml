@@ -67,7 +67,7 @@ let empty = `List (object
   method contacts = Set.empty
 end)
 
-let admins = `List (object 
+let admin = `List (object 
   method groups = Set.singleton Group.I.admin
   method contacts = Set.empty
 end)
@@ -75,11 +75,13 @@ end)
 (* Testing membership 
    ================== *)
 
-let is_member cid = function 
+let is_member cid = 
+  let get_groups = Run.memo (Group.of_contact cid) in 
+  function 
   | `Anyone -> return true
   | `List l -> 
     if Set.mem cid (l # contacts) then return true else
-      let! groups = Group.of_contact cid in 
+      let! groups = get_groups  in 
       return (List.exists (fun gid -> Set.mem gid (l # groups)) groups)
 
 let gac_union a b = object
@@ -93,5 +95,3 @@ let union a b = match a, b with
   | `Anyone, _ | _, `Anyone -> `Anyone 
   | `List a, `List b -> `List (gac_union a b)
 
-let is_allowed cid audiences = 
-  is_member cid (List.fold_left union admins audiences) 

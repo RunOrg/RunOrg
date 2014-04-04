@@ -22,10 +22,15 @@ val max_item_count : int
 val empty : t
 
 (** Returns true if a specified contact is member of the provided audience. 
-    This is used for membership purposes, as opposed to authorization. *)
+    This is used for membership purposes, as opposed to authorization. 
+
+    Note that storing [is_member id] and using it multiple times will avoid
+    extraneous queries to the database. 
+*)
 val is_member : CId.t -> t -> (#O.ctx, bool) Run.t
 
-(** Returns true if a specified contact is a member of any of the provided
-    audiences, or an administrator. This is used for authorization purposes. *)
-val is_allowed : CId.t -> t list -> (#O.ctx, bool) Run.t 
+(** Merges two audiences into one. *)
+val union : t -> t -> t
 
+(** An audience representing only the [admin] group. *)
+val admin : t
