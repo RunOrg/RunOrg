@@ -40,7 +40,7 @@ TEST("The response has valid return code and content type.", function(next) {
 // # Examples
 // 
 // ### Example request
-//     GET /db/0SNQc00211H/forms/0SNQe0032JZ
+//     GET /db/0SNQc00211H/forms/0SNQe0032JZ?as=0SNxd0002JZ
 // 
 // ### Example response
 //     200 OK
