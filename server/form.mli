@@ -36,18 +36,24 @@ type info = <
   audience : Access.Audience.t ;
 > 
 
-(** Create a new form. 
+(** Create a new form as the specified user. 
     @param label A name that can be displayed to users. Forms without a label do not 
                  appear in most group lists.
     @param id A custom identifier. Must be alphanumeric and 10 or fewer characters long.
-              If a form with that identifier already exists, returns [None]. *)
+              If a form with that identifier already exists, returns [None]. 
+    @param owner The owner of the form to be created. 
+    @param audience The audience set, specifying all access levels. 
+    @param custom An arbitrary JSON value, kept as-is. *)
 val create :
+  CId.t option -> 
   ?label:String.Label.t ->
   ?id:CustomId.t -> 
-  Owner.t ->
-  Access.Audience.t -> 
-  Json.t -> 
-  Field.t list -> (#O.ctx, I.t option * Cqrs.Clock.t) Run.t
+  owner:Owner.t ->
+  audience:Access.Audience.t -> 
+  custom:Json.t -> 
+  Field.t list -> (#O.ctx, [ `OK of I.t * Cqrs.Clock.t
+			   | `NeedAccess of Id.t
+			   | `AlreadyExists of CustomId.t ] ) Run.t
 
 (** Update an existing form. If the form was filled and the [fields] are updated, 
     will fail atomically (either immediately, or a short while later). *)
@@ -78,6 +84,7 @@ module Error : Fmt.FMT with type t =
 (** Fill in a form based on its identifier. Either fails with an explicit error, 
     or returns the clock when the fill-in is done. *)
 val fill : 
+  CId.t option ->
   I.t ->
   FilledI.t -> 
   (Field.I.t, Json.t) Map.t -> (#O.ctx, (Cqrs.Clock.t, Error.t) result) Run.t

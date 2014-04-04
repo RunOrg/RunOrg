@@ -29,14 +29,21 @@ module Create = Endpoint.Post(struct
 
   let path = "forms/create"
 
+  let alreadyExists id = 
+    `BadRequest (!! "Identifier %S is already taken." (CustomId.to_string id))
+
+  let needAccess id = 
+    `Forbidden (!! "Not allowed to create forms in database %S." (Id.to_string id))
+
   let response req () post = 
     match Option.bind (post # id) CustomId.validate, post # id with 
     | None, Some id -> return (`BadRequest (!! "%S is not a valid identifier" id))
-    | id, _ -> let! id, at = Form.create ?id ?label:(post # label) 
-		 (post # owner) (post # audience) (post # custom) (post # fields) in
-	       match id with 
-	       | None -> return (`BadRequest "Identifier is already taken")
-	       | Some id -> return (`Accepted (Out.make ~id ~at))
+    | id, _ -> let! result = Form.create (req # as_) ?id ?label:(post # label) 
+		 ~owner:(post # owner) ~audience:(post # audience) ~custom:(post # custom) (post # fields) in
+	       match result with 
+	       | `AlreadyExists id -> return (alreadyExists id)
+	       | `NeedAccess id -> return (needAccess id) 
+	       | `OK (id,at) -> return (`Accepted (Out.make ~id ~at))
 
 end)
 

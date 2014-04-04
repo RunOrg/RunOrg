@@ -5,6 +5,7 @@ open Std
 include type module
     [ `Created of < 
 	id : I.t ; 
+        cid : CId.t option ; 
         label : String.Label.t option ; 
 	owner : Owner.t ; 
 	fields : Field.t list ;
@@ -13,6 +14,7 @@ include type module
       >
     | `Updated of <
 	id : I.t ;
+        cid : CId.t option ; 
         label : String.Label.t option option ;    
 	owner : Owner.t option ;
 	fields : Field.t list option ;
@@ -21,6 +23,7 @@ include type module
       >
     | `Filled of <
         id : I.t ;
+        cid : CId.t option ; 
 	fid : FilledI.t ;
 	data : FillData.t ;
       >

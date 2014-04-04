@@ -5,20 +5,20 @@ open Std
 (* Creating a form 
    =============== *)
 
-let create ?label ?id owner audience custom fields =   
+let create cid ?label ?id ~owner ~audience ~custom fields =   
 
   (* If a custom id is used, make sure it is not already in use. *)
-  let! id = match id with 
-    | None -> return (Some (I.gen ())) 
+  let! newId = match id with 
+    | None -> return (Ok (I.gen ())) 
     | Some id -> 
-      let  id = I.of_id (CustomId.to_id id) in
-      let! exists = Cqrs.MapView.get View.info id in 
-      return (if exists = None then Some id else None) 
+      let  newId = I.of_id (CustomId.to_id id) in
+      let! exists = Cqrs.MapView.get View.info newId in 
+      return (if exists = None then Ok newId else Bad id) 
   in
 
-  match id with None -> return (None, Cqrs.Clock.empty) | Some id -> 
-    let! clock = Store.append [ Events.created ~id ~label ~owner ~audience ~fields ~custom ] in 
-    return (Some id, clock) 
+  match newId with Bad id -> return (`AlreadyExists id) | Ok id -> 
+    let! clock = Store.append [ Events.created ~id ~cid ~label ~owner ~audience ~fields ~custom ] in 
+    return (`OK (id, clock)) 
 
 (* Updating a form 
    =============== *)
@@ -39,7 +39,7 @@ let update ?label ?owner ?audience ?custom ?fields cid id =
 	  
 	  if fields <> None && not (form # empty) then return (`FormFilled id) else
 	    
-	    let! clock = Store.append [ Events.updated ~id ~label ~owner ~audience ~fields ~custom ] in
+	    let! clock = Store.append [ Events.updated ~id ~cid ~label ~owner ~audience ~fields ~custom ] in
 	    return (`OK clock) 
 
 (* Filling the form
@@ -85,7 +85,7 @@ let check_fill form id data =
       match invalid with None -> return None | Some field -> 
 	return (Some (`InvalidFieldFormat (id, field # id, field # kind)))
 
-let fill id fid data = 
+let fill cid id fid data = 
 
   (* Check that everything is fine *)
   let! form  = Cqrs.MapView.get View.info id in
@@ -96,5 +96,5 @@ let fill id fid data =
       match fill_error with Some e -> return (Bad e) | None -> 
 
 	(* Save the data. *)
-	let! clock = Store.append [ Events.filled ~id ~fid ~data ] in
+	let! clock = Store.append [ Events.filled ~id ~cid ~fid ~data ] in
 	return (Ok clock) 
