@@ -75,14 +75,16 @@ end)
 (* Testing membership 
    ================== *)
 
-let is_member cid = 
-  let get_groups = Run.memo (Group.of_contact cid) in 
-  function 
-  | `Anyone -> return true
-  | `List l -> 
-    if Set.mem cid (l # contacts) then return true else
-      let! groups = get_groups  in 
-      return (List.exists (fun gid -> Set.mem gid (l # groups)) groups)
+let is_member = function 
+  | None -> (fun x -> return (x = `Anyone)) 
+  | Some cid -> 
+    let get_groups = Run.memo (Group.of_contact cid) in 
+    function 
+    | `Anyone -> return true
+    | `List l -> 
+      if Set.mem cid (l # contacts) then return true else
+	let! groups = get_groups  in 
+	return (List.exists (fun gid -> Set.mem gid (l # groups)) groups)
 
 let gac_union a b = object
   val groups = Set.union (a # groups) (b # groups)

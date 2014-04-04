@@ -27,7 +27,7 @@ val empty : t
     Note that storing [is_member id] and using it multiple times will avoid
     extraneous queries to the database. 
 *)
-val is_member : CId.t -> t -> (#O.ctx, bool) Run.t
+val is_member : CId.t option -> t -> (#O.ctx, bool) Run.t
 
 (** Merges two audiences into one. *)
 val union : t -> t -> t
