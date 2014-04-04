@@ -2,7 +2,7 @@
 
 open Std
 
-let build = 37
+let build = 38
 
 let major = 0
 let minor = 1
