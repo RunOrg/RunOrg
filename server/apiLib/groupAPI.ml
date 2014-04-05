@@ -114,7 +114,7 @@ module Delete = Endpoint.Delete(struct
   let path = "groups/{id}"
 
   let needAdmin gid = 
-    `Forbidden (!! "You need 'admin' access to delete group %s." (GId.to_string gid))
+    `Forbidden (!! "You need 'admin' access to delete group %S." (GId.to_string gid))
 
   let response req args = 
     if GId.is_admin (args # id) then 
