@@ -28,6 +28,7 @@ type status =
   | `Accepted 
   | `NotModified
   | `ServiceUnavailable
+  | `Conflict
   | `InternalServerError ]
 
 type t = {
@@ -51,6 +52,7 @@ let status = function
   | `Forbidden -> "403 Forbidden"
   | `NotFound -> "404 Not Found"
   | `MethodNotAllowed -> "405 Method Not Allowed"
+  | `Conflict -> "409 Conflict"
   | `RequestEntityTooLarge -> "413 Request Entity Too Large"
   | `InternalServerError -> "500 Internal Server Error"
   | `NotImplemented -> "501 Not Implemented"

@@ -67,6 +67,7 @@ type status =
   | `Unauthorized
   | `NotModified 
   | `ServiceUnavailable
+  | `Conflict
   | `InternalServerError ]
 
 (** Responds with some raw data. *)
