@@ -6,12 +6,14 @@ include Access.Make(struct
       [ `Admin    "admin"
       | `Moderate "moderate"
       | `List     "list"
+      | `View     "view"
       ]
 
   let all = 
     [ `Admin,     [`Moderate] ;
       `Moderate,  [`List] ;
-      `List,      []
+      `List,      [`View] ;
+      `View,      [] ;
     ]
 
 end)

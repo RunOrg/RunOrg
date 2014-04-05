@@ -6,9 +6,10 @@ open Std
 
 (** Access levels on a group. *)
 module Access : Access.T with type t = 
-  [ `Admin
-  | `Moderate
-  | `List ]
+  [ `Admin    (** Can do everything *)
+  | `Moderate (** Can add/remove people *)
+  | `List     (** Can view list of people *)
+  | `View     (** Knows that the group exists *) ]
 
 (** Create a new group. 
     @param label A name that can be displayed to users. Groups without a label do not appear in 
