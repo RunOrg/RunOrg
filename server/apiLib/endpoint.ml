@@ -200,6 +200,32 @@ module Dictionary = struct
 	  
 end
 
+(* Authentication
+   ============== *)
+
+let run_checked req path ctx action = 
+
+  Run.with_context ctx begin
+
+    let! auth_error = 
+      match req # as_ with None -> return None | Some cid -> 
+	match req # token with 
+	| None -> return (Some (!! "Token needed to act as %S." (CId.to_string cid)))
+	| Some token -> let! ok = Token.can_be token cid in
+			if ok then return None else
+			  return (Some (!! "Token %S does not allow acting as %S." 
+					   (Token.I.to_string token) (CId.to_string cid)))
+    in
+    
+    match auth_error with
+    | None -> action
+    | Some msg -> return (Httpd.json ~status:`Unauthorized (Json.Object [
+      "error", Json.String msg ;
+      "path",  Json.String path ;
+    ]))
+
+  end
+    
 (* GET endpoints
    ============= *)
 
@@ -244,7 +270,7 @@ module Get = functor(A:GET_ARG) -> struct
       | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
 	match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
-	  Run.with_context ctx begin
+	  run_checked req logPath ctx begin
 	    let! out = A.response req args in
 	    return (respond logPath A.Out.to_json out)
 	  end
@@ -278,7 +304,7 @@ module Delete = functor(A:DELETE_ARG) -> struct
       | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
 	match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
-	  Run.with_context ctx begin
+	  run_checked req logPath ctx begin
 	    let! out = A.response req args in
 	    return (respond logPath A.Out.to_json out)
 	  end
@@ -344,7 +370,7 @@ module Post = functor(A:POST_ARG) -> struct
 	| Ok post ->
 	  let! ctx = Db.ctx (Id.of_string db) in
 	  match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
-	    Run.with_context ctx begin
+	    run_checked req logPath ctx begin
 	      let! out = A.response req args post in
 	      return (respond logPath A.Out.to_json out)
 	    end
@@ -402,7 +428,7 @@ module Put = functor(A:PUT_ARG) -> struct
 	| Ok post ->
 	  let! ctx = Db.ctx (Id.of_string db) in
 	  match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
-	    Run.with_context ctx begin
+	    run_checked req logPath ctx begin
 	      let! out = A.response req args post in
 	      return (respond logPath A.Out.to_json out)
 	    end
