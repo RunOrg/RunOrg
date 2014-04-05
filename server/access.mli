@@ -33,7 +33,41 @@ module type T = sig
 
   (** A log-friendly representation of a set. *)
   val set_to_string : Set.t -> string
-				   
+
+  (** An accessor view, used for finding lists of values based on their 
+      access level. Answers the question "what items can this 'as' identity 
+      manipulate at that access level?", e.g. "what can this user 'view'?" 
+  *)
+  type 'id accessor
+
+  (** Accessor map module. *)
+  module Map : sig
+
+    (** Create an accessor view using this access model. If [only] is provided,
+	then only that list of access levels will be available for indexing. *)
+    val make : Cqrs.Projection.t -> string -> int -> ?only:t list ->
+      (module Fmt.FMT with type t = 'id) ->
+      Cqrs.Projection.view * 'id accessor
+
+    (** Update the audience bound to an identifier, making it available based on that
+	audience. If the identifier does not exist, it is created. *)
+    val update : 'id accessor -> 'id -> Audience.t -> # O.ctx Run.effect
+
+    (** Removes an identifier from the accessor view. *)
+    val remove : 'id accessor -> 'id -> # O.ctx Run.effect
+
+    (** Lists all the identifiers that are available at the specified access 
+	level for the provided contact. *)
+    val list : 
+      ?limit:int -> 
+      ?offset:int -> 
+      'id accessor -> 
+      CId.t option -> 
+      t -> 
+      (# O.ctx, 'id list) Run.t
+
+  end
+      				   
 end
 
 (** Representing an audience set based on a list of access levels. *)

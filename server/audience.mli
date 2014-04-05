@@ -38,3 +38,6 @@ val admin : t
 (** Used by the group module to register a specific "list groups of contact"
     function. *)
 val register_groups_of_contact : (CId.t -> ( O.ctx, GId.t Set.t ) Run.t) -> unit
+
+(** Returns the list of all groups that a contact belongs to. *)
+val of_contact : CId.t -> ( O.ctx, GId.t Set.t ) Run.t

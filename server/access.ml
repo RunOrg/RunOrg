@@ -13,6 +13,21 @@ module type T = sig
   module Set : Fmt.FMT with type t = t Set.t
   val compute : CId.t option -> Audience.t -> (#O.ctx, Set.t) Run.t				   
   val set_to_string : Set.t -> string
+  type 'id accessor
+  module Map : sig
+    val make : Cqrs.Projection.t -> string -> int -> ?only:t list -> 
+      (module Fmt.FMT with type t = 'id) ->
+      Cqrs.Projection.view * 'id accessor
+    val update : 'id accessor -> 'id -> Audience.t -> # O.ctx Run.effect
+    val remove : 'id accessor -> 'id -> # O.ctx Run.effect
+    val list : 
+      ?limit:int -> 
+      ?offset:int -> 
+      'id accessor -> 
+      CId.t option -> 
+      t -> 
+      (# O.ctx, 'id list) Run.t
+  end      			
 end
 
 
@@ -99,6 +114,95 @@ module Make = functor (Access:ACCESS_LEVEL) -> struct
 
   let set_to_string t = 
     AccessSet.to_json_string t
+
+  (* More optimal management of the access graph 
+     =========================================== *)
+
+  let parents = 
+    let memoize = ref Map.empty in
+    let rec get access = 
+      try Map.find access (!memoize) with Not_found -> 
+	let parents = List.(map fst (filter (fun (k,v) -> List.mem access v) Access.all)) in
+	let set = List.fold_left (fun set a -> Set.union (get a) set) (Set.singleton access) parents in
+	memoize := Map.add access set (!memoize) ;
+	set
+    in
+    get
+
+  (* Accessor implementation 
+     ======================= *)
+
+  module Who = type module
+    | Contact of Access.t * CId.t 
+    | Group   of Access.t * GId.t
+    | Anon    of Access.t 
+
+  type 'id accessor = <
+    map  : (Who.t, 'id) Cqrs.ManyToManyView.t ;
+    only : Access.t list ;
+  >
+
+  module Map = struct
+
+    (* Creating a new accessor map 
+       =========================== *)
+
+    let make proj name version ?only id = 
+
+      let mapV, map = Cqrs.ManyToManyView.make proj name version 
+	(module Who : Fmt.FMT with type t = Who.t)
+	id in
+
+      let only = match only with Some only -> only | None -> List.map fst Access.all in
+      
+      mapV, (object
+	method map = map
+	method only = only 
+       end)
+
+    (* Updating the accessor map 
+       ========================= *)
+
+    let remove accessor id = 
+      Cqrs.ManyToManyView.( delete (flip (accessor # map)) id ) 
+
+    let update accessor id audiences = 
+      
+      let! () = remove accessor id in
+      
+      let who_of_audience access = function `Anyone -> [ Who.Anon access ] | `List l -> 
+	  List.map (fun cid -> Who.Contact (access,cid)) (Set.to_list (l # contacts)) 
+	  @ List.map (fun gid -> Who.Group (access,gid)) (Set.to_list (l # groups))
+      in
+      
+      let audience_of_access access = 
+	Set.fold 
+	  (fun a aud -> try union aud (Map.find a audiences) with Not_found -> aud) 
+	  (parents access) admin
+      in
+
+      let who = accessor # only
+	|> List.map (fun a -> who_of_audience a (audience_of_access a)) 
+	|> List.flatten
+      in
+      
+      Cqrs.ManyToManyView.add (accessor # map) who [id] 
+      
+    (* Listing elements by accessor 
+       ============================ *)
+
+    let list ?limit ?offset accessor cid access = 
+
+      let  of_contact cid = Run.edit_context (fun ctx -> (ctx :> O.ctx)) (of_contact cid) in
+
+      let! groups = match cid with Some cid -> of_contact cid | None -> return Set.empty in
+      let  list   = List.map (fun gid -> Who.Group (access,gid)) (Set.to_list groups) in 
+      let  list   = match cid with Some cid -> Who.Contact (access,cid) :: list | None -> list in
+      let  list   = Who.Anon access :: list in 
+
+      Cqrs.ManyToManyView.join ?limit ?offset (accessor # map) list 
+
+  end
 
   module Set = AccessSet
 
