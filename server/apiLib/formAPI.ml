@@ -30,7 +30,7 @@ module Create = Endpoint.Post(struct
   let path = "forms/create"
 
   let alreadyExists id = 
-    `BadRequest (!! "Identifier %S is already taken." (CustomId.to_string id))
+    `Conflict (!! "Identifier %S is already taken." (CustomId.to_string id))
 
   let needAccess id = 
     `Forbidden (!! "Not allowed to create forms in database %S." (Id.to_string id))
