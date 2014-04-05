@@ -8,7 +8,7 @@ module Create = Endpoint.Post(struct
   module Post = type module <
     ?subject  : String.Label.t option ; 
     ?contacts : CId.t list     = [] ;
-    ?groups   : Group.I.t list = [] ;
+    ?groups   : GId.t list     = [] ;
     ?public   : bool           = false ; 
     ?pm       : bool           = false ;
   >
@@ -114,7 +114,7 @@ module ChatInfo = type module <
   id : Chat.I.t ;
   subject : String.Label.t option ;
   contacts : CId.t list ;
-  groups : Group.I.t list ;
+  groups : GId.t list ;
   count : int ;
   last : Time.t ; 
   public : bool ; 

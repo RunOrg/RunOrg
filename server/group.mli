@@ -4,12 +4,6 @@ open Std
 
 (** Groups are sets of contacts. *)
 
-module I : sig
-  include Id.PHANTOM
-  val is_admin : 'a id -> bool 
-  val admin : t
-end
-
 (** Create a new group. 
     @param label A name that can be displayed to users. Groups without a label do not appear in 
                  most group lists. 
@@ -18,36 +12,37 @@ end
 val create : 
   ?label:String.Label.t -> 
   ?id:CustomId.t -> 
-  unit -> (#O.ctx, [ `OK of I.t * Cqrs.Clock.t
-		   | `AlreadyExists of CustomId.t ]) Run.t
+  CId.t option -> (#O.ctx, [ `OK of GId.t * Cqrs.Clock.t
+			   | `NeedAccess of Id.t
+			   | `AlreadyExists of CustomId.t ]) Run.t
 
 (** Add contacts to groups. Nothing happens if a contact or a group does not exist, 
     or if the contact is already in the group. *)
-val add : CId.t list -> I.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
+val add : CId.t list -> GId.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
 
 (** Remove contacts from groups. Nothing happens if a contact or a group does not 
     exist, or if the contact is not in the group. *)
-val remove : CId.t list -> I.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
+val remove : CId.t list -> GId.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
 
 (** Delete a group. If the group does not exist (or is delete-protected), nothing 
     happens. *)
-val delete : I.t -> (# O.ctx, Cqrs.Clock.t) Run.t
+val delete : GId.t -> (# O.ctx, Cqrs.Clock.t) Run.t
 
 (** List the members of a group. *)
-val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, CId.t list * int) Run.t
+val list : ?limit:int -> ?offset:int -> GId.t -> (#O.ctx, CId.t list * int) Run.t
 
 (** Short information about a group. *)
 type info = <
-  id    : I.t ; 
+  id    : GId.t ; 
   label : String.Label.t option ;
   count : int ;
 >
 
 (** Get short information about a group. *)
-val get : I.t -> (#O.ctx, info option) Run.t 
+val get : GId.t -> (#O.ctx, info option) Run.t 
 
 (** Get all the groups in the database. *)
 val all : limit:int -> offset:int -> (#O.ctx, info list * int) Run.t
 
 (** List all the groups of a contact. *)
-val of_contact : CId.t -> (#O.ctx, I.t list) Run.t 
+val of_contact : CId.t -> (#O.ctx, GId.t Set.t) Run.t 

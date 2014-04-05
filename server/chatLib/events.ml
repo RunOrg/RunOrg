@@ -7,7 +7,7 @@ include type module
     | `ChatCreated of < 
 	id : I.t ; 
         contacts : CId.t list ; 
-	groups : Group.I.t list ; 
+	groups : GId.t list ; 
 	subject : String.Label.t option ;
       >
     | `ChatDeleted of < id : I.t >

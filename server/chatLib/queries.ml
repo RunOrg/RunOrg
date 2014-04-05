@@ -10,7 +10,7 @@ type info = <
    count : int ;
    last : Time.t ;
    contacts : CId.t list ;
-   groups : Group.I.t list ;
+   groups : GId.t list ;
    subject : String.Label.t option ;
    public : bool ;
 >
@@ -33,7 +33,8 @@ let get id =
 let all_as ?(limit=100) ?(offset=0) cid = 
 
   let! gids = Group.of_contact cid in 
-  let  accessors = View.Accessor.( Public :: Contact cid :: List.map (fun gid -> Group gid) gids ) in
+  let  accessors = View.Accessor.( 
+    Public :: Contact cid :: List.map (fun gid -> Group gid) (Set.to_list gids )) in
 
   let rec fetch limit offset = 
 

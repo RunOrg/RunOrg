@@ -6,7 +6,7 @@ open Std
    ================= *)
 
 type info = <
-  id    : I.t ;
+  id    : GId.t ;
   label : String.Label.t option ; 
   count : int ;
 >
@@ -38,5 +38,9 @@ let list ?limit ?offset gid =
    ================== *)
 
 let of_contact cid = 
-  let groups = Cqrs.ManyToManyView.flip View.contacts in 
-  Cqrs.ManyToManyView.list groups cid 
+  let  groups = Cqrs.ManyToManyView.flip View.contacts in 
+  let! list = Cqrs.ManyToManyView.list groups cid in
+  return (Set.of_list list) 
+
+let () = 
+  Audience.register_groups_of_contact of_contact

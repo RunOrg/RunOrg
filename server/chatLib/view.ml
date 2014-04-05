@@ -70,7 +70,7 @@ module Info = type module <
   last : Time.t ; 
   subject : String.Label.t option ; 
   contacts : CId.t list ;
-  groups : Group.I.t list ;
+  groups : GId.t list ;
   public : bool ; 
 >
 
@@ -137,7 +137,7 @@ let info =
    =========== *)
 
 module Accessor = type module 
-  | Group of Group.I.t 
+  | Group of GId.t 
   | Contact of CId.t
   | Public
 

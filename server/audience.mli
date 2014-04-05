@@ -12,7 +12,7 @@ open Std
 
 include Fmt.FMT with type t = 
   [ `Anyone
-  | `List of < groups : Group.I.t Set.t ; contacts : CId.t Set.t >
+  | `List of < groups : GId.t Set.t ; contacts : CId.t Set.t >
   ]
 
 (** The maximum number of groups or contacts in a list. *)
@@ -34,3 +34,7 @@ val union : t -> t -> t
 
 (** An audience representing only the [admin] group. *)
 val admin : t
+
+(** Used by the group module to register a specific "list groups of contact"
+    function. *)
+val register_groups_of_contact : (CId.t -> ( O.ctx, GId.t Set.t ) Run.t) -> unit

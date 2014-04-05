@@ -10,18 +10,18 @@ let projection = Cqrs.Projection.make "group" (fun () -> new O.ctx)
 let exists = 
   
   let existsV, exists = Cqrs.SetView.make projection "exists" 0 
-    (module I : Fmt.FMT with type t = I.t) in
+    (module GId : Fmt.FMT with type t = GId.t) in
 
   (* Create the admin group the first time it is mentioned. *)
   let ensure_admin id = 
-    if I.is_admin id 
+    if GId.is_admin id 
     then Cqrs.SetView.add exists [id] 
     else return ()
   in
 
   let () = Store.track existsV begin function 
     | `Created ev -> Cqrs.SetView.add exists [ev # id] 
-    | `Deleted ev -> if I.is_admin (ev # id) then return () else Cqrs.SetView.remove exists [ev # id]
+    | `Deleted ev -> if GId.is_admin (ev # id) then return () else Cqrs.SetView.remove exists [ev # id]
     | `Added   ev 
     | `Removed ev -> List.M.iter ensure_admin (ev # groups)
   end in 
@@ -34,7 +34,7 @@ let exists =
 let contacts = 
 
   let contactsV, contacts = Cqrs.ManyToManyView.make projection "contacts" 2
-    (module I : Fmt.FMT with type t = I.t)
+    (module GId : Fmt.FMT with type t = GId.t)
     (module CId : Fmt.FMT with type t = CId.t) in
 
   let () = Store.track contactsV begin function 
@@ -42,7 +42,7 @@ let contacts =
     | `Created _ -> return () 
     | `Deleted ev -> 
 
-      if I.is_admin (ev # id) then return () else 
+      if GId.is_admin (ev # id) then return () else 
 	Cqrs.ManyToManyView.delete contacts (ev # id)
 
     | `Removed ev -> 
@@ -70,14 +70,14 @@ module Info = type module <
 let info = 
   
   let infoV, info = Cqrs.MapView.make projection "info" 1
-    (module I : Fmt.FMT with type t = I.t)
+    (module GId : Fmt.FMT with type t = GId.t)
     (module Info : Fmt.FMT with type t = Info.t) in
 
   (* Create the admin group the first time it is mentioned. *)
   let count gid = 
     let! count = Cqrs.ManyToManyView.count contacts gid in 
     Cqrs.MapView.update info gid (function
-      | None -> if I.is_admin gid then `Put (Info.make ~label:None ~count:0) else `Keep
+      | None -> if GId.is_admin gid then `Put (Info.make ~label:None ~count:0) else `Keep
       | Some g -> if g # count = count then `Keep else `Put (Info.make ~label:(g#label) ~count))
   in
 

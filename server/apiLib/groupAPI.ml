@@ -11,7 +11,7 @@ module Create = Endpoint.Post(struct
   >
 
   module Out = type module <
-    id : Group.I.t ;
+    id : GId.t ;
     at : Cqrs.Clock.t ;
   >
 
@@ -20,20 +20,24 @@ module Create = Endpoint.Post(struct
   let alreadyExists id = 
     `Conflict (!! "Identifier %S is already taken." (CustomId.to_string id))
 
+  let needAccess id = 
+    `Forbidden (!! "Not allowed to create groups in database %S." (Id.to_string id))
+
   let response req () post = 
     match Option.bind (post # id) CustomId.validate, post # id with 
     | None, Some id -> return (`BadRequest (!! "%S is not a valid identifier" id))
     | _, Some "admin" -> return (`Conflict "Group 'admin' is a reserved identifier")
-    | id, _ -> let! result = Group.create ?id ?label:(post # label) () in
+    | id, _ -> let! result = Group.create ?id ?label:(post # label) (req # as_) in
 	       match result with 
 	       | `OK       (id,at) -> return (`Accepted (Out.make ~id ~at))
+	       | `NeedAccess    id -> return (needAccess id)
 	       | `AlreadyExists id -> return (alreadyExists id)
 
 end)
 
 module Add = Endpoint.Post(struct
 
-  module Arg = type module < id : Group.I.t >
+  module Arg = type module < id : GId.t >
   module Post = type module (CId.t list)
   module Out = type module < at : Cqrs.Clock.t >
 
@@ -47,7 +51,7 @@ end)
 
 module Remove = Endpoint.Post(struct
 
-  module Arg = type module < id : Group.I.t >
+  module Arg = type module < id : GId.t >
   module Post = type module (CId.t list) 
   module Out = type module < at : Cqrs.Clock.t >
 
@@ -61,7 +65,7 @@ end)
 
 module Get = Endpoint.Get(struct
 
-  module Arg = type module < id : Group.I.t >
+  module Arg = type module < id : GId.t >
   module Out = type module <
     list  : ContactAPI.Short.t list ; 
     count : int ;
@@ -79,14 +83,14 @@ module Get = Endpoint.Get(struct
 end)
 
 module Info = type module <
-  id    : Group.I.t ;
+  id    : GId.t ;
   label : String.Label.t option ; 
   count : int ;
 >
 
 module GetInfo = Endpoint.Get(struct
 
-  module Arg = type module < gid : Group.I.t >
+  module Arg = type module < gid : GId.t >
   module Out = Info
 
   let path = "groups/{gid}/info"
@@ -94,20 +98,20 @@ module GetInfo = Endpoint.Get(struct
   let response req args = 
     let! group_opt = Group.get (args # gid) in
     match group_opt with Some group -> return (`OK group) | None ->
-      return (`NotFound (!! "Group '%s' does not exist" (Group.I.to_string (args # gid))))
+      return (`NotFound (!! "Group '%s' does not exist" (GId.to_string (args # gid))))
 
 end)
 
 module Delete = Endpoint.Delete(struct
 
-  module Arg = type module < id : Group.I.t >
+  module Arg = type module < id : GId.t >
   module Out = type module < at : Cqrs.Clock.t >
 
   let path = "groups/{id}"
 
   let response req args = 
     (* TODO: check for existence *)
-    if Group.I.is_admin (args # id) then 
+    if GId.is_admin (args # id) then 
       return (`Forbidden "Admin group cannot be deleted")
     else 
       let! at = Group.delete (args # id) in

@@ -96,7 +96,7 @@ module Db_Admin_Nominate = Endpoint.Post(struct
   module Post = type module (String.Label.t list) 
   module Out = type module < at : Cqrs.Clock.t >
 
-  let admin = Group.I.of_string "admin" 
+  let admin = GId.admin
   let path = "groups/admin/nominate"
 
   let response req args post = 

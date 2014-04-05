@@ -3,8 +3,23 @@
 open Std
 
 include type module 
-    [ `Created of < id : I.t ; label : String.Label.t option > 
-    | `Deleted of < id : I.t >
-    | `Added   of < contacts : CId.t list ; groups : I.t list >
-    | `Removed of < contacts : CId.t list ; groups : I.t list >
+    [ `Created of < 
+        id : GId.t ; 
+        cid : CId.t option ; 
+	label : String.Label.t option 
+      > 
+    | `Deleted of < 
+	id : GId.t ;
+	cid : CId.t option ;
+      >
+    | `Added   of < 
+	cid : CId.t option ;
+	contacts : CId.t list ; 
+        groups : GId.t list ;
+      >
+    | `Removed of < 
+	cid : CId.t option ;
+	contacts : CId.t list ; 
+        groups : GId.t list ;
+      >
     ]

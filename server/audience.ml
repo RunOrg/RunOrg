@@ -8,12 +8,12 @@ open Std
 module GroupsAndContacts = Fmt.Map(struct
 
   module Inner = type module <
-    ?groups : Group.I.t list = [] ;
+    ?groups : GId.t list = [] ;
     ?contacts : CId.t list = [] ;
   >
 
   type t = <
-    groups : Group.I.t Set.t ;
+    groups : GId.t Set.t ;
     contacts : CId.t Set.t ;
   >
 
@@ -68,23 +68,32 @@ let empty = `List (object
 end)
 
 let admin = `List (object 
-  method groups = Set.singleton Group.I.admin
+  method groups = Set.singleton GId.admin
   method contacts = Set.empty
 end)
 
 (* Testing membership 
    ================== *)
 
+let ref_of_contact : (CId.t -> (O.ctx, GId.t Set.t) Run.t) ref = 
+  ref (fun _ -> assert false)
+
+let of_contact cid =
+  Run.edit_context (fun ctx -> (ctx :> O.ctx)) ((!ref_of_contact) cid)
+
+let register_groups_of_contact f = 
+  ref_of_contact := f
+
 let is_member = function 
   | None -> (fun x -> return (x = `Anyone)) 
   | Some cid -> 
-    let get_groups = Run.memo (Group.of_contact cid) in 
+    let get_groups = Run.memo (of_contact cid) in 
     function 
     | `Anyone -> return true
     | `List l -> 
       if Set.mem cid (l # contacts) then return true else
-	let! groups = get_groups  in 
-	return (List.exists (fun gid -> Set.mem gid (l # groups)) groups)
+	let! groups = get_groups in 
+	return (not (Set.is_empty (Set.intersect (l # groups) groups)))
 
 let gac_union a b = object
   val groups = Set.union (a # groups) (b # groups)
