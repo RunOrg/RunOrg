@@ -1,8 +1,14 @@
 // Asynchronous operations
 var Async = (function() {
-
+    
     // Extend functions with "map" and "then" methods 
     Function.prototype.map = function(applied) {
+
+	if (typeof applied != "function") {
+	    var key = applied;
+	    applied = function(obj) { return obj[key]; }
+	}
+
 	var self = this;
 	return function(callback) {
 	    self(function(){ callback(applied.apply(this,arguments)); });
@@ -14,6 +20,13 @@ var Async = (function() {
 	    this(function() { callback() });    
 	else
 	    this(function() {});
+    };
+
+    // Extend arrays with "then" methods
+    Array.prototype.then = function(callback) {
+	var left = this.length;
+	for (var i = 0; i < this.length; ++i) 
+	    this[i].then(function(){ if (--left == 0) callback(); });
     };
 
     // Cleans up a value by instantiating any sub-elements, calls the callback
