@@ -20,7 +20,17 @@
 //       "at" : <clock> }
 
 TEST("The response has valid return code and content type.", function(next) {
-    Assert.fail();
+    var example = { "label" : "Board members" };
+
+    var db = Query.mkdb();
+    var token = Query.auth(db);
+    var response = Test.query("POST",["db/",db,"/groups/create"],example,token).response();
+
+    [
+	Assert.areEqual(202, response.map('status')),
+	Assert.isTrue(response.map('responseJSON'), "Response type is JSON")
+    ].then(next);
+
 });
 
 // 
