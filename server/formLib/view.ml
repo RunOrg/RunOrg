@@ -4,7 +4,8 @@ open Std
 
 let projection = Cqrs.Projection.make "form" (fun () -> new O.ctx) 
 
-(* Form information by identifier. *)
+(* Form information by identifier. 
+   =============================== *)
 
 module Info = type module <
   owner : Owner.t ;
@@ -61,3 +62,28 @@ let info =
   end in
 
   info
+
+(* Finding forms by access level
+   ============================= *)
+
+let byAccess = 
+  
+  let byAccessV, byAccess = FormAccess.Map.make projection "byAccess" 0 
+    ~only:[`Fill] (module I : Fmt.FMT with type t = I.t) in
+
+  let () = Store.track byAccessV begin function
+
+    | `Created ev -> 
+
+      FormAccess.Map.update byAccess (ev # id) (ev # audience) 
+
+    | `Updated ev -> 
+
+      (match ev # audience with None -> return () | Some audience -> 
+	FormAccess.Map.update byAccess (ev # id) audience)
+
+    | `Filled _ -> return () 
+
+  end in
+
+  byAccess
