@@ -68,7 +68,7 @@ module Remove = Endpoint.Post(struct
   let path = "groups/{id}/remove"
 
   let needModerator gid = 
-    `Forbidden (!! "You need 'moderate' access to add contacts to group %S." (GId.to_string gid))
+    `Forbidden (!! "You need 'moderate' access to remove contacts from group %S." (GId.to_string gid))
 
   let response req args post = 
     let! result = Group.remove (req # as_) post [ args # id ] in
