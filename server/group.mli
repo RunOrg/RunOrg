@@ -4,6 +4,12 @@ open Std
 
 (** Groups are sets of contacts. *)
 
+(** Access levels on a group. *)
+module Access : Access.T with type t = 
+  [ `Admin
+  | `Moderate
+  | `List ]
+
 (** Create a new group. 
     @param label A name that can be displayed to users. Groups without a label do not appear in 
                  most group lists. 
