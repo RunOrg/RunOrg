@@ -14,6 +14,8 @@ type info =  <
 
 val get : I.t -> (#O.ctx, info option) Run.t
 
+val list : CId.t option -> limit:int -> offset:int -> (#O.ctx, info list) Run.t
+
 val get_filled : 
   I.t ->
   FilledI.t ->

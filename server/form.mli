@@ -72,6 +72,9 @@ val update :
 (** Get short information about a form. *)
 val get : I.t -> (#O.ctx, info option) Run.t
 
+(** List all forms that can be seen by the provided contact. *)
+val list : CId.t option -> limit:int -> offset:int -> (#O.ctx, info list) Run.t
+
 (** The type of a fill error. *)
 module Error : Fmt.FMT with type t = 
   [ `NoSuchForm of I.t

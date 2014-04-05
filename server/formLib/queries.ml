@@ -30,6 +30,10 @@ let get id =
   match info with None -> return None | Some info ->
     return (Some (make_info id info))
 
+let list cid ~limit ~offset = 
+  let! list = FormAccess.Map.list ~limit ~offset View.byAccess cid `Fill in
+  List.M.filter_map get list
+  
 (* Retrieving filled forms
    ======================= *)
 
