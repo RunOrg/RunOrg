@@ -122,7 +122,25 @@ TEST("New group with forced id created after deletion.", function(next) {
 //       "at" : [[2,219]] }
 
 TEST("Multiple creations create multiple groups.", function(next) {
-    Assert.fail();
+
+    var example = { "label" : "Sample group" };
+
+    var db = Query.mkdb();
+    var token = Query.auth(db);
+
+    var id1 = Test.query("POST",["db/",db,"/groups/create"],example,token).result("id");
+    var id2 = Test.query("POST",["db/",db,"/groups/create"],example,token).result("id");
+
+    var get1 = Test.query("GET",["db/",db,"/groups/",id1,"/info"],token).result();
+    var get2 = Test.query("GET",["db/",db,"/groups/",id2,"/info"],token).result();
+    
+    
+    [
+	Assert.notEqual(id1, id2),
+	Assert.areEqual({"id":id1,"label":"Sample group",count:0}, get1),
+	Assert.areEqual({"id":id2,"label":"Sample group",count:0}, get2)
+    ].then(next);
+	    
 });
 
 // # Errors
