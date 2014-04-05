@@ -47,7 +47,7 @@
 			});
 			out.count += fixture.tests;
 			out.rcount += fixture.rcount;
-			out.ok = out.ok && fixture.hasFailed();
+			out.ok = out.ok && !fixture.hasFailed();
 			out.ran = out.ran && fixture.hasRun();
 		    }
 		}
