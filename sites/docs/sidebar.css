@@ -126,7 +126,7 @@
   a {
     display: block;
     text-decoration: none;
-    color: #c5c8c6;      
+    &, &:hover, &:visited { color: #c5c8c6 }      
     padding: 6px 4px;
     line-height: 1.3em;
     white-space: nowrap;

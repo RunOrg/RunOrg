@@ -13,3 +13,10 @@ code, pre {
   font-family: Consolas, "Liberation Mono", Courier, monospace;
 }
 
+a {
+  text-decoration: none;
+  color: #36a;
+
+  &:hover { color: #48c }
+  &:visited { color: #83b }
+}
