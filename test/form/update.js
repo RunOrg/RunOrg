@@ -117,8 +117,8 @@ TEST("Returns 404 when form cannot be viewed.", function(next) {
     var auth = Query.auth(db);
     var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
 
-    var peon = Query.auth(db,false);
-    Test.query("PUT",["db/",db,"/forms/",id],example)
+    var peon = Query.auth(db,false,"peon@runorg.com");
+    Test.query("PUT",["db/",db,"/forms/",id],example,peon)
 	.error(404).then(next);
 
 });
@@ -147,8 +147,8 @@ TEST("Returns 403 no admin access.", function(next) {
     var auth = Query.auth(db);
     var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
 
-    var peon = Query.auth(db,false);
-    Test.query("PUT",["db/",db,"/forms/",id],example)
+    var peon = Query.auth(db,false,"peon@runorg.com");
+    Test.query("PUT",["db/",db,"/forms/",id],example,peon)
 	.error(403).then(next);
 });
 
