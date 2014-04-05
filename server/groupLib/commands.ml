@@ -46,5 +46,7 @@ let delete cid id =
     if Set.mem `Admin access then 
       let! clock = Store.append [ Events.deleted ~cid ~id ] in
       return (`OK clock) 
-    else
+    else if Set.mem `View access then
       return (`NeedAdmin id) 
+    else
+      return (`NotFound id) 
