@@ -26,14 +26,17 @@ let create ?label ?id cid =
       let! clock = Store.append [ Events.created ~cid ~id ~label ] in
       return (`OK (id, clock))
 
-let add contacts groups = 
+let add cid contacts groups = 
   if contacts = [] || groups = [] then return Cqrs.Clock.empty else
-    Store.append [ Events.added ~cid:None ~contacts ~groups ]
-    
-let remove contacts groups = 
-  if contacts = [] || groups = [] then return Cqrs.Clock.empty else
-    Store.append [ Events.removed ~cid:None ~contacts ~groups ]
+    Store.append [ Events.added ~cid ~contacts ~groups ]
 
-let delete id = 
-  let! clock = Store.append [ Events.deleted ~cid:None ~id ] in
+let add_forced contacts groups = 
+  add None contacts groups 
+    
+let remove cid contacts groups = 
+  if contacts = [] || groups = [] then return Cqrs.Clock.empty else
+    Store.append [ Events.removed ~cid ~contacts ~groups ]
+
+let delete cid id = 
+  let! clock = Store.append [ Events.deleted ~cid ~id ] in
   return clock 

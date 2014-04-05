@@ -108,7 +108,7 @@ module Db_Admin_Nominate = Endpoint.Post(struct
       let  cids = List.map fst created in 
 
       (* Add contacts to group *)
-      let! at = Group.add cids [ admin ] in 
+      let! at = Group.add_forced cids [ admin ] in 
       
       (* Merge clocks *)
       let  at = List.fold_left (fun acc (_,clock) -> Cqrs.Clock.merge acc clock) at created in

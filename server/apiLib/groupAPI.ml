@@ -44,7 +44,7 @@ module Add = Endpoint.Post(struct
   let path = "groups/{id}/add"
 
   let response req args post = 
-    let! at = Group.add post [ args # id ] in
+    let! at = Group.add (req # as_) post [ args # id ] in
     return (`Accepted (Out.make ~at))
 
 end)
@@ -58,7 +58,7 @@ module Remove = Endpoint.Post(struct
   let path = "groups/{id}/remove"
 
   let response req args post = 
-    let! at = Group.remove post [ args # id ] in
+    let! at = Group.remove (req # as_) post [ args # id ] in
     return (`Accepted (Out.make ~at))
 
 end)
@@ -110,11 +110,10 @@ module Delete = Endpoint.Delete(struct
   let path = "groups/{id}"
 
   let response req args = 
-    (* TODO: check for existence *)
     if GId.is_admin (args # id) then 
       return (`Forbidden "Admin group cannot be deleted")
     else 
-      let! at = Group.delete (args # id) in
+      let! at = Group.delete (req # as_) (args # id) in
       return (`Accepted (Out.make ~at))
 
 end)

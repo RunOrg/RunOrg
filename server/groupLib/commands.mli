@@ -9,8 +9,9 @@ val create :
 		   | `NeedAccess of Id.t
 		   | `AlreadyExists of CustomId.t ]) Run.t
 
-val add : CId.t list -> GId.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
+val add : CId.t option -> CId.t list -> GId.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
+val add_forced : CId.t list -> GId.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
 
-val remove : CId.t list -> GId.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
+val remove : CId.t option -> CId.t list -> GId.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
 
-val delete : GId.t -> (#O.ctx, Cqrs.Clock.t) Run.t
+val delete : CId.t option -> GId.t -> (#O.ctx, Cqrs.Clock.t) Run.t
