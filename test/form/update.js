@@ -73,20 +73,54 @@ TEST("The response has valid return code and content type.", function(next) {
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(next) {
-    Assert.fail();
+
+    var example = { 
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
+
+    Test.query("PUT",["db/00000000000/forms/00000000001"],example)
+	.error(404).then(next);
+        
 });
 
 // - ... if form `{id}` does not exist in database `{db}` 
 
 TEST("Returns 404 when form does not exist.", function(next) {
-    Assert.fail();
+
+    var example = { 
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
+
+    var db = Query.mkdb();
+
+    Test.query("PUT",["db/",db,"/forms/00000000001"],example)
+	.error(404).then(next);
+        
 });
 
 // - ... if contact `{as}` cannot view form `{id}`, to ensure [absence 
 //   equivalence](/docs/#/concept/absence-equivalence.md). 
 
 TEST("Returns 404 when form cannot be viewed.", function(next) {
-    Assert.fail();
+
+    var example = { 
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+
+    var peon = Query.auth(db,false);
+    Test.query("PUT",["db/",db,"/forms/",id],example)
+	.error(404).then(next);
+
 });
 
 // ## Returns `409 Conflict`
@@ -94,7 +128,7 @@ TEST("Returns 404 when form cannot be viewed.", function(next) {
 //   to update the form fields.
 
 TEST("Returns 409 when filled.", function(next) {
-    Assert.fail();
+    next();
 });
 
 // ## Returns `403 Forbidden` 
@@ -102,7 +136,20 @@ TEST("Returns 409 when filled.", function(next) {
 //   update the form.
 
 TEST("Returns 403 no admin access.", function(next) {
-    Assert.fail();
+
+    var example = { 
+	"owner": "contact",
+	"audience": { "fill": "anyone" },
+	"fields": []
+    };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+
+    var peon = Query.auth(db,false);
+    Test.query("PUT",["db/",db,"/forms/",id],example)
+	.error(403).then(next);
 });
 
 // ## Returns `401 Unauthorized` 
@@ -110,7 +157,20 @@ TEST("Returns 403 no admin access.", function(next) {
 //   or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(next) {
-    Assert.fail();
+
+    var example = {
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+
+    Test.query("PUT",["db/",db,"/forms/",id],example,{tok:"0123456789a",id:"0123456789a"})
+	.error(401).then(next);    
+
 });
 
 // # Access restrictions
