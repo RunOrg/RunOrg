@@ -58,7 +58,23 @@ TEST("The response has valid return code and content type.", function(next) {
 //       "at" : [[2,218]] }
 
 TEST("Group with forced id appears.", function(next) {
-    Assert.fail();
+
+    var id = "board";
+    var example = { "id" : id, "label" : "Board members" };
+
+    var db = Query.mkdb();
+    var token = Query.auth(db);
+    
+    Test.query("POST",["db/",db,"/groups/create"],example,token).response().then(function(){
+
+	var get = Test.query("GET",["db/",db,"/groups/",id,"/info"],token).result();
+	
+	[
+	    Assert.areEqual({"id":id,"label":"Board members",count:0}, get)
+	].then(next);
+
+    });
+
 });
 
 TEST("New group with forced id created after deletion.", function(next) {
