@@ -141,7 +141,7 @@ let clock t =
 (* Save the clock. This is exclusively called internally to save checkpoints. *)
 let save_clock t clock = 
   let! id = id t in 
-  let () = if trace_events then Log.trace "Checkpoint %s : %s" (t.name) (Clock.to_json_string clock) in
+  let () = if trace_events then Log.trace "[%s] checkpoint  : %s" (t.name) (Clock.to_json_string clock) in
   Sql.command ("UPDATE \"meta:projections\" SET \"clock\" = $1 WHERE \"id\" = $2")
     [ `Binary (Pack.to_string Clock.pack clock) ; `Int id ]
 
@@ -163,12 +163,11 @@ let run t =
 	continue
       
       else 
+
+	let start = Unix.gettimeofday () in
 	
 	let! () = Sql.transaction begin 
 
-	  let () = if trace_events then 
-	      Log.trace "Found %d new events for %s" (List.length ready_actions) (t.name) in
-	  
 	  let! c = clock t in 	  
 	  
 	  let! c = List.M.fold_left begin fun clock (action,time) -> 
@@ -179,6 +178,9 @@ let run t =
 	  save_clock t c
 	    
 	end in 
+
+	let () = if trace_events then Log.trace "[%s] proc %.3fs : %d events " 
+	    t.name (Unix.gettimeofday () -. start) (List.length ready_actions) in
 	
 	continue
 	  
@@ -238,18 +240,22 @@ exception LeftBehind of string * Clock.t * Clock.t
 let wait_until_after t after = 
 
   (* On failure, waits 100 * 2^{2 * number of tries} milliseconds: 
-       100 ; 400 ; 1600 ; 25600 ; raise LeftBehind
-     Max waiting time = 27.7s *)
+       50 ; 100 ; 400 ; 1600 ; 25600 ; raise LeftBehind
+     Max waiting time = 27.75s *)
   let rec retry attempts = 
      (* TODO: attempt with a cached version first. *)
      let! current = clock t in 
-     if Clock.earlier_than_constraint after current then return () else
-       if attempts = 4 then raise (LeftBehind (t.name, current, after)) else
-         let! () = Run.sleep (float_of_int (1 lsl (2 * attempts)) *. 100.) in
+     if Clock.earlier_than_constraint after current then return attempts else
+       if attempts = 5 then raise (LeftBehind (t.name, current, after)) else
+         let! () = Run.sleep (float_of_int (1 lsl (2 * attempts)) *. 50.) in
          retry (attempts + 1)
   in
   
-  retry 0
+  let  start = Unix.gettimeofday () in
+  let! attempts = retry 0 in
+  let () = if trace_events && attempts > 0 then Log.trace "[%s] wait %.3fs : %s" 
+      t.name (Unix.gettimeofday () -. start) (Json.serialize (Clock.to_json after)) in
+  return () 
 
 let wait ?clock t = 
 

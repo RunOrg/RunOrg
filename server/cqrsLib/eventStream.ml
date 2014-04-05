@@ -110,7 +110,6 @@ end) -> struct
 
       let! id = id () in
       let  clock = Clock.at id (int_of_string (result.(0).(0))) in
-      let  () = if trace_events then Log.trace "Created event at %s" (Clock.to_json_string clock) in
       Run.return clock
 
   (* Reading events 
@@ -179,11 +178,6 @@ end) -> struct
       Seq.map begin fun wrap -> 
 
 	let ev = wrap # event and clock = wrap # clock and db = wrap # db and time = wrap # time in 
-
-	let () = 
-	  if trace_events then 
-	    Log.trace "Stream event %s:%s@%s" Event.name (Time.to_iso8601 time) (Id.to_string db)
-	in
 
 	(Run.edit_context (fun ctx -> (ctx # with_time time) # with_db db)
 	   (List.M.iter_seq (fun action -> action ev) actions)), clock
