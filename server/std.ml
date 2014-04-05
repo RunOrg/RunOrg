@@ -222,6 +222,11 @@ module List = struct
   let find_map f list = 
     try Some (find_map f list) with Not_found -> None
 
+  (** [find_bad list] finds the first element [Bad x] in the list, and returns
+      [Some x], [None] otherwise. *)
+  let find_bad list = 
+    find_map (function Bad x -> Some x | _ -> None) list
+
 end
 
 (** Shorthand notation for [sprintf] *)
