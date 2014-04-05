@@ -63,8 +63,9 @@ let contacts =
    ================= *)
 
 module Info = type module <
-  label : String.Label.t option ;
-  count : int ; 
+  label    : String.Label.t option ;
+  count    : int ; 
+  audience : GroupAccess.Audience.t ; 
 >
 
 let info = 
@@ -77,8 +78,10 @@ let info =
   let count gid = 
     let! count = Cqrs.ManyToManyView.count contacts gid in 
     Cqrs.MapView.update info gid (function
-      | None -> if GId.is_admin gid then `Put (Info.make ~label:None ~count:0) else `Keep
-      | Some g -> if g # count = count then `Keep else `Put (Info.make ~label:(g#label) ~count))
+      | None -> 
+	if GId.is_admin gid then `Put (Info.make ~label:None ~count:0 ~audience:Map.empty) else `Keep
+      | Some g -> 
+	if g # count = count then `Keep else `Put (Info.make ~label:(g#label) ~audience:(g#audience) ~count))
   in
 
   let () = Store.track infoV begin function 
@@ -87,7 +90,7 @@ let info =
 
       Cqrs.MapView.update info (ev # id) 
 	(function 
-	| None   -> `Put (Info.make ~label:(ev # label) ~count:0)
+	| None   -> `Put (Info.make ~label:(ev # label) ~count:0 ~audience:(ev # audience))
 	| Some _ -> `Keep) 
 
     | `Deleted ev ->
