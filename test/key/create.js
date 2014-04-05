@@ -1,18 +1,29 @@
 // POST /db/{db}/keys/create
 // Keys / Create new API key
 //
-// Alpha @ 0.1.34
+// Alpha @ 0.1.40
 // 
 // `202 Accepted`,
 // [Delayed](/docs/#/concept/delayed.md).
 
 TEST("The response has valid return code and content type.", function(next) {
-    Assert.fail();
+
+    var example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var response = Test.query("POST",["db/",db,"/keys/create"],example,auth).response();
+
+    [
+	Assert.areEqual(202, response.map('status')),
+	Assert.isTrue(response.map('responseJSON'), "Response type is JSON")
+    ].then(next);
+
 });
 
 //
-// Create a new key in this database. It can immediately be used to 
-// authenticate requests.
+// Contact [`{as}`](/docs/#/concept/as.md) creates a new key in this database. 
+// It can immediately be used to authenticate requests.
 //
 // The IP address of the client will be logged by this request.
 //
@@ -55,7 +66,15 @@ TEST("The response has valid return code and content type.", function(next) {
 //       "at": [[2,87]] }
 
 TEST("Creation works.", function(next) {
-    Assert.fail();
+
+    var example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var idlen = Test.query("POST",["/db/",db,"/keys/create"],example,auth).result("id","length");
+
+    Assert.areEqual(11,idlen).then(next);
+
 });
 
 // # Errors
@@ -64,22 +83,42 @@ TEST("Creation works.", function(next) {
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(next) {
-    Test.query("POST","/db/00000000001/keys/create",{}).error(404).then(next);
+
+    var example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
+
+    Test.query("POST","/db/00000000001/keys/create",example).error(404).then(next);
+
+});
+
+//
+// ## Returns `403 Forbidden`
+// - ... if the provided `{as}` may not create keys. 
+
+TEST("Returns 401 when token is not valid.", function(next) {
+
+    var example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db,false);
+
+    Test.query("POST",["db/",db,"/keys/create"],example,auth).error(403).then(next);
+
 });
 
 //
 // ## Returns `401 Unauthorized`
-// - ... if the provided token does not allow the creation of keys, or no token
-//   was provided
+// - ... if the provided token does not match the `{as}` contact. 
 
 TEST("Returns 401 when token is not valid.", function(next) {
+
+    var example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
+
     var db = Query.mkdb();
-    Test.query("POST",["db/",db,"/keys/create"],[]).error(401).then(function() {
-	Test.query("POST",["db/",db,"/keys/create"],[],"0123456789a").error(401).then(next);
-    });
+    Test.query("POST",["db/",db,"/keys/create"],example,{token:"0123456789a",id:"0123456789a"})
+	.error(401).then(next);
 });
 
 //
 // # Access restrictions
 //
-// Only database administrators can create new keys. 
+// Only [database administrators](/docs/#/group/admin.md) can create new keys. 

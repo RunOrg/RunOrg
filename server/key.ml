@@ -14,7 +14,12 @@ module Hash = type module
    ======================= *)
 
 module Events = type module 
-    [ `Created of < id : I.t ; ip : IpAddress.t ; hash : Hash.t ; key : string >
+    [ `Created of < 
+      id   : I.t ; 
+      cid  : CId.t option ; 
+      ip   : IpAddress.t ; 
+      hash : Hash.t ; 
+      key  : string >
     ]
 
 module Store = Cqrs.Stream(struct
@@ -31,6 +36,7 @@ module Value = type module <
   hash : Hash.t ; 
   key : string ; 
   ip : IpAddress.t ;
+  cid : CId.t option ; 
   time : Time.t ;
   enabled : bool 
 >
@@ -49,7 +55,7 @@ let value =
       Cqrs.MapView.update value (ev # id)
 	(function 
 	| None   -> `Put (Value.make ~hash:(ev # hash) ~key:(ev # key) ~ip:(ev # ip)
-			    ~time:(ctx # time) ~enabled:true)
+			    ~time:(ctx # time) ~cid:(ev # cid) ~enabled:true)
 	| Some _ -> `Keep)
 
   end in
@@ -59,10 +65,21 @@ let value =
 (* Commands 
    ======== *)
 
-let create ip hash key = 
-  let  id = I.gen () in
-  let! clock = Store.append [ Events.created ~id ~hash ~key ~ip ] in
-  return (id, clock)
+(* Who is allowed to create new forms ? *)
+let create_audience = Audience.admin 
+
+let create cid ip hash key = 
+  
+  let! allowed = Audience.is_member cid create_audience in 
+  
+  if not allowed then 
+    let! ctx = Run.context in 
+    return (`NeedAccess (ctx # db))
+  else
+
+    let  id = I.gen () in
+    let! clock = Store.append [ Events.created ~id ~cid ~hash ~key ~ip ] in
+    return (`OK (id, clock))
  
 (* Queries 
    ======= *)

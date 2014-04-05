@@ -21,15 +21,19 @@ module Create = Endpoint.Post(struct
 
   let path = "keys/create"
 
+  let needAccess id = 
+    `Forbidden (!! "Not allowed to create keys in database %S." (Id.to_string id))
+
   let response req () post = 
 
     let key = match post # encoding with 
       | `hex -> String.hex_decode (post # key) 
     in
 
-    let! id, at = Key.create (req # client_ip) (post # hash) key in
-
-    return (`Accepted (Out.make ~id ~at))
+    let! result = Key.create (req # as_) (req # client_ip) (post # hash) key in
+    match result with 
+    | `OK   (id, at) -> return (`Accepted (Out.make ~id ~at))
+    | `NeedAccess id -> return (needAccess id) 
 
 end)
 

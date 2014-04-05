@@ -11,7 +11,11 @@ end
 module Hash : Fmt.FMT with type t = [ `SHA1 ]
 
 (** Create a new key in the current database, using the provided hash and bytes. *)
-val create : IpAddress.t -> Hash.t -> string -> ( #O.ctx, I.t * Cqrs.Clock.t ) Run.t
+val create : 
+  CId.t option -> 
+  IpAddress.t -> 
+  Hash.t -> string -> ( #O.ctx, [ `OK of I.t * Cqrs.Clock.t 
+				| `NeedAccess of Id.t ]) Run.t
 
 (** HMAC an assertion with the specified key. Returns [None] if the key does 
     not exist. Returned data includes: 
