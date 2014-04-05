@@ -20,8 +20,8 @@ Route.add(/^\/docs\/#\/(.+)$/, function(R,path) {
 		    for (var k in meta.cat) {
 			if (k == '__' || k == '_f') continue;
 			var sub = meta.cat[k];
-			if (!sub.fixture || !sub.fixture.verb) continue;
-			inner.push(sub.fixture);
+			if (!sub._f || !sub._f.verb) continue;
+			inner.push(sub._f);
 		    }
 		}
 

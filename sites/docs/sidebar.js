@@ -13,12 +13,13 @@
 
 		// If category node has an associated document
 		if (tree._f) {
-		    out.count += tree._f.tests || 0;
-		    out.rcount += tree._f.rcount || 0;
-		    out.ok = out.ok && !tree._f.failed;
-		    out.file = "/docs/#/" + tree._f.file;
-		    out.verb = tree._f.verb || "";
-		    out.path = tree._f.path || "";
+		    var fixture = tree._f;
+		    out.count += fixture.tests;
+		    out.rcount += fixture.rcount;
+		    out.ok = out.ok && !fixture.hasFailed();
+		    out.file = "/docs/#/" + fixture.file;
+		    out.verb = fixture.verb;
+		    out.path = fixture.path;
 		}
 
 		// Recurse through subnodes to populate 'out.sub' and 'out.tests'
@@ -32,21 +33,22 @@
 			out.count += s.count;
 			out.rcount += s.rcount;
 			out.ok = out.ok && s.ok;
-		    } else {                
+		    } else {             
+			var fixture = node._f;
 			out.tests.push({ 
 			    name: k, 
-			    ok:   !node.fixture.failed,
-			    ran:  node.fixture.ran,
-			    verb: node.fixture.verb,
-			    path: node.fixture.path,
-			    file: "/docs/#/" + node.fixture.file,
-			    count: node.fixture.tests,
-			    failed: node.fixture.failed
+			    ok:   !fixture.hasFailed(),
+			    ran:  fixture.ran,
+			    verb: fixture.verb,
+			    path: fixture.path,
+			    file: "/docs/#/" + fixture.file,
+			    count: fixture.tests,
+			    failed: fixture.failed
 			});
-			out.count += node.fixture.tests || 0;
-			out.rcount += node.fixture.rcount || 0;
-			out.ok = out.ok && !node.fixture.failed;
-			out.ran = out.ran && (!node.fixture.tests || node.fixture.ran);
+			out.count += fixture.tests;
+			out.rcount += fixture.rcount;
+			out.ok = out.ok && fixture.hasFailed();
+			out.ran = out.ran && fixture.hasRun();
 		    }
 		}
 		out.ran = out.ran && out.count > 0;

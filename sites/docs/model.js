@@ -2,6 +2,41 @@
 
 var Test = (function() {
 
+    function Fixture(data) {
+	this.verb = data.verb || null;
+	this.path = data.path || null;
+	this.file = data.file;
+	this.categories = data.categories;
+	this.description = data.description;
+	this.tests = data.tests || 0;
+
+	this.ran = false;
+	this.rcount = 0;
+	this.failed = [];
+    }
+
+    Fixture.prototype = {
+
+	startTesting: function() {	    
+	    this.ran = false;
+	    this.rcount = 0;
+	    this.failed = [];
+	},
+	
+	hasFailed: function() {
+	    return this.ran && this.failed.length > 0;
+	},
+
+	hasTests: function() {
+	    return this.tests > 0;
+	},
+
+	hasRun: function() {
+	    return this.tests == 0 || this.ran;
+	}
+	
+    };
+
     return {
 
 	// Returns all test fixtures, with the following format: 
@@ -17,7 +52,9 @@ var Test = (function() {
 	    Test.all_ = [ callback ];
 	    Test.all  = function(callback) { Test.all_.push(callback); };
 	    $.get("/docs/all.json",function(contents){
-		Test.all = function(callback) { callback(contents); };
+		var fixtures = {};
+		for (var k in contents) fixtures[k] = new Fixture(contents[k]);
+		Test.all = function(callback) { callback(fixtures); };
 		for (var i = 0; i < Test.all_.length; ++i) Test.all(Test.all_[i]);
 	    });
 	},
@@ -46,9 +83,7 @@ var Test = (function() {
 			if (cat in root) {
 			    if (root[cat].__ == 'test') {
 				root[cat].__ = 'cat';
-				root[cat]._f = root[cat].fixture;
 				root[cat]._f.cat = root[cat];
-				delete root[cat].fixture;
 			    }
 			} else {
 			    root[cat] = { '__' : "cat" };
@@ -59,7 +94,7 @@ var Test = (function() {
 			root[test.description]._f = test;
 			test.cat = root[test.description];
 		    } else {
-			root[test.description] = { '__' : 'test', fixture: test };
+			root[test.description] = { '__' : 'test', '_f': test };
 		    }
 		}
 		Test.tree = function(callback) { callback(tree); };
@@ -98,10 +133,8 @@ var Test = (function() {
 	    Test.all(function(fixtures){
 
 		for (var k in fixtures) {
-		    if (!fixtures[k].tests) continue;
-		    fixtures[k].ran = false;
-		    fixtures[k].rcount = 0;
-		    fixtures[k].failed = [];
+		    if (!fixtures[k].hasTests()) continue;
+		    fixtures[k].startTesting();
 		    all.push(k);
 		}
 
