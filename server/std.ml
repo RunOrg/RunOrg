@@ -217,6 +217,11 @@ module List = struct
   let of_map zip map = 
     Map.foldi (fun k v list -> (zip k v) :: list) map []
 
+  (** [find_map pred list] returns [pred x] for the first element such that 
+      [pred x <> None], and [None] otherwise. *)
+  let find_map f list = 
+    try Some (find_map f list) with Not_found -> None
+
 end
 
 (** Shorthand notation for [sprintf] *)
