@@ -109,6 +109,20 @@ module FormInfo = type module <
   access : Form.Access.Set.t ;
 >
 
+let make_info cid = 
+  let compute = Form.Access.compute cid in
+  fun f -> 
+    let! access = compute (f # audience) in
+    if not (Set.mem `Fill access) then return None else 
+      return (Some (FormInfo.make 
+		      ~id:(f # id)
+		      ~owner:(f # owner)
+		      ~label:(f # label)
+		      ~fields:(f # fields)
+		      ~custom:(f # custom)
+		      ~audience:(if Set.mem `Admin access then Some (f # audience) else None)
+		      ~access))
+
 module Get = Endpoint.Get(struct
 
   module Arg = type module < id : Form.I.t >
@@ -122,15 +136,26 @@ module Get = Endpoint.Get(struct
 
     let! form = Form.get (arg # id) in
     match form with None -> return notFound | Some f -> 
-      let! access = Form.Access.compute (req # as_) (f # audience) in
-      if not (Set.mem `Fill access) then return notFound else 
-	return (`OK (FormInfo.make 
-		       ~id:(f # id)
-		       ~owner:(f # owner)
-		       ~label:(f # label)
-		       ~fields:(f # fields)
-		       ~custom:(f # custom)
-		       ~audience:(if Set.mem `Admin access then Some (f # audience) else None)
-		       ~access))
+      let! info = make_info (req # as_) f in
+      match info with None -> return notFound | Some f ->
+	return (`OK f) 
     	
+end)
+
+module List = Endpoint.Get(struct
+
+  module Arg = type module unit
+  module Out = type module <
+    list  : FormInfo.t list ; 
+  >
+
+  let path = "forms"
+
+  let response req args = 
+    let limit = Option.default 1000 (req # limit) in
+    let offset = Option.default 0 (req # offset) in
+    let! forms = Form.list (req # as_) ~limit ~offset in
+    let! list = List.M.filter_map (make_info req # as_) forms in 
+    return (`OK (Out.make ~list))
+
 end)
