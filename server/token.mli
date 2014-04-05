@@ -25,3 +25,5 @@ val is_server_admin : I.t -> (# O.ctx, [`ServerAdmin] I.id option) Run.t
 (** Check whether a token exists and is a contact of the current database. *)
 val is_contact : I.t -> (# O.ctx, [`Auth] CId.id option) Run.t
 
+(** Can a token impersonate the provided contact ? *)
+val can_be : I.t -> CId.t -> (# O.ctx, bool) Run.t

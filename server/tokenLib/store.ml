@@ -61,3 +61,11 @@ let is_contact id =
     | Some (`Contact (db,cid)) when db = ctx # db -> return (Some (CId.Assert.auth cid))
     | _ -> return None
   
+let can_be id cid = 
+  let! ctx = Run.context in  
+  let! owner = load id in 
+  match owner with 
+    | Some (`Contact (db,cid')) when db = ctx # db && cid = cid' -> return true
+    | Some (`ServerAdmin) -> return true
+    | _ -> return false
+  
