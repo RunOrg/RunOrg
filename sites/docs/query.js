@@ -143,6 +143,8 @@ Query.prototype = {
 // async object functions
 Query.create = function(verb, url, data, auth) {
 
+    if (verb == "GET" || verb == "DELETE") auth = data;
+
     var token = auth ? auth.token : void(0);
     var as = auth ? auth.id : void(0);
 
