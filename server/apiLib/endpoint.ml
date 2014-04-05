@@ -194,9 +194,10 @@ module Dictionary = struct
 	| Some action -> action req 
       end
       | (h :: _) as list -> 
-	try List.find_map lens list req 
-	with Not_found -> return (method_not_allowed (h.path) (allow h))
-
+	match List.find_map lens list with 
+	| Some f -> f req 
+	| None   -> return (method_not_allowed (h.path) (allow h))
+	  
 end
 
 (* GET endpoints
