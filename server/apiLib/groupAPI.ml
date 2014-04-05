@@ -2,6 +2,9 @@
 
 open Std
 
+let notFound gid = 
+  `NotFound (!! "Group '%s' does not exist." (GId.to_string gid))
+
 module Create = Endpoint.Post(struct
 
   module Arg = type module unit
@@ -99,7 +102,7 @@ module GetInfo = Endpoint.Get(struct
   let response req args = 
     let! group_opt = Group.get (args # gid) in
     match group_opt with Some group -> return (`OK group) | None ->
-      return (`NotFound (!! "Group '%s' does not exist" (GId.to_string (args # gid))))
+      return (notFound (args # gid))
 
 end)
 
@@ -110,12 +113,18 @@ module Delete = Endpoint.Delete(struct
 
   let path = "groups/{id}"
 
+  let needAdmin gid = 
+    `Forbidden (!! "You need 'admin' access to delete group %s." (GId.to_string gid))
+
   let response req args = 
     if GId.is_admin (args # id) then 
       return (`Forbidden "Admin group cannot be deleted")
     else 
-      let! at = Group.delete (req # as_) (args # id) in
-      return (`Accepted (Out.make ~at))
+      let! result = Group.delete (req # as_) (args # id) in
+      match result with 
+      | `OK         at -> return (`Accepted (Out.make ~at))
+      | `NotFound  gid -> return (notFound gid)
+      | `NeedAdmin gid -> return (needAdmin gid)
 
 end)
 

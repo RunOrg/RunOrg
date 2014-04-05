@@ -38,5 +38,13 @@ let remove cid contacts groups =
     Store.append [ Events.removed ~cid ~contacts ~groups ]
 
 let delete cid id = 
-  let! clock = Store.append [ Events.deleted ~cid ~id ] in
-  return clock 
+  let! info = Cqrs.MapView.get View.info id in 
+  match info with None -> return (`NotFound id) | Some info -> 
+
+    let! access = GroupAccess.compute cid (info # audience) in
+    
+    if Set.mem `Admin access then 
+      let! clock = Store.append [ Events.deleted ~cid ~id ] in
+      return (`OK clock) 
+    else
+      return (`NeedAdmin id) 

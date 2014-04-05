@@ -36,7 +36,9 @@ val remove : CId.t option -> CId.t list -> GId.t list -> (#O.ctx, Cqrs.Clock.t) 
 
 (** Delete a group. If the group does not exist (or is delete-protected), nothing 
     happens. *)
-val delete : CId.t option -> GId.t -> (# O.ctx, Cqrs.Clock.t) Run.t
+val delete : CId.t option -> GId.t -> (# O.ctx, [ `OK of Cqrs.Clock.t
+						| `NeedAdmin of GId.t 
+						| `NotFound of GId.t ]) Run.t
 
 (** List the members of a group. *)
 val list : ?limit:int -> ?offset:int -> GId.t -> (#O.ctx, CId.t list * int) Run.t
