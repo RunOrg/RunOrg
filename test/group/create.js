@@ -20,6 +20,7 @@
 //       "at" : <clock> }
 
 TEST("The response has valid return code and content type.", function(next) {
+
     var example = { "label" : "Board members" };
 
     var db = Query.mkdb();
@@ -144,19 +145,33 @@ TEST("Multiple creations create multiple groups.", function(next) {
 });
 
 // # Errors
-// 
-// ## Returns `404 Not Found`
-// - ... if database `{db}` does not exist
-
-TEST("Returns 404 when database does not exist.", function(next) {
-    Assert.fail();
-});
-
+//
 // ## Returns `400 Bad Request`
 // - ... if the provided identifier is not a valid [custom 
 //   identifier](/docs/#/types/custom-id.js)
 
 TEST("Returns 400 when custom id is invalid.", function(next) {
+
+    var ex1 = { "id": "a-b", "label" : "Invalid character" };
+    var ex2 = { "id": "0123456789a", "label" : "Too long" };
+
+    var db = Query.mkdb();
+    var token = Query.auth(db);
+    var r1 = Test.query("POST",["db/",db,"/groups/create"],ex1,token).response();
+    var r2 = Test.query("POST",["db/",db,"/groups/create"],ex2,token).response();
+    
+    [
+	Assert.areEqual(400, r1.map('status')),
+	Assert.areEqual(400, r2.map('status'))
+    ].then(next);
+
+    Assert.fail();
+});
+ 
+// ## Returns `404 Not Found`
+// - ... if database `{db}` does not exist
+
+TEST("Returns 404 when database does not exist.", function(next) {
     Assert.fail();
 });
 
