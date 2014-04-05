@@ -205,15 +205,12 @@ TEST("Returns 409 when re-creating the admin group.", function(next) {
 });
 
 // ## Returns `401 Unauthorized` 
-// - ... if the provided token does not match the `as` contact,
-//   or no token was provided
+// - ... if the provided token does not match the `as` contact.
 
 TEST("Returns 401 when token is not valid.", function(next) {
     var db = Query.mkdb();
-    Test.query("POST",["db/",db,"/groups/create"],{}).error(401).then(function() {
-	Test.query("POST",["db/",db,"/groups/create"],{},{tok:"0123456789a",id:"0123456789a"})
-	    .error(401).then(next);
-    });
+    Test.query("POST",["db/",db,"/groups/create"],{},{tok:"0123456789a",id:"0123456789a"})
+	.error(401).then(next);    
 });
 
 // # Access restrictions
