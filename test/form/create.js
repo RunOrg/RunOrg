@@ -58,16 +58,24 @@ TEST("The response has valid return code and content type.", function(next) {
 // semantics rather than _create or replace_. 
 
 TEST("Form with forced id appears.", function(next) {
-    Assert.fail();
-});
 
-TEST("Form with forced id is not overwritten.", function(next) {
-    Assert.fail();
-});
+    var example = {
+	"id": "personal",
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
 
+    var db = Query.mkdb();
+    var token = Query.auth(db);
+    var id = Test.query("POST",["db/",db,"/forms/create"],example,token).result('id');
+    var owner = Test.query("GET",["db/",db,"/forms/",id],token).result("owner");
+    
+    [
+	Assert.areEqual(example.id,id),
+	Assert.areEqual(example.owner,owner)
+    ].then(next);
 
-TEST("New form with forced id created after deletion.", function(next) {
-    Assert.fail();
 });
 
 //
@@ -76,7 +84,23 @@ TEST("New form with forced id created after deletion.", function(next) {
 // form. 
 
 TEST("Multiple creations create multiple forms.", function(next) {
-    Assert.fail();
+
+    var example = { 
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+
+    var id1 = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id2 = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    
+    [
+	Assert.notEqual(id1, id2),
+    ].then(next);
+
 });
 
 //
@@ -119,39 +143,100 @@ TEST("Multiple creations create multiple forms.", function(next) {
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(next) {
-    Assert.fail();
+
+    var example = { 
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
+
+    Test.query("POST",["db/00000000000/forms/create"],example)
+	.error(404).then(next);
+        
 });
 
 // ## Returns `403 Forbidden`
 // - ... if contact `{as}` cannot create a form.
 
 TEST("Returns 403 when contact cannot create a form.", function(next) {
-    Assert.fail();
+
+    var example = { 
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db,false);
+    
+    Test.query("POST",["db/",db,"/forms/create"],example,auth)
+	.error(403).then(next);
+    
 });
 
 // ## Returns `400 Bad Request`
 // - ... if the provided identifier is not a valid [custom 
 //   identifier](/docs/#/types/custom-id.js)
 
-TEST("Returns 400 when custom id is invalid.", function(next) {
-    Assert.fail();
+TEST("Returns 400 when custom id is invalid.", function(next) {   
+
+    var ex1 = { "id": "a-b", "fields": [], "audience": {}, "owner": "contact" };
+    var ex2 = { "id": "0123456789a",  "fields": [], "audience": {}, "owner": "contact" };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var r1 = Test.query("POST",["db/",db,"/forms/create"],ex1,auth).response();
+    var r2 = Test.query("POST",["db/",db,"/forms/create"],ex2,auth).response();
+    
+    [
+	Assert.areEqual(400, r1.map('status')),
+	Assert.areEqual(400, r2.map('status'))
+    ].then(next);
+
 });
 
 // ## Returns `409 Conflict`
 // - ... if a form already exists with the provided identifier.
 
 TEST("Returns 409 when the form exists.", function(next) {
-    Assert.fail();
+
+    var example = {
+	"id": "personal",
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
+
+    var db = Query.mkdb();
+    var token = Query.auth(db);
+    var id = Test.query("POST",["db/",db,"/forms/create"],example,token).result('id');
+
+    var example2 = {
+	"id": id,
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
+
+    Test.query("POST",["db/",db,"/forms/create"],example2,token).error(409).then(next);
 });
 
 // ## Returns `401 Unauthorized` 
-// - ... if the provided token does not match contact `{as}`,
-//   or no token was provided
+// - ... if the provided token does not match contact `{as}`.
 
 TEST("Returns 401 when token is not valid.", function(next) {
-    Assert.fail();
+
+    var example = {
+	"owner": "contact",
+	"audience": {},
+	"fields": []
+    };
+
+    var db = Query.mkdb();
+    Test.query("POST",["db/",db,"/forms/create"],example,{tok:"0123456789a",id:"0123456789a"})
+	.error(401).then(next);    
 });
 
 // # Access restrictions
 //
-// Contact `{as}` must be an [administrator](/docs/#/group/admin.md). 
+// Contact `{as}` must be a [database administrator](/docs/#/group/admin.md). 
