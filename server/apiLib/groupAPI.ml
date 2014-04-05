@@ -6,8 +6,9 @@ module Create = Endpoint.Post(struct
 
   module Arg = type module unit
   module Post = type module <
-    ?id    : string option ; 
-    ?label : String.Label.t option ;
+    ?id       : string option ; 
+    ?label    : String.Label.t option ;
+    ?audience : Group.Access.Audience.t = Map.empty ;
   >
 
   module Out = type module <
@@ -27,7 +28,7 @@ module Create = Endpoint.Post(struct
     match Option.bind (post # id) CustomId.validate, post # id with 
     | None, Some id -> return (`BadRequest (!! "%S is not a valid identifier" id))
     | _, Some "admin" -> return (`Conflict "Group 'admin' is a reserved identifier")
-    | id, _ -> let! result = Group.create ?id ?label:(post # label) (req # as_) in
+    | id, _ -> let! result = Group.create (req # as_) ?id ?label:(post # label) (post # audience) in
 	       match result with 
 	       | `OK       (id,at) -> return (`Accepted (Out.make ~id ~at))
 	       | `NeedAccess    id -> return (needAccess id)

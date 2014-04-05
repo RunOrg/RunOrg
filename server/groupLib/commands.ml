@@ -5,7 +5,7 @@ open Std
 (* Who is allowed to create new groups ? *)
 let create_audience = Audience.admin 
 
-let create ?label ?id cid = 
+let create cid ?label ?id audience = 
 
   let! id = match id with 
     | None -> return (Ok (GId.gen ()))
@@ -23,7 +23,7 @@ let create ?label ?id cid =
       return (`NeedAccess (ctx # db))
     else
 
-      let! clock = Store.append [ Events.created ~cid ~id ~label ] in
+      let! clock = Store.append [ Events.created ~cid ~id ~label ~audience ] in
       return (`OK (id, clock))
 
 let add cid contacts groups = 

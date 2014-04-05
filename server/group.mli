@@ -16,9 +16,10 @@ module Access : Access.T with type t =
     @param id A custom identifier. Must be alphanumeric and 10 or fewer characters long. If a 
               group with that identifier already exists, nothing happens. *)
 val create : 
+   CId.t option ->
   ?label:String.Label.t -> 
   ?id:CustomId.t ->   
-  CId.t option -> (#O.ctx, [ `OK of GId.t * Cqrs.Clock.t
+   Access.Audience.t -> (#O.ctx, [ `OK of GId.t * Cqrs.Clock.t
 			   | `NeedAccess of Id.t
 			   | `AlreadyExists of CustomId.t ]) Run.t
 

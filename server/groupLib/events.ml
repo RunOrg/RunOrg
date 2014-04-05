@@ -6,7 +6,8 @@ include type module
     [ `Created of < 
         id : GId.t ; 
         cid : CId.t option ; 
-	label : String.Label.t option 
+	label : String.Label.t option ;
+	audience : GroupAccess.Audience.t ; 
       > 
     | `Deleted of < 
 	id : GId.t ;
