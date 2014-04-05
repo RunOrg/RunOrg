@@ -235,7 +235,10 @@ let of_finite_cursor fetch cursor =
 
   { finite = true ; next ; wait }
 
-let of_infinite_cursor ?(wait=10000.0) fetch cursor = 
+let of_infinite_cursor ?wait fetch cursor = 
+
+  let rec defwait n = if n < 5 then defwait (n + 1) /. 2. else 10000.0 in
+  let wait = Option.default defwait wait in
 
   let q = Queue.create () in
   let semaphore = new Run.semaphore in 
@@ -243,15 +246,15 @@ let of_infinite_cursor ?(wait=10000.0) fetch cursor =
   let runs = ref false in
 
   (* Extracts data from the source. Keeps going until data is available. *)
-  let rec extract () = 
+  let rec extract retries = 
     let! list, c = fetch !cursor in 
     let () = 
       cursor := Some c ;
       List.iter (fun x -> Queue.push x q) list ;
     in
     if list = [] then 
-      let! () = Run.sleep wait in
-      extract () 
+      let! () = Run.sleep (wait retries) in
+      extract (retries + 1) 
     else       
       return (fun () -> semaphore # give (List.length list))
   in
@@ -260,7 +263,7 @@ let of_infinite_cursor ?(wait=10000.0) fetch cursor =
   let run () = 
     if !runs then return () else        
       let  () = runs := true in 
-      let! finish = extract () in 
+      let! finish = extract 0 in 
       let  () = runs := false in      
       finish () 
   in

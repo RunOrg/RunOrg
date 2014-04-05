@@ -147,7 +147,10 @@ end) -> struct
     Run.return (match Clock.get clock id with None -> 0 | Some n -> n + 1)
 
   let follow clock = 
-    Seq.of_infinite_cursor ~wait:Configuration.Database.poll begin fun start_opt -> 
+
+    let rec wait n = if n < 5 then (wait (n + 1)) /. 2. else Configuration.Database.poll in
+
+    Seq.of_infinite_cursor ~wait begin fun start_opt -> 
       
       let! start = match start_opt with 
 	| Some start -> Run.return start 

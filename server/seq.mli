@@ -73,9 +73,10 @@ val of_finite_cursor :
     take unbounded time.
 
     The optional wait time is expressed in milliseconds, and happens when
-    no more data is available.
+    no more data is available. The integer argument is the number of successive
+    requests that returned nothing. 
 *)
 val of_infinite_cursor : 
-  ?wait:float -> 
+  ?wait:(int -> float) -> 
   ('cursor option -> ('ctx, 'a list * 'cursor) Run.t) ->
    'cursor option -> ('ctx, 'a) t
