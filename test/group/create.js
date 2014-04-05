@@ -209,7 +209,10 @@ TEST("Returns 409 when re-creating the admin group.", function(next) {
 //   or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(next) {
-    Assert.fail();
+    var db = Query.mkdb();
+    Test.query("POST",["db/",db,"/groups/create"],{}).error(401).then(function() {
+	Test.query("POST",["db/",db,"/groups/create"],{},"0123456789a").error(401).then(next);
+    });
 });
 
 // # Access restrictions
