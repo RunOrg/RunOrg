@@ -1,4 +1,4 @@
-// GET /db/{db}/forms/{id}?as={as}
+// GET /db/{db}/forms/{id}
 // Forms / Get the meta-data of a form.
 // 
 // Alpha @ 0.1.37
@@ -7,7 +7,8 @@
 // [Read-only](/docs/#/concept/read-only.md),
 // [Viewer-dependent](/docs/#/concept/viewer-dependent.md).
 //
-// For a given form, returns the meta-data that can be seen by contact `{as}`.
+// Contact [`{as}`](/docs/#/concept/as.md) retrieves returns the meta-data that 
+// they can see about a form.
 // Different fields have a different access level, and will be missing unless the
 // contact has that access level. 
 //

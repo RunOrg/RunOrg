@@ -1,4 +1,4 @@
-// POST /db/{db}/forms/create?as={as}
+// POST /db/{db}/forms/create
 // Forms / Create a form
 //
 // Alpha @ 0.1.38
@@ -6,7 +6,7 @@
 // `202 Accepted`, [Delayed](/docs/#/concept/delayed.md), 
 //  sometimes [Idempotent](/docs/#/concept/idempotent.md).
 //
-// Contact `{as}` creates a new form, initially unfilled.
+// Contact [`{as}`](/docs/#/concept/as.md) creates a new form, initially unfilled.
 //
 // ### Request format
 //     { "id" : <customid> | null,

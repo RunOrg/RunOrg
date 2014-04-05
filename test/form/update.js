@@ -1,11 +1,12 @@
-// PUT /db/{db}/forms/{id}?as={as}
+// PUT /db/{db}/forms/{id}
 // Forms / Update a form
 //
 // Alpha @ 0.1.36
 //
 // `202 Accepted`, [Delayed](/docs/#/concept/delayed.md), [Idempotent](/docs/#/concept/idempotent.md).
 //
-// Updates the properties of a form. Note that once a form has been filled (even if only
+// Contact [`{as}`](/docs/#/concept/as.md) updates the properties of a form. Note 
+// that once a form has been filled (even if only
 // once), the list of fields may not be updated (though other properties can). 
 // 
 // ### Request format
