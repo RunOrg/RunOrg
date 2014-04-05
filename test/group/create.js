@@ -78,7 +78,29 @@ TEST("Group with forced id appears.", function(next) {
 });
 
 TEST("New group with forced id created after deletion.", function(next) {
-    Assert.fail();
+
+    var id = "board";
+    var example = { "id" : id, "label" : "Broad members" };
+
+    var db = Query.mkdb();
+    var token = Query.auth(db);
+    
+    Test.query("POST",["db/",db,"/groups/create"],example,token).response().then(function(){
+
+	Test.query("DELETE",["db/",db,"/groups/",id],token).response().then(function(){
+
+	    example.label = "Board members";
+
+	    Test.query("POST",["db/",db,"/groups/create"],example,token).response().then(function(){
+
+		var get = Test.query("GET",["db/",db,"/groups/",id,"/info"],token).result();
+		
+		[
+		    Assert.areEqual({"id":id,"label":"Board members",count:0}, get)
+		].then(next);
+	    });
+	});
+    });
 });
 
 // # Generate-id mode
