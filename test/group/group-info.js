@@ -1,9 +1,8 @@
 // JSON <groupinfo>
 // Groups / A short representation of a group's information
 // 
-// Returned by most API methods that involve contacts. It is intended to 
-// provide data relevant for displaying the contact: its name, picture 
-// and gender. 
+// Returned by most API methods that involve groups. It is intended to 
+// provide data relevant for displaying the group: its label and count.
 // 
 // Typical examples: [listing public groups](/docs/#/group/public.js) or 
 // [groups participating in a chat](/docs/#/chat/get.js). 
