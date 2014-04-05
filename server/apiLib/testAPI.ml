@@ -47,6 +47,6 @@ module AuthDb = Endpoint.Post(struct
 			       return (Cqrs.Clock.merge at at')
 	  else return at in
 	let! token = Token.create owner in
-	return (`OK (Out.make ~id:cid ~token ~at))
+	return (`Accepted (Out.make ~id:cid ~token ~at))
 
 end)
