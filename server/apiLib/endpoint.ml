@@ -37,6 +37,7 @@ type error =
   | `BadRequest of string
   | `Unauthorized of string
   | `NotFound of string 
+  | `Conflict of string
   ]
 
 type 'a read_response = 
@@ -64,6 +65,9 @@ let unauthorized more path error =
 let bad_request more path error = 
   Httpd.json ~status:`BadRequest (error_body more error path)
 
+let conflict more path error = 
+  Httpd.json ~status:`Conflict (error_body more error path)
+
 let method_not_allowed path allowed = 
   Httpd.json ~headers:[ "Allowed", String.concat ", " allowed] ~status:`MethodNotAllowed
     (error_body None "Method not allowed" path)
@@ -78,12 +82,14 @@ let respond more path to_json = function
   | `NotFound error -> not_found (Some more) path error
   | `Unauthorized error -> unauthorized (Some more) path error
   | `BadRequest error -> bad_request path error
+  | `Conflict error -> conflict (Some more) path error
 
 let respond path to_json = function
   | `Forbidden error -> forbidden None path error
   | `NotFound error -> not_found None path error
   | `Unauthorized error -> unauthorized None path error
   | `BadRequest error -> bad_request path error
+  | `Conflict error -> conflict None path error
   | `WithJSON (more,what) -> respond more path to_json what 
   | `OK out -> Httpd.json (to_json out)
   | `Accepted out -> Httpd.json ~status:`Accepted (to_json out)
