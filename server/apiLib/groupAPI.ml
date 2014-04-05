@@ -47,9 +47,15 @@ module Add = Endpoint.Post(struct
 
   let path = "groups/{id}/add"
 
+  let needModerator gid = 
+    `Forbidden (!! "You need 'moderate' access to add contacts to group %S." (GId.to_string gid))
+
   let response req args post = 
-    let! at = Group.add (req # as_) post [ args # id ] in
-    return (`Accepted (Out.make ~at))
+    let! result = Group.add (req # as_) post [ args # id ] in
+    match result with 
+    | `OK            at -> return (`Accepted (Out.make ~at))
+    | `NeedModerator id -> return (needModerator id)
+    | `NotFound      id -> return (notFound id)
 
 end)
 
@@ -61,9 +67,15 @@ module Remove = Endpoint.Post(struct
 
   let path = "groups/{id}/remove"
 
+  let needModerator gid = 
+    `Forbidden (!! "You need 'moderate' access to add contacts to group %S." (GId.to_string gid))
+
   let response req args post = 
-    let! at = Group.remove (req # as_) post [ args # id ] in
-    return (`Accepted (Out.make ~at))
+    let! result = Group.remove (req # as_) post [ args # id ] in
+    match result with 
+    | `OK            at -> return (`Accepted (Out.make ~at))
+    | `NeedModerator id -> return (needModerator id)
+    | `NotFound      id -> return (notFound id)
 
 end)
 
