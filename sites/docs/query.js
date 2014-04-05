@@ -4,13 +4,14 @@
 // url is an async string function
 // data is an async object function (to be converted to JSON)
 // token is an async string function
-function Query(verb, url, data, token) {
+function Query(verb, url, data, token, as)  {
 
     this.uid = ++Query.uid;
     this.verb = verb;
     this.url = url;
     this.data = data;
     this.token = token;
+    this.as = as;
 
     // When the request is sent, it will be stored here.
     this.request = null;
@@ -41,29 +42,33 @@ Query.prototype = {
 	// Extract all the asynchronous data.
 	query.token(function(token) {
 	    query.usedToken = token;
-	    query.url(function(url) {
-		query.data(function(data) {		    
-		    data = JSON.stringify(data);
-		    query.usedData = data;		    
+	    query.as(function(as) {
+		query.usedAs = as;
+		query.url(function(url) {
+		    query.data(function(data) {		    
+			data = JSON.stringify(data);
+			query.usedData = data;		    
 
-		    if (! /^\//.exec(url)) url = "/" + url;
-		    if (Query.clock) url = url + (/\?/.exec(url) ? '&' : '?') + 'at=' + Query.clock; 
-		    query.usedUrl = url;
-		    
-		    // Send the request and save it.
-		    Test.ping();
-		    query.request = $.ajax({
-			url: url,
-			type: query.verb,
-			dataType: 'json',
-			contentType: 'application/json',
-			data: (query.verb == "GET" || query.verb == "DELETE") ? {} : data,
-			beforeSend: function(xhr) {
-			    if (token) xhr.setRequestHeader('Authorization','RUNORG token=' + token);
-			}
-		    }).always(query.pending);
-
-		    query.pending = null;
+		        if (as) url = url + (/\?/.exec(url) ? '&' : '?') + 'as=' + as;			
+			if (! /^\//.exec(url)) url = "/" + url;
+			if (Query.clock) url = url + (/\?/.exec(url) ? '&' : '?') + 'at=' + Query.clock; 
+			query.usedUrl = url;
+			
+			// Send the request and save it.
+			Test.ping();
+			query.request = $.ajax({
+			    url: url,
+			    type: query.verb,
+			    dataType: 'json',
+			    contentType: 'application/json',
+			    data: (query.verb == "GET" || query.verb == "DELETE") ? {} : data,
+			    beforeSend: function(xhr) {
+				if (token) xhr.setRequestHeader('Authorization','RUNORG token=' + token);
+			    }
+			}).always(query.pending);
+			
+			query.pending = null;
+		    });
 		});
 	    });
 	});
@@ -136,10 +141,16 @@ Query.prototype = {
 //   - an array mixing strings and async string functions
 // data may be a JSON-convertible object with some pieces being
 // async object functions
-Query.create = function(verb, url, data, token) {
+Query.create = function(verb, url, data, auth) {
+
+    var token = auth ? auth.token : void(0);
+    var as = auth ? auth.id : void(0);
 
     if (typeof token == "string" || typeof token == "undefined") 
 	token = (function(token){ return function(callback) { callback(token) } })(token);
+
+    if (typeof as == "string" || typeof as == "undefined") 
+	as = (function(as){ return function(callback) { callback(as) } })(as);
 
     if (typeof url == "string") 
 	url = (function(url){ return function(callback) { callback(url) } })(url);
@@ -164,17 +175,28 @@ Query.create = function(verb, url, data, token) {
 	data = Async.lift(data);
     }
 
-    return new Query(verb, url, data, token);
+    return new Query(verb, url, data, token, as);
 };
 
 Query.uid = 0;
 
 Query.authAsServerAdmin = function() {
-    return Query.create("POST","test/auth",{}).result('token');
+    return {
+	token : Query.create("POST","test/auth",{}).result('token'),
+	id    : void(0)
+    };
 };
 
-Query.auth = function(db) {
-    return Query.create("POST",["db/",db,"/test/auth"],{}).result('token');
+Query.auth = function(db,admin,email) {
+    var r = Query.create("POST",["db/",db,"/test/auth"],{
+	email : (email || void(0)),
+	admin : (admin === false ? false : true)
+    }).result();
+
+    return {
+	token : r.map('token'),
+	id    : r.map('id')
+    };
 };
 
 Query.mkdb = function() {
