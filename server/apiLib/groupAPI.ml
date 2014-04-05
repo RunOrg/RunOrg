@@ -17,11 +17,17 @@ module Create = Endpoint.Post(struct
 
   let path = "groups/create"
 
+  let alreadyExists id = 
+    `Conflict (!! "Identifier %S is already taken." (CustomId.to_string id))
+
   let response req () post = 
     match Option.bind (post # id) CustomId.validate, post # id with 
     | None, Some id -> return (`BadRequest (!! "%S is not a valid identifier" id))
-    | id, _ -> let! id, at = Group.create ?id ?label:(post # label) () in
-	       return (`Accepted (Out.make ~id ~at))
+    | _, Some "admin" -> return (`Conflict "Group 'admin' is a reserved identifier")
+    | id, _ -> let! result = Group.create ?id ?label:(post # label) () in
+	       match result with 
+	       | `OK       (id,at) -> return (`Accepted (Out.make ~id ~at))
+	       | `AlreadyExists id -> return (alreadyExists id)
 
 end)
 

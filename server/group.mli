@@ -18,7 +18,8 @@ end
 val create : 
   ?label:String.Label.t -> 
   ?id:CustomId.t -> 
-  unit -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+  unit -> (#O.ctx, [ `OK of I.t * Cqrs.Clock.t
+		   | `AlreadyExists of CustomId.t ]) Run.t
 
 (** Add contacts to groups. Nothing happens if a contact or a group does not exist, 
     or if the contact is already in the group. *)

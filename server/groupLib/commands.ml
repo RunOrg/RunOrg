@@ -3,9 +3,17 @@
 open Std
 
 let create ?label ?id () = 
-  let  id = match id with None -> I.gen () | Some id -> I.of_id (CustomId.to_id id) in
-  let! clock = Store.append [ Events.created ~id ~label ] in
-  return (id, clock) 
+  let! id = match id with 
+    | None -> return (Ok (I.gen ()))
+    | Some id -> let gid = I.of_id (CustomId.to_id id) in
+		 let! exists = Cqrs.SetView.exists View.exists gid in 
+		 return (if exists then Bad id else Ok gid)
+  in
+
+  match id with 
+  | Ok id -> let! clock = Store.append [ Events.created ~id ~label ] in
+	     return (`OK (id, clock))
+  | Bad id -> return (`AlreadyExists id)
 
 let add contacts groups = 
   if contacts = [] || groups = [] then return Cqrs.Clock.empty else

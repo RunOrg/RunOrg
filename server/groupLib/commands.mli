@@ -5,7 +5,8 @@ open Std
 val create : 
   ?label:String.Label.t -> 
   ?id:CustomId.t -> 
-  unit -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+  unit -> (#O.ctx, [ `OK of I.t * Cqrs.Clock.t
+		   | `AlreadyExists of CustomId.t ]) Run.t
 
 val add : CId.t list -> I.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
 

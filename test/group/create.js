@@ -1,7 +1,7 @@
 // POST /db/{db}/groups/create
 // Groups / Create a group
 // 
-// Alpha @ 0.1.23
+// Alpha @ 0.1.37
 //
 // `202 Accepted`, 
 // [Delayed](/docs/#/concept/delayed.md).
@@ -193,7 +193,15 @@ TEST("Returns 409 when the group exists.", function(next) {
 });
 
 TEST("Returns 409 when re-creating the admin group.", function(next) {
-    Assert.fail();
+
+    var id = "admin";
+    var example = { "id" : id, "label" : "Board members" };
+
+    var db = Query.mkdb();
+    var token = Query.auth(db);
+    
+    var response = Test.query("POST",["db/",db,"/groups/create"],example,token).response();
+    Assert.areEqual(409, response.map('status')).then(next);
 });
 
 // ## Returns `401 Unauthorized` 
