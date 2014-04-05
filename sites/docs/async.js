@@ -24,9 +24,14 @@ var Async = (function() {
 
     // Extend arrays with "then" methods
     Array.prototype.then = function(callback) {
-	var left = this.length;
+	var left = this.length, result = [], self = this;
 	for (var i = 0; i < this.length; ++i) 
-	    this[i].then(function(){ if (--left == 0) callback(); });
+	    (function(i){ 
+		self[i].then(function(r){ 
+		    result[i] = r;
+		    if (--left == 0) callback.apply(this,result); 
+		});
+	    })(i);
     };
 
     // Cleans up a value by instantiating any sub-elements, calls the callback
