@@ -165,21 +165,31 @@ TEST("Returns 400 when custom id is invalid.", function(next) {
 	Assert.areEqual(400, r2.map('status'))
     ].then(next);
 
-    Assert.fail();
 });
  
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(next) {
-    Assert.fail();
+    var response = Test.query("POST",["db/01234567890/groups/create"],{},"00000000000").response();
+    Assert.areEqual(404, response.map('status')).then(next);
 });
 
 // ## Returns `400 Conflict`
 // - ... if a group already exists with the provided identifier.
 
 TEST("Returns 409 when the group exists.", function(next) {
-    Assert.fail();
+
+    var id = "board";
+    var example = { "id" : id, "label" : "Board members" };
+
+    var db = Query.mkdb();
+    var token = Query.auth(db);
+    
+    Test.query("POST",["db/",db,"/groups/create"],example,token).response().then(function(){
+	var response = Test.query("POST",["db/",db,"/groups/create"],example,token).response();
+	Assert.areEqual(409, response.map('status')).then(next);
+    });
 });
 
 TEST("Returns 409 when re-creating the admin group.", function(next) {
