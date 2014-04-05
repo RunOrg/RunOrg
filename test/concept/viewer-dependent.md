@@ -6,8 +6,8 @@ An API request is **Viewer-dependent** if it must be performed as a
 contact, and the result is different depending on the contact who
 performed the request. 
 
-The contact is usually provided as an additional query parameter
-called `as`, containing the contact identifier:  
+The contact is provided as an additional query parameter called
+[`as`](/docs/#/concept/as.md) containing the contact identifier:
 
      GET /db/0SNQc00211H/forms/0SNQe0032JZ?as=0SNxd0002JZ
 
@@ -28,8 +28,9 @@ request:
 
  - What data is the contact `as` allowed to see ? 
 
-   If the contact is not allowed to see any data, RunOrg responds
-   with `403 Forbidden`. 
+   If the contact is not allowed to see any data, RunOrg responds with
+   `404 Not Found` to ensure [absence
+   equivalence](/docs/#/concept/absence-equivalence.md).
 
    If the response contains a list of items that is dependent on 
    the viewer, then only the items that can be seen by the viewer
