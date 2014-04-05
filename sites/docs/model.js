@@ -191,6 +191,7 @@ var Test = (function() {
 			    if (j == tests.length) { return next(); }
 			    console.log("Starting: %s | %s", all[i], tests[j].name);
 			    Test.fail = fail(tests[j].name);
+			    delete Query.clock;
 			    Test.ping();
 			    tests[j].run(function(){ 
 				callback(all[i],tests[j].name);
