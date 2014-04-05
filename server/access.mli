@@ -30,6 +30,9 @@ module type T = sig
   (** Based on an audience set, find the access levels granted to a specific
       user. *)
   val compute : CId.t option -> Audience.t -> (#O.ctx, Set.t) Run.t
+
+  (** A log-friendly representation of a set. *)
+  val set_to_string : Set.t -> string
 				   
 end
 

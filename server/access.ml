@@ -12,6 +12,7 @@ module type T = sig
   module Audience : Fmt.FMT with type t = ( t, Audience.t ) Map.t
   module Set : Fmt.FMT with type t = t Set.t
   val compute : CId.t option -> Audience.t -> (#O.ctx, Set.t) Run.t				   
+  val set_to_string : Set.t -> string
 end
 
 
@@ -95,6 +96,9 @@ module Make = functor (Access:ACCESS_LEVEL) -> struct
     in
 
     fill Set.empty sorted_by_size
+
+  let set_to_string t = 
+    AccessSet.to_json_string t
 
   module Set = AccessSet
 
