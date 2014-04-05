@@ -34,6 +34,16 @@ var Assert = (function(){
 
 	},
 
+	notEqual: function(a,b) {
+
+	    return Async.lift([a,b]).map(function(p){
+		var a = p[0], b = p[1]; 
+		if (!equal(a,b)) return Async.lift(true);
+		else Test.fail("Both equal to: "+JSON.stringify(a));
+	    });
+
+	},
+
 	isTrue: function(a, reason) {
 
 	    return Async.lift(a).map(function(a){
