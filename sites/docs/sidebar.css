@@ -171,9 +171,6 @@
       display: block;
       color: #888;
       font-size: 11px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
   }
 }
