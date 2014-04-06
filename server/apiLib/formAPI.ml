@@ -142,11 +142,31 @@ module Get = Endpoint.Get(struct
     	
 end)
 
+module ShortInfo = type module <
+  id : Form.I.t ;
+  owner : Form.Owner.t ;
+  label : String.Label.t option ;
+  fields : int ;
+  access : Form.Access.Set.t ;
+>
+
+let make_short cid = 
+  let compute = Form.Access.compute cid in
+  fun f -> 
+    let! access = compute (f # audience) in
+    if not (Set.mem `Fill access) then return None else 
+      return (Some (ShortInfo.make 
+		      ~id:(f # id)
+		      ~owner:(f # owner)
+		      ~label:(f # label)
+		      ~fields:(List.length (f # fields))		    
+		      ~access))
+
 module List = Endpoint.Get(struct
 
   module Arg = type module unit
   module Out = type module <
-    list  : FormInfo.t list ; 
+    list  : ShortInfo.t list ; 
   >
 
   let path = "forms"
@@ -155,7 +175,7 @@ module List = Endpoint.Get(struct
     let limit = Option.default 1000 (req # limit) in
     let offset = Option.default 0 (req # offset) in
     let! forms = Form.list (req # as_) ~limit ~offset in
-    let! list = List.M.filter_map (make_info req # as_) forms in 
+    let! list = List.M.filter_map (make_short (req # as_)) forms in 
     return (`OK (Out.make ~list))
 
 end)
