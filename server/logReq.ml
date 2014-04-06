@@ -8,17 +8,18 @@ let enabled = true
    ================== *)
 
 type t = {
-  mutable ip : string ;
-  mutable path : string ; 
-  time : float ;
+  id : int ;
+  mutable time : float ;
 }
 
 class type ctx = object ('self) 
   method logreq : t 
 end
 
+let id = ref 0
+
 class log_ctx = object
-  val log = { ip = "" ; path = "" ; time = Unix.gettimeofday () }
+  val log = { id = (incr id ; !id) ; time = Unix.gettimeofday () }
   method logreq = log
 end
 
@@ -28,14 +29,20 @@ let start inner =
 let set_request_ip str = 
   if enabled then 
     let! ctx = Run.context in 
-    return ((ctx # logreq).ip <- (str ^ " | "))
+    let  log = ctx # logreq in 
+    let  time = Unix.gettimeofday () in      
+    let () = Log.trace "%04x =========== %s" log.id str in
+    return ()
   else
     return ()
 
 let set_request_path str = 
   if enabled then 
     let! ctx = Run.context in 
-    return ((ctx # logreq).path <- (str ^ " | "))
+    let  log = ctx # logreq in 
+    let  time = Unix.gettimeofday () in      
+    let () = Log.trace "%04x ----------- %s" log.id str in
+    return ()
   else
     return () 
 
@@ -47,9 +54,10 @@ let trace =
     fun str ->
       let! ctx = Run.context in 
       let  log = ctx # logreq in 
-      let  time = Unix.gettimeofday () in
-      return (Log.trace "%s%s%s %.2fms" log.ip log.path str 
-		(1000. *. (time -. log.time)))
+      let  time = Unix.gettimeofday () in      
+      let () = Log.trace "%04x : %4d ms : %s" log.id (int_of_float (1000. *. (time -. log.time))) str in
+      let () = log.time <- time in
+      return () 
   else 
     fun _ -> return () 
 

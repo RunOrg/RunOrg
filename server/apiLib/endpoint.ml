@@ -188,15 +188,20 @@ module Dictionary = struct
       | `DELETE -> delete) in
 
     match find (req # path) with 
-      | [] -> return (not_found None ("/" ^ String.concat "/" (req # path)) "No such resource") 
+      | [] -> let! () = LogReq.trace "API dispatch failed" in
+	      return (not_found None ("/" ^ String.concat "/" (req # path)) "No such resource") 
       | [r] -> begin match lens r with 
-	| None -> return (method_not_allowed (r.path) (allow r))
-	| Some action -> action req 
+	| None -> let! () = LogReq.trace "API dispatch failed" in
+		  return (method_not_allowed (r.path) (allow r))
+	| Some action -> let! () = LogReq.trace "API dispatched" in
+			 action req 
       end
       | (h :: _) as list -> 
 	match List.find_map lens list with 
-	| Some f -> f req 
-	| None   -> return (method_not_allowed (h.path) (allow h))
+	| Some f -> let! () = LogReq.trace "API dispatched" in
+		    f req 
+	| None   -> let! () = LogReq.trace "API dispatch failed" in
+		    return (method_not_allowed (h.path) (allow h))
 	  
 end
 
@@ -218,11 +223,13 @@ let run_checked req path ctx action =
     in
     
     match auth_error with
-    | None -> action
-    | Some msg -> return (Httpd.json ~status:`Unauthorized (Json.Object [
-      "error", Json.String msg ;
-      "path",  Json.String path ;
-    ]))
+    | None -> let! () = if req # as_ = None then return () else LogReq.trace "API token verified" in
+	      action
+    | Some msg -> let! () = LogReq.trace "API token invalid" in
+		  return (Httpd.json ~status:`Unauthorized (Json.Object [
+		    "error", Json.String msg ;
+		    "path",  Json.String path ;
+		  ]))
 
   end
     
@@ -246,10 +253,12 @@ module SGet = functor(A:GET_ARG) -> struct
   let action req =
 
     match argparse req with 
-    | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
-    | Ok args ->
-      let! out = A.response req args in 
-      return (respond logPath A.Out.to_json out)
+    | Bad more -> let! () = LogReq.trace "API parsing failed" in
+		  return (bad_request ~more logPath "Could not parse parameters") 
+    | Ok args -> let! () = LogReq.trace "API starting ..." in
+		 let! out = A.response req args in 
+		 let! () = LogReq.trace "API finished !" in
+		 return (respond logPath A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.get action) path
 
@@ -264,16 +273,25 @@ module Get = functor(A:GET_ARG) -> struct
     
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
-    match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
+    match db with 
+    | None -> let! () = LogReq.trace "API parsing failed" in 
+	      return (bad_request logPath "Could not parse parameters") 
+    | Some db ->
       match argparse req with 
-      | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+      | Bad more -> let! () = LogReq.trace "API parsing failed" in
+		    return (bad_request ~more logPath "Could not parse parameters") 
       | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
-	match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
-	  run_checked req logPath ctx begin
-	    let! out = A.response req args in
-	    return (respond logPath A.Out.to_json out)
-	  end
+	match ctx with 
+	| None -> let! () = LogReq.trace "API database not found" in 
+		  return (not_found None logPath (!! "Database %s does not exist" db)) 
+	| Some ctx -> let! () = LogReq.trace "API database found" in
+		      run_checked req logPath ctx begin
+			let! () = LogReq.trace "API starting ..." in
+			let! out = A.response req args in
+			let! () = LogReq.trace "API finished !" in
+			return (respond logPath A.Out.to_json out)
+		      end
 
   let () = Dictionary.add (snd Dictionary.get action) path
 
@@ -298,16 +316,25 @@ module Delete = functor(A:DELETE_ARG) -> struct
 
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
-    match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
+    match db with 
+    | None -> let! () = LogReq.trace "API parsing failed" in
+	      return (bad_request logPath "Could not parse parameters") 
+    | Some db ->
       match argparse req with 
-      | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+      | Bad more -> let! () = LogReq.trace "API parsing failed" in
+		    return (bad_request ~more logPath "Could not parse parameters") 
       | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
-	match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
-	  run_checked req logPath ctx begin
-	    let! out = A.response req args in
-	    return (respond logPath A.Out.to_json out)
-	  end
+	match ctx with 
+	| None -> let! () = LogReq.trace "API database missing" in 
+		  return (not_found None logPath (!! "Database %s does not exist" db)) 
+	| Some ctx -> let! () = LogReq.trace "API database found" in
+		      run_checked req logPath ctx begin
+			let! () = LogReq.trace "API starting ..." in
+			let! out = A.response req args in
+			let! () = LogReq.trace "API finished !" in
+			return (respond logPath A.Out.to_json out)
+		      end
 
   let () = Dictionary.add (snd Dictionary.delete action) path
 
@@ -341,11 +368,15 @@ module SPost = functor(A:POST_ARG) -> struct
 
   let action req =    
     match argparse req with 
-    | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+    | Bad more -> let! () = LogReq.trace "API parsing failed" in 
+		  return (bad_request ~more logPath "Could not parse parameters") 
     | Ok args ->
       match parse_body A.Post.of_json req with 
-      | Bad more -> return (bad_request ?more logPath "Could not parse body") 
-      | Ok post -> let! out = A.response req args post in 
+      | Bad more -> let! () = LogReq.trace "API parsing failed" in 
+		    return (bad_request ?more logPath "Could not parse body") 
+      | Ok post -> let! () = LogReq.trace "API starting ..." in
+		   let! out = A.response req args post in
+		   let! () = LogReq.trace "API finished !" in 
 		   return (respond logPath A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.post action) path
@@ -361,19 +392,29 @@ module Post = functor(A:POST_ARG) -> struct
     
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
-    match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
+    match db with 
+    | None -> let! () = LogReq.trace "API parsing failed" in
+	      return (bad_request logPath "Could not parse parameters") 
+    | Some db ->
       match argparse req with 
-      | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+      | Bad more -> let! () = LogReq.trace "API parsing failed" in 
+		    return (bad_request ~more logPath "Could not parse parameters") 
       | Ok args -> 
 	match parse_body A.Post.of_json req with 
-	| Bad more -> return (bad_request ?more logPath "Could not parse body") 
+	| Bad more -> let! () = LogReq.trace "API parsing failed" in 
+		      return (bad_request ?more logPath "Could not parse body") 
 	| Ok post ->
 	  let! ctx = Db.ctx (Id.of_string db) in
-	  match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
-	    run_checked req logPath ctx begin
-	      let! out = A.response req args post in
-	      return (respond logPath A.Out.to_json out)
-	    end
+	  match ctx with 
+	  | None -> let! () = LogReq.trace "API database not found" in 
+		    return (not_found None logPath (!! "Database %s does not exist" db)) 
+	  | Some ctx -> let! () = LogReq.trace "API database found" in
+			run_checked req logPath ctx begin
+			  let! () = LogReq.trace "API starting ..." in
+			  let! out = A.response req args post in
+			  let! () = LogReq.trace "API finished !" in
+			  return (respond logPath A.Out.to_json out)
+			end
 
   let () = Dictionary.add (snd Dictionary.post action) path
 
@@ -399,11 +440,15 @@ module SPut = functor(A:PUT_ARG) -> struct
 
   let action req =    
     match argparse req with 
-    | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+    | Bad more -> let! () = LogReq.trace "API parsing failed" in
+		  return (bad_request ~more logPath "Could not parse parameters") 
     | Ok args ->
       match parse_body A.Put.of_json req with 
-      | Bad more -> return (bad_request ?more logPath "Could not parse body") 
-      | Ok post -> let! out = A.response req args post in 
+      | Bad more -> let! () = LogReq.trace "API parsing failed" in
+		    return (bad_request ?more logPath "Could not parse body") 
+      | Ok post -> let! () = LogReq.trace "API starting ..." in
+		   let! out = A.response req args post in 
+		   let! () = LogReq.trace "API finished !" in
 		   return (respond logPath A.Out.to_json out)
 
   let () = Dictionary.add (snd Dictionary.put action) path
@@ -419,19 +464,29 @@ module Put = functor(A:PUT_ARG) -> struct
     
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
-    match db with None -> return (bad_request logPath "Could not parse parameters") | Some db ->
+    match db with 
+    | None -> let! () = LogReq.trace "API parsing failed" in 
+	      return (bad_request logPath "Could not parse parameters") 
+    | Some db -> 
       match argparse req with 
-      | Bad more -> return (bad_request ~more logPath "Could not parse parameters") 
+      | Bad more -> let! () = LogReq.trace "API parsing failed" in
+		    return (bad_request ~more logPath "Could not parse parameters") 
       | Ok args -> 
 	match parse_body A.Put.of_json req with 
-	| Bad more -> return (bad_request ?more logPath "Could not parse body") 
+	| Bad more -> let! () = LogReq.trace "API parsing failed" in
+		      return (bad_request ?more logPath "Could not parse body") 
 	| Ok post ->
 	  let! ctx = Db.ctx (Id.of_string db) in
-	  match ctx with None -> return (not_found None logPath (!! "Database %s does not exist" db)) | Some ctx ->
-	    run_checked req logPath ctx begin
-	      let! out = A.response req args post in
-	      return (respond logPath A.Out.to_json out)
-	    end
+	  match ctx with 
+	  | None -> let! () = LogReq.trace "API database not found" in 
+		    return (not_found None logPath (!! "Database %s does not exist" db)) 
+	  | Some ctx ->let! () = LogReq.trace "API database found" in
+		       run_checked req logPath ctx begin
+			 let! () = LogReq.trace "API starting ..." in
+			 let! out = A.response req args post in
+			 let! () = LogReq.trace "API finished !" in
+			 return (respond logPath A.Out.to_json out)
+		       end
 
   let () = Dictionary.add (snd Dictionary.put action) path
 

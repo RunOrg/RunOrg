@@ -87,7 +87,7 @@ let parse context socket config handler =
       let! request  = Request.parse config ssl_socket in
 
       let! () = LogReq.set_request_path (Request.to_string request) in
-      let! () = LogReq.trace "parsed" in
+      let! () = LogReq.trace "HTTP parsed" in
 
       let! response = Run.on_failure (handle_action_failure time request) (handler request) in 
 
