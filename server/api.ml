@@ -16,9 +16,9 @@ let config = Httpd.(Configuration.Httpd.({
 
 let run () = 
   Httpd.start config (fun req -> 
-
-    let ctx = new O.ctx in
-
-    let ctx = match req # at with None -> ctx | Some clock -> ctx # with_after clock in 
+    
+    let! oldctx = Run.context in 
+    let  ctx = new O.ctx oldctx in
+    let  ctx = match req # at with None -> ctx | Some clock -> ctx # with_after clock in 
 
     Run.with_context ctx (Endpoint.dispatch req))

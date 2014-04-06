@@ -2,7 +2,7 @@
 
 open Std 
 
-let projection = Cqrs.Projection.make "group" (fun () -> new O.ctx)
+let projection = Cqrs.Projection.make "group" O.cqrs
 
 (* Group existence 
    =============== *)

@@ -22,8 +22,6 @@ end
 
 let () = Printexc.record_backtrace true
 
-let mkctx () = new O.ctx
-  
 (* Interrupt the program if a "shutdown" exception is raised. *)
 let exn_handler = function 
   | Cqrs.Running.Shutdown -> false
@@ -35,7 +33,7 @@ let run_loop () =
   begin 
     try 
       Run.start ~exn_handler () [
-	Cqrs.Running.heartbeat (mkctx ()) ;	
+	Cqrs.Running.heartbeat (O.cqrs ()) ;	
 	Cqrs.Projection.run () ;      
 	respond
       ]
@@ -46,7 +44,7 @@ let run_loop () =
 let () =   
   match Configuration.role with
   | `Run -> run_loop ()
-  | `Reset -> Log.trace "Starting global reset ; config: %s" Configuration.path ; Cqrs.Running.reset (mkctx ())
+  | `Reset -> Log.trace "Starting global reset ; config: %s" Configuration.path ; Cqrs.Running.reset (O.cqrs ())
     
 
 

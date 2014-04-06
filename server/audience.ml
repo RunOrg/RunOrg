@@ -75,11 +75,11 @@ end)
 (* Testing membership 
    ================== *)
 
-let ref_of_contact : (CId.t -> (O.ctx, GId.t Set.t) Run.t) ref = 
+let ref_of_contact : (CId.t -> (Cqrs.ctx, GId.t Set.t) Run.t) ref = 
   ref (fun _ -> assert false)
 
 let of_contact cid =
-  Run.edit_context (fun ctx -> (ctx :> O.ctx)) ((!ref_of_contact) cid)
+  Run.edit_context (fun ctx -> (ctx :> Cqrs.ctx)) ((!ref_of_contact) cid)
 
 let register_groups_of_contact f = 
   ref_of_contact := f

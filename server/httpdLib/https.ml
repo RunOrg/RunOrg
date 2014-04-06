@@ -63,42 +63,35 @@ let parse context socket config handler =
 
     let time = Unix.gettimeofday () in
 
-    if trace_requests then 
-      Log.trace "%s | Request received" 
-	(match Unix.getpeername socket with 
-	| Unix.ADDR_UNIX str -> str
-	| Unix.ADDR_INET (inet,port) -> !! "%s:%d" (Unix.string_of_inet_addr inet) port) ; 
+    let! () = LogReq.set_request_ip 
+      (match Unix.getpeername socket with
+       | Unix.ADDR_UNIX str -> str
+       | Unix.ADDR_INET (inet,port) -> !! "%s:%d" (Unix.string_of_inet_addr inet) port) in
+
+    let! () = LogReq.trace "Request received" in
 	
     (* Wrap the socket in an SSL context. This will cause a negotiation to happen. *)
     let ssl_socket = Ssl.embed_socket socket context in
 
-    if trace_requests then 
-      Log.trace "%s | SSL established %.2fms" (Ssl.string_of_socket ssl_socket) 
-	(1000. *. (Unix.gettimeofday () -. time)) ; 
+    let! () = LogReq.trace "SSL established" in
 
-    Ssl.accept ssl_socket ;
+    let () = Ssl.accept ssl_socket in
 
-    if trace_requests then 
-      Log.trace "%s | SSL accepted %.2fms" (Ssl.string_of_socket ssl_socket) 
-	(1000. *. (Unix.gettimeofday () -. time)) ; 
+    let! () = LogReq.trace "SSL accepted" in
 
     (* To avoid locking up a thread, all socket operations are non-blocking. *)
-    Unix.set_nonblock socket ;
+    let () = Unix.set_nonblock socket in
 
     let! response = Run.on_failure (handle_request_failure config time) begin
 
       let! request  = Request.parse config ssl_socket in
 
-      let () = if trace_requests then 
-	  Log.trace "%s | %s | parsed %.2fms" (Ssl.string_of_socket ssl_socket) (Request.to_string request)
-	    (1000. *. (Unix.gettimeofday () -. time)) in 
-      
+      let! () = LogReq.set_request_path (Request.to_string request) in
+      let! () = LogReq.trace "parsed" in
+
       let! response = Run.on_failure (handle_action_failure time request) (handler request) in 
 
-      let () = if trace_requests then 
-	  Log.trace "%s | %s | response computed %.2fms" (Ssl.string_of_socket ssl_socket) 
-	    (Request.to_string request)
-	    (1000. *. (Unix.gettimeofday () -. time)) in 
+      let! () = LogReq.trace "response computed" in
 
       return (Response.for_request time request response)	
 

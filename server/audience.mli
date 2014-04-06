@@ -27,7 +27,7 @@ val empty : t
     Note that storing [is_member id] and using it multiple times will avoid
     extraneous queries to the database. 
 *)
-val is_member : CId.t option -> t -> (#O.ctx, bool) Run.t
+val is_member : CId.t option -> t -> (# Cqrs.ctx, bool) Run.t
 
 (** Merges two audiences into one. *)
 val union : t -> t -> t
@@ -37,7 +37,7 @@ val admin : t
 
 (** Used by the group module to register a specific "list groups of contact"
     function. *)
-val register_groups_of_contact : (CId.t -> ( O.ctx, GId.t Set.t ) Run.t) -> unit
+val register_groups_of_contact : (CId.t -> ( Cqrs.ctx, GId.t Set.t ) Run.t) -> unit
 
 (** Returns the list of all groups that a contact belongs to. *)
-val of_contact : CId.t -> ( O.ctx, GId.t Set.t ) Run.t
+val of_contact : CId.t -> ( Cqrs.ctx, GId.t Set.t ) Run.t

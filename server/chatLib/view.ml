@@ -2,7 +2,7 @@
 
 open Std
 
-let projection = Cqrs.Projection.make "chat" (fun () -> new O.ctx)
+let projection = Cqrs.Projection.make "chat" O.cqrs
 
 (* Chat existence 
    ============== *)

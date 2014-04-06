@@ -11,22 +11,22 @@ module type T = sig
   include Fmt.FMT 
   module Audience : Fmt.FMT with type t = ( t, Audience.t ) Map.t
   module Set : Fmt.FMT with type t = t Set.t
-  val compute : CId.t option -> Audience.t -> (#O.ctx, Set.t) Run.t				   
+  val compute : CId.t option -> Audience.t -> (#Cqrs.ctx, Set.t) Run.t				   
   val set_to_string : Set.t -> string
   type 'id accessor
   module Map : sig
     val make : Cqrs.Projection.t -> string -> int -> ?only:t list -> 
       (module Fmt.FMT with type t = 'id) ->
       Cqrs.Projection.view * 'id accessor
-    val update : 'id accessor -> 'id -> Audience.t -> # O.ctx Run.effect
-    val remove : 'id accessor -> 'id -> # O.ctx Run.effect
+    val update : 'id accessor -> 'id -> Audience.t -> # Cqrs.ctx Run.effect
+    val remove : 'id accessor -> 'id -> # Cqrs.ctx Run.effect
     val list : 
       ?limit:int -> 
       ?offset:int -> 
       'id accessor -> 
       CId.t option -> 
       t -> 
-      (# O.ctx, 'id list) Run.t
+      (# Cqrs.ctx, 'id list) Run.t
   end      			
 end
 
@@ -193,7 +193,7 @@ module Make = functor (Access:ACCESS_LEVEL) -> struct
 
     let list ?limit ?offset accessor cid access = 
 
-      let  of_contact cid = Run.edit_context (fun ctx -> (ctx :> O.ctx)) (of_contact cid) in
+      let  of_contact cid = Run.edit_context (fun ctx -> (ctx :> Cqrs.ctx)) (of_contact cid) in
 
       let! groups = match cid with Some cid -> of_contact cid | None -> return Set.empty in
       let  list   = List.map (fun gid -> Who.Group (access,gid)) (Set.to_list groups) in 

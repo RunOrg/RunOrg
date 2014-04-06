@@ -4,6 +4,9 @@ open Std
 
 (** A multiplexed HTTP server implementation. *)
 
+(** Are we tracing requests ? *)
+val trace_requests : bool
+
 (** A request, as received by the server, and passed to the handler. *)
 type request = <
 
@@ -93,5 +96,5 @@ type config = {
 
 (** Start the server. Return a thread that executes all 
     requests received by the server. *)
-val start : config -> 'ctx handler -> 'ctx Run.thread
+val start : config -> LogReq.ctx handler -> unit Run.thread
 

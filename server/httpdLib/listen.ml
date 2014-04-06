@@ -48,7 +48,7 @@ let start config handler =
     let! socket = Run.of_channel connections in
     Run.fork 
       (fun exn -> (try Unix.shutdown socket Unix.SHUTDOWN_ALL with _ -> ()) ; return ()) 
-      (Https.parse https socket config handler) 
+      (LogReq.start (Https.parse https socket config handler))
       (accept ()) 
   in
 

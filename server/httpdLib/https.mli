@@ -11,5 +11,5 @@ val context : Unix.file_descr -> Common.config -> Ssl.context
     handler, send back the generated response, and close the socket. *)
 val parse : 
   Ssl.context -> Unix.file_descr -> Common.config -> 
-  (Request.t -> ('ctx, Response.t) Run.t) ->
+  (Request.t -> (#LogReq.ctx as 'ctx, Response.t) Run.t) ->
   ('ctx, unit) Run.t

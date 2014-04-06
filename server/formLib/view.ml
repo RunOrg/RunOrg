@@ -2,7 +2,7 @@
 
 open Std
 
-let projection = Cqrs.Projection.make "form" (fun () -> new O.ctx) 
+let projection = Cqrs.Projection.make "form" O.cqrs
 
 (* Form information by identifier. 
    =============================== *)

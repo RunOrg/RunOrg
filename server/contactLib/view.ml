@@ -2,7 +2,7 @@
 
 open Std
 
-let projection = Cqrs.Projection.make "contact" (fun () -> new O.ctx) 
+let projection = Cqrs.Projection.make "contact" O.cqrs
 
 (* Contact identifier by e-mail. *)
 

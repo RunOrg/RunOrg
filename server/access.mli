@@ -29,7 +29,7 @@ module type T = sig
 
   (** Based on an audience set, find the access levels granted to a specific
       user. *)
-  val compute : CId.t option -> Audience.t -> (#O.ctx, Set.t) Run.t
+  val compute : CId.t option -> Audience.t -> (# Cqrs.ctx, Set.t) Run.t
 
   (** A log-friendly representation of a set. *)
   val set_to_string : Set.t -> string
@@ -51,10 +51,10 @@ module type T = sig
 
     (** Update the audience bound to an identifier, making it available based on that
 	audience. If the identifier does not exist, it is created. *)
-    val update : 'id accessor -> 'id -> Audience.t -> # O.ctx Run.effect
+    val update : 'id accessor -> 'id -> Audience.t -> # Cqrs.ctx Run.effect
 
     (** Removes an identifier from the accessor view. *)
-    val remove : 'id accessor -> 'id -> # O.ctx Run.effect
+    val remove : 'id accessor -> 'id -> # Cqrs.ctx Run.effect
 
     (** Lists all the identifiers that are available at the specified access 
 	level for the provided contact. *)
@@ -64,7 +64,7 @@ module type T = sig
       'id accessor -> 
       CId.t option -> 
       t -> 
-      (# O.ctx, 'id list) Run.t
+      (# Cqrs.ctx, 'id list) Run.t
 
   end
       				   

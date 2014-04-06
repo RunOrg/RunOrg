@@ -19,7 +19,7 @@ let verb = function
   | `PUT -> "PUT"
   | `DELETE -> "DELETE"    
 
-let trace_requests = false
+let trace_requests = LogReq.enabled
 
 let delay retries timeout now =     
   min (float_of_int (retries + 1) *. 10.) ((timeout -. now) /. 2. *. 1000.)
