@@ -175,7 +175,9 @@ module List = Endpoint.Get(struct
     let limit = Option.default 1000 (req # limit) in
     let offset = Option.default 0 (req # offset) in
     let! forms = Form.list (req # as_) ~limit ~offset in
+    let! () = LogReq.trace "Extracted list." in
     let! list = List.M.filter_map (make_short (req # as_)) forms in 
+    let! () = LogReq.trace "Filtered list." in
     return (`OK (Out.make ~list))
 
 end)
