@@ -428,7 +428,7 @@ module type PUT_ARG = sig
   module Put : Fmt.FMT
   module Out : Fmt.FMT
   val path : string
-  val response : Httpd.request -> Arg.t -> Put.t -> (O.ctx, Out.t write_response) Run.t
+  val response : Httpd.request ->  Arg.t -> Put.t -> (O.ctx, Out.t write_response) Run.t
 end
   
 module SPut = functor(A:PUT_ARG) -> struct

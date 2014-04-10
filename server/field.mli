@@ -31,6 +31,9 @@ module Kind : Fmt.FMT with type t =
   | `Contact
   ]
 
+(** Returns a string representation of a kind. *)
+val string_of_kind : Kind.t -> string
+
 (** Meta-information about a field. *)
 include Fmt.FMT with type t = <
   id       : I.t ;

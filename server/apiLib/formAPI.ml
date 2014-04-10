@@ -132,12 +132,10 @@ module Get = Endpoint.Get(struct
 
   let response req arg = 
 
-    let  notFound = `NotFound (!! "Form '%s' does not exist." (Form.I.to_string (arg # id))) in
-
     let! form = Form.get (arg # id) in
-    match form with None -> return notFound | Some f -> 
+    match form with None -> return (notFound (arg # id)) | Some f -> 
       let! info = make_info (req # as_) f in
-      match info with None -> return notFound | Some f ->
+      match info with None -> return (notFound (arg # id)) | Some f ->
 	return (`OK f) 
     	
 end)
@@ -185,7 +183,7 @@ end)
 
 module Fill = Endpoint.Put(struct
 
-  module Arg = type module < id : Form.I.t ; fid : Id.t >
+  module Arg = type module < id : Form.I.t ; fid : CId.t >
   module Put = type module <
     data : Json.t ;
   >
@@ -196,7 +194,47 @@ module Fill = Endpoint.Put(struct
 
   let path = "forms/{id}/filled/{fid}"
 
-  let response req put args = 
-    return (`BadRequest "Not implemented")
+  let noSuchField id fid =
+    `BadRequest (!! "Field %S does not exist in form %S." 
+		    (Field.I.to_string fid) (Form.I.to_string id))
+
+  let missingRequiredField id fid =
+    `BadRequest (!! "Field %S is required in form %S but no data was provided." 
+		    (Field.I.to_string fid) (Form.I.to_string id))
+
+  let invalidFieldFormat id fid k =
+    `BadRequest (!! "Field %S in form %S is of kind %S, incompatible with provided data." 
+		    (Field.I.to_string fid) (Form.I.to_string id) (Field.string_of_kind k))
+
+  let noSuchOwner id fid =
+    `NotFound (!! "%s does not exist." 
+		  (match fid with 
+		  | `Contact cid -> !! "Contact %S" (CId.to_string cid)))
+
+  let needAdmin id fid =
+    `Forbidden (!! "You need admin access to fill form %S for %s." 
+		   (Form.I.to_string id)
+		   (match fid with 
+		   | `Contact cid -> !! "contact %S" (CId.to_string cid)))
+      
+  let response req args put = 
+    
+    let fid  = `Contact (args # fid) in
+    let id   = args # id in
+
+    let data = match put # data with 
+      | Json.Object l -> Map.of_list (List.map (fun (k,v) -> Field.I.of_string k, v) l)
+      | _ -> Map.empty in
+
+    let! result = Form.fill (req # as_) id fid data in
+
+    match result with
+    | `OK                         at -> return (`Accepted (Out.make ~at))
+    | `NoSuchForm                 id -> return (notFound id)
+    | `NoSuchField          (id,fid) -> return (noSuchField id fid) 
+    | `MissingRequiredField (id,fid) -> return (missingRequiredField id fid)
+    | `InvalidFieldFormat (id,fid,k) -> return (invalidFieldFormat id fid k)
+    | `NoSuchOwner          (id,fid) -> return (noSuchOwner id fid)
+    | `NeedAdmin            (id,fid) -> return (needAdmin id fid) 
 
 end)

@@ -96,6 +96,15 @@ module Kind = Fmt.Map(struct
 
 end)
 
+let string_of_kind = function 
+  | `Text -> "text"
+  | `RichText -> "rich"
+  | `DateTime -> "time"
+  | `SingleChoice _ -> "single"
+  | `MultipleChoice _ -> "multi"
+  | `Json -> "json"
+  | `Contact -> "contact"
+
 (* Meta-data 
    ========= *)
 
