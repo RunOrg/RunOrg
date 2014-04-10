@@ -51,7 +51,7 @@ TEST("The form's data is returned.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id").then(function(id) {
+    Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id")(function(id) {
 
 	var form = Test.query("GET",["db/",db,"/forms"],auth).result("list",0);
 	
