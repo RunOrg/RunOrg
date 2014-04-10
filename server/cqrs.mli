@@ -235,10 +235,10 @@ module FeedMapView : sig
 
   (** How many items in a feed, and when are the first and last elements ? *)
   val stats : ('key, 'id, 'value) t -> 'key -> (#ctx, <
-    count : int ;
-						first : Time.t option ;
-						last  : Time.t option ;
-						>) Run.t
+      count : int ;
+      first : Time.t option ;
+      last  : Time.t option ;
+    >) Run.t
 
   (** List elements in a feed, in reverse chronological order (latest 
       first). *)
