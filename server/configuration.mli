@@ -28,8 +28,12 @@ module Database : sig
   val user : string
   val password : string
 
-  (** Poll frequency, in millisecons. *)
+  (** Poll frequency, in milliseconds. *)
   val poll : float
+
+  (** Database pool size. The number of connections kept around
+      after being released, to skip the ~25ms connection time. *)
+  val pool_size : int
 
 end
 

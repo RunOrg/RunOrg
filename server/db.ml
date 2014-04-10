@@ -28,7 +28,7 @@ let create _ label =
 
 module View = struct
 
-  let projection = Cqrs.Projection.make "db" O.cqrs
+  let projection = Cqrs.Projection.make "db" O.config
 
   (* A view of all databases *)
   module Unit = type module unit

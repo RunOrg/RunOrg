@@ -24,7 +24,7 @@ type t = {
 
   (* These two values are provided during initialization. *)
   name : string ;
-  connect : unit -> ctx ; 
+  config : config ; 
 
   (* A list of all views (kind, name and version number) that
      were registered in this projection. *)
@@ -148,7 +148,7 @@ let save_clock t clock =
 (* Runs a projection. Forever. *)
 let run t = 
 
-  Run.with_context (t.connect ()) begin  
+  Pool.using t.config (fun cqrs -> new cqrs_ctx cqrs) begin  
     
     let! c       = clock t in 	  
     let  actions = Seq.join (List.map (fun f -> f c) t.streams) in
@@ -190,11 +190,11 @@ let run t =
   
 (* Creates a projection. Registers it for being run with all the
    others. *)
-let make name connect = 
+let make name config = 
 
   let t = {
     name ;
-    connect ;
+    config ;
     contents = [] ; 
     hash = None ;
     id = None ;

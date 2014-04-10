@@ -33,7 +33,7 @@ let run_loop () =
   begin 
     try 
       Run.start ~exn_handler () [
-	Cqrs.Running.heartbeat (O.cqrs ()) ;	
+	Cqrs.Running.heartbeat O.config ;	
 	Cqrs.Projection.run () ;      
 	respond
       ]
@@ -44,7 +44,9 @@ let run_loop () =
 let () =   
   match Configuration.role with
   | `Run -> run_loop ()
-  | `Reset -> Log.trace "Starting global reset ; config: %s" Configuration.path ; Cqrs.Running.reset (O.cqrs ())
+  | `Reset -> 
+    Log.trace "Starting global reset ; config: %s" Configuration.path ; 
+    Cqrs.Running.reset O.config
     
 
 

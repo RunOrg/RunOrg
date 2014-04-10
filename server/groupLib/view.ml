@@ -2,7 +2,7 @@
 
 open Std 
 
-let projection = Cqrs.Projection.make "group" O.cqrs
+let projection = Cqrs.Projection.make "group" O.config
 
 (* Group existence 
    =============== *)

@@ -9,7 +9,8 @@ type config = {
   port : int ;
   database : string ;
   user : string ;
-  password : string 
+  password : string ;
+  pool_size : int ;
 }
 
 exception ConnectionFailed of string
@@ -24,7 +25,7 @@ class type ctx = object ('self)
   method with_after : Clock.t -> 'self
 end 
 
-class cqrs_ctx : config -> object ('self)
+class cqrs_ctx : cqrs -> object ('self)
   method cqrs : cqrs
   method time : Time.t
   method with_time : Time.t -> 'self
@@ -46,4 +47,6 @@ type result = string array array
 
 val query : string -> param list -> ( #ctx, result ) Run.t
 
-
+val make_cqrs : config -> bool -> cqrs
+val reset_cqrs : cqrs -> unit
+val close_cqrs : cqrs -> unit

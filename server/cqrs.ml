@@ -1,5 +1,6 @@
 include CqrsLib.Common
 include CqrsLib.EventStream
+include CqrsLib.Pool
 
 module Projection = CqrsLib.Projection
 module Clock = CqrsLib.Clock 

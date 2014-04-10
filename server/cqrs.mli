@@ -7,7 +7,8 @@ type config = {
   port : int ;
   database : string ;
   user : string ;
-  password : string 
+  password : string ;
+  pool_size : int ;
 }
 
 (** Exception raised when connecting to the database failed. *)
@@ -52,7 +53,7 @@ class type ctx = object ('self)
 end 
 
 (** A concrete implementation of the [cqrs] part of [ctx]. *)
-class cqrs_ctx : config -> object ('self) 
+class cqrs_ctx : cqrs -> object ('self) 
   method cqrs : cqrs
   method time : Time.t
   method with_time : Time.t -> 'self 
@@ -61,6 +62,11 @@ class cqrs_ctx : config -> object ('self)
   method after : Clock.t
   method with_after : Clock.t -> 'self
 end
+
+(** Use the provided CQRS context creation function to create that context
+    and evaluate a thread. When the thread returns or fails, closes the CQRS 
+    context. It should not be used anymore after that. *)
+val using : config -> (cqrs -> (#ctx as 'ctx)) -> ('ctx, 'a) Run.t -> ('any, 'a) Run.t 
 
 (** An event writer is a function that writes events of the specified type to 
     an underlying stream. *)
@@ -111,8 +117,8 @@ module Projection : sig
       [LeftBehind (projection, current, expected)] *)
   exception LeftBehind of string * Clock.t * Clock.t
 
-  (** Create a projection from a name and a projection function. *)
-  val make : string -> (unit -> ctx) -> t
+  (** Create a projection from a name and a database configuration. *)
+  val make : string -> config -> t
 
   (** [register kind name version] registers an view of type [kind] called
       [name] at version number [version]. 
@@ -363,12 +369,12 @@ module Running : sig
   exception Shutdown 
 
   (** Ask for all instances to shut down. *)
-  val reset : #ctx -> unit
+  val reset : config -> unit
 
   (** Long-running thread, marks the instance as still
       running. Throws [Shutdown] (and breaks out of eval) when 
       a shutdown is requested. *)
-  val heartbeat : #ctx -> unit Run.thread
+  val heartbeat : config -> unit Run.thread
 
 end
 

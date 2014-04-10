@@ -237,6 +237,12 @@ let on_failure f m = fun ctx bad ok ->
   in
   m ctx bad ok 
 
+let finally f m = fun ctx bad ok ->
+  let f () = try f () with exn -> Log.exn exn "Exception thrown in Run.finally" in
+  let bad exn trace = f () ; bad exn trace in
+  let ok x = f () ; ok x in
+  m ctx bad ok 
+
 let background f x = 
   let c = Event.new_channel () in
   let _ = Thread.create (fun x -> Event.sync (Event.send c (try Ok (f x) with exn -> Bad exn))) x in

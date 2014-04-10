@@ -1,6 +1,8 @@
-val reset : # Common.ctx -> unit
+(* © 2014 RunOrg *)
+
+val reset : Common.config -> unit
 
 exception Shutdown
 
-val heartbeat : # Common.ctx -> unit Run.thread
+val heartbeat : Common.config -> unit Run.thread
 

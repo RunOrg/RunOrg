@@ -2,7 +2,7 @@
 
 open Std
 
-let projection = Cqrs.Projection.make "contact" O.cqrs
+let projection = Cqrs.Projection.make "contact" O.config
 
 (* Contact identifier by e-mail. *)
 

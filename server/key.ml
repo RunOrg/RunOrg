@@ -30,7 +30,7 @@ end)
 (* Views and projections 
    ===================== *)
 
-let projection = Cqrs.Projection.make "key" O.cqrs
+let projection = Cqrs.Projection.make "key" O.config
 
 module Value = type module < 
   hash : Hash.t ; 

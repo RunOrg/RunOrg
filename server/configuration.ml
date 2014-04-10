@@ -116,12 +116,13 @@ let log_prefix = Parse.string "log.directory" "/var/log/runorg/"
 let log_prefix = if to_stdout then None else Some log_prefix
 
 module Database = struct
-  let host     = Parse.string "db.host" "localhost" 
-  let port     = Parse.int    "db.port" 5432 
-  let database = Parse.string "db.name" "runorg" 
-  let user     = Parse.req    "db.user" 
-  let password = Parse.req    "db.password"
-  let poll     = Parse.float  "db.poll" 1000.0
+  let host      = Parse.string "db.host" "localhost" 
+  let port      = Parse.int    "db.port" 5432 
+  let database  = Parse.string "db.name" "runorg" 
+  let user      = Parse.req    "db.user" 
+  let password  = Parse.req    "db.password"
+  let poll      = Parse.float  "db.poll" 1000.0
+  let pool_size = Parse.int    "db.pool-size" 10 
 end
 
 (* eg vnicollet@runorg.com, foo.bar@example.com *)

@@ -2,7 +2,7 @@
 
 open Std
 
-let projection = Cqrs.Projection.make "chat" O.cqrs
+let projection = Cqrs.Projection.make "chat" O.config
 
 (* Chat existence 
    ============== *)

@@ -1,3 +1,5 @@
+(* © 2014 RunOrg *)
+
 open Common
 
 (* Starting a new run 
@@ -31,34 +33,35 @@ let start () =
 (* Asking for a global shutdown
    ============================ *)
 
-let reset ctx =
-  Run.eval ctx 
-    (Sql.command "UPDATE \"meta:runs\" SET \"shutdown\" = 'now' WHERE \"shutdown\" IS NULL" []) 
+let reset config =
+  Run.eval ()
+    (Pool.using config (fun cqrs -> new cqrs_ctx cqrs) 
+       (Sql.command "UPDATE \"meta:runs\" SET \"shutdown\" = 'now' WHERE \"shutdown\" IS NULL" []))
 	
 (* Stay alive 
    ========== *)
 
 exception Shutdown
 	      
-let heartbeat ctx =
-  Run.with_context ctx begin
-    let! id = start () in
-    match id with None -> raise Shutdown | Some id ->
-      Run.loop begin fun continue -> 
+let heartbeat config =
+  let mkctx cqrs = new cqrs_ctx cqrs in
+  let! id = Pool.using config mkctx (start ()) in
+  match id with None -> raise Shutdown | Some id ->
+    Run.loop begin fun continue -> 
+      
+      let! () = Run.sleep 10000.0 in
+      
+      let! result = Pool.using config mkctx (Sql.query begin
+	"UPDATE \"meta:runs\" SET \"heartbeat\" = 'now' WHERE \"id\" = $1 "
+	^ "RETURNING \"shutdown\" IS NOT NULL"
+      end [ `Int id ]) in
+      
+      let alive = result.(0).(0) = "f" in 
+      
+      if alive then continue else raise Shutdown
 	
-	let! () = Run.sleep 10000.0 in
-
-	let! result = Sql.query begin
-	  "UPDATE \"meta:runs\" SET \"heartbeat\" = 'now' WHERE \"id\" = $1 "
-	  ^ "RETURNING \"shutdown\" IS NOT NULL"
-	end [ `Int id ] in
-	
-	let alive = result.(0).(0) = "f" in 
-	
-	if alive then continue else raise Shutdown
-
-      end	  
-  end
+    end	  
+      
 
 (* Defining the runs table 
    ======================= *)

@@ -32,7 +32,8 @@ type config = {
   port : int ;
   database : string ;
   user : string ;
-  password : string 
+  password : string ;
+  pool_size : int ;
 }
 
 exception ConnectionFailed of string
@@ -55,25 +56,30 @@ let connect config =
 (* First connection queries 
    ======================== *)
 
-let already_connected = Hashtbl.create 10 
-
-let is_first_connection config = 
-  let key = (config.host, config.port, config.database) in 
-  if Hashtbl.mem already_connected key then false else
-    (Hashtbl.add already_connected key () ; true)
-
 let on_first_connection = ref (Run.return ())
 
 (* Creating connections 
    ==================== *)
 
-let make_cqrs config = { 
+let make_cqrs config is_first_connection = { 
   pgsql = connect config ; 
   pending = Queue.create () ; 
   current = None ;
-  first = is_first_connection config ; 
+  first = is_first_connection ; 
 } 
-  
+
+let reset_cqrs cqrs = 
+  if not (Queue.is_empty cqrs.pending) || cqrs.current <> None then begin
+    let time = Unix.gettimeofday () in
+    cqrs.pgsql # reset ; 
+    Log.trace "pgsql # reset : %.2fms" (1000. *. (Unix.gettimeofday () -. time)) ;
+    Queue.clear cqrs.pending ;
+    cqrs.current <- None
+  end
+
+let close_cqrs cqrs = 
+  cqrs.pgsql # finish 
+
 class type ctx = object ('self)
   method cqrs : cqrs
   method time : Time.t 
@@ -84,9 +90,9 @@ class type ctx = object ('self)
   method with_after : Clock.t -> 'self
 end 
 
-class cqrs_ctx config = object (self)
+class cqrs_ctx cqrs = object (self)
 
-  val cqrs = make_cqrs config
+  val cqrs = cqrs
 
   method cqrs = 
     if cqrs.first then begin

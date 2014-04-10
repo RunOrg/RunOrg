@@ -6,7 +6,7 @@ type view
 (* See cqrs.mli for documentation *)
 
 
-val make : string -> (unit -> Common.ctx) -> t
+val make : string -> Common.config -> t
 val view : t -> string -> int -> view
 val name : t -> string
 val clock : t -> (#Common.ctx, Clock.t) Run.t

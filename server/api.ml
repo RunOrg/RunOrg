@@ -4,7 +4,7 @@ open Std
 
 include ApiLib
 
-let config = Httpd.(Configuration.Httpd.({ 
+let httpd_config = Httpd.(Configuration.Httpd.({ 
   port ; 
   key_path ; 
   certificate_path ; 
@@ -14,11 +14,19 @@ let config = Httpd.(Configuration.Httpd.({
   max_duration ; 
 })) 
 
+let cqrs_config = O.config
+
 let run () = 
-  Httpd.start config (fun req -> 
+  Httpd.start httpd_config (fun req -> 
     
     let! oldctx = Run.context in 
-    let  ctx = new O.ctx oldctx in
-    let  ctx = match req # at with None -> ctx | Some clock -> ctx # with_after clock in 
 
-    Run.with_context ctx (Endpoint.dispatch req))
+    let  mkctx cqrs = 
+      let ctx = new O.ctx cqrs oldctx in    
+      match req # at with None -> ctx | Some clock -> ctx # with_after clock 
+    in
+
+    Cqrs.using cqrs_config mkctx begin
+      let! ()  = LogReq.trace "Connected to database" in
+      Endpoint.dispatch req
+    end)
