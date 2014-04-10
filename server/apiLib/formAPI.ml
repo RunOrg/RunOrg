@@ -238,3 +238,42 @@ module Fill = Endpoint.Put(struct
     | `NeedAdmin            (id,fid) -> return (needAdmin id fid) 
 
 end)
+
+module GetFilled = Endpoint.Get(struct
+
+  module Arg = type module < id : Form.I.t ; fid : CId.t >
+  module Out = type module <
+    data : Json.t ;
+  >
+
+  let path = "forms/{id}/filled/{fid}"
+
+  let notFilled id fid =
+    `Forbidden (!! "Form %S is not filled for %s." 
+		   (Form.I.to_string id)
+		   (match fid with 
+		   | `Contact cid -> !! "contact %S" (CId.to_string cid)))
+
+  let needAdmin id fid =
+    `Forbidden (!! "You need admin access to fill form %S for %s." 
+		   (Form.I.to_string id)
+		   (match fid with 
+		   | `Contact cid -> !! "contact %S" (CId.to_string cid)))
+
+  let response req args = 
+
+    let fid  = `Contact (args # fid) in
+    let id   = args # id in
+    
+    let! result = Form.get_filled (req # as_) id fid in
+    
+    let  output data = 
+      Json.Object (List.map (fun (k,v) -> Field.I.to_string k, v) (Map.to_list data)) in
+
+    match result with 
+    | `OK            data -> return (`OK (Out.make ~data:(output data)))
+    | `NoSuchForm      id -> return (notFound id)
+    | `NotFilled (id,fid) -> return (notFilled id fid)
+    | `NeedAdmin (id,fid) -> return (needAdmin id fid) 
+
+end)
