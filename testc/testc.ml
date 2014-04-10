@@ -192,7 +192,9 @@ let get_all_files path =
 
 let parse_all_files path = 
   let files = get_all_files path in
-  List.map read files
+  let parsed =  List.map read files in
+  let path m = match m.js with None -> ">" | Some js -> js.path in
+  List.sort (fun a b -> compare (path a) (path b)) parsed
 
 (* Read, then write
    ================ *)
