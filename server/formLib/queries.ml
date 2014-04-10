@@ -37,6 +37,12 @@ let list cid ~limit ~offset =
 (* Retrieving filled forms
    ======================= *)
 
+type filled = <
+  updated : Time.t ;
+  owner   : FilledI.t ;
+  data    : (Field.I.t, Json.t) Map.t ;
+>
+
 let belongs_to fid cid = match fid with
   | `Contact cid' -> cid = Some cid'
 
@@ -57,8 +63,30 @@ let get_filled cid id fid =
 	let! info = Cqrs.FeedMapView.get View.fillInfo id fid in
 	match info with None -> return (`NotFilled (id,fid)) | Some (_,info) -> 
 
-	  return (`OK (info # data))
-	
+	  return (`OK (info # data))	
       
+let list_filled cid ?limit ?offset id =
 
+  (* Form should exist... *)
+  let! form = Cqrs.MapView.get View.info id in  
+  match form with None -> return (`NoSuchForm id) | Some form -> 
 
+    (* ...and be visible. *)
+    let! access = FormAccess.compute cid (form # audience) in
+    if not (Set.mem `Fill access) then return (`NoSuchForm id) else 
+      if not (Set.mem `Admin access) then return (`NeedAdmin id) else
+
+	let! list = Cqrs.FeedMapView.list View.fillInfo ?limit ?offset id in
+	let! stats = Cqrs.FeedMapView.stats View.fillInfo id in
+	
+	let  count = stats # count in 
+	let  list  = List.map (fun (fid,t,info) -> (object
+	  method updated = t
+	  method data = info # data
+	  method owner = fid
+	end)) list in 
+
+	return (`OK (object
+	  method count = count
+	  method list  = list
+	end))

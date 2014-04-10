@@ -90,6 +90,13 @@ val fill :
 					| `NeedAdmin of I.t * FilledI.t					
 					]) Run.t
 
+(** A filled instance of a form. *)
+type filled = <
+  updated : Time.t ;
+  owner   : FilledI.t ;
+  data    : (Field.I.t, Json.t) Map.t ;
+>
+
 (** Get the filled data for a form. *)
 val get_filled :
   CId.t option -> 
@@ -99,4 +106,15 @@ val get_filled :
 	   | `NotFilled of I.t * FilledI.t 
 	   | `NeedAdmin of I.t * FilledI.t
 	   | `OK of (Field.I.t, Json.t) Map.t 
+	   ]) Run.t
+
+(** List filled instances for a form. *)
+val list_filled :
+  CId.t option ->
+  ?limit:int ->
+  ?offset:int ->
+  I.t -> 
+  (#O.ctx, [ `NoSuchForm of I.t
+	   | `NeedAdmin of I.t
+	   | `OK of < count : int ; list : filled list > 
 	   ]) Run.t

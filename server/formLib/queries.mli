@@ -16,6 +16,12 @@ val get : I.t -> (#O.ctx, info option) Run.t
 
 val list : CId.t option -> limit:int -> offset:int -> (#O.ctx, info list) Run.t
 
+type filled = <
+  updated : Time.t ;
+  owner   : FilledI.t ;
+  data    : (Field.I.t, Json.t) Map.t ;
+>
+
 val get_filled : 
   CId.t option -> 
   I.t ->
@@ -26,3 +32,12 @@ val get_filled :
 	   | `OK of (Field.I.t, Json.t) Map.t 
 	   ]) Run.t
 
+val list_filled :
+  CId.t option ->
+  ?limit:int ->
+  ?offset:int ->
+  I.t -> 
+  (#O.ctx, [ `NoSuchForm of I.t
+	   | `NeedAdmin of I.t
+	   | `OK of < count : int ; list : filled list > 
+	   ]) Run.t
