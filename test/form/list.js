@@ -101,9 +101,9 @@ TEST("Returns data for all forms.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    Test.query("POST",["db/",db,"/forms/create"],exampleA,auth).result("id").map(function(idA) {
-	Test.query("POST",["db/",db,"/forms/create"],exampleB,auth).result("id").map(function(idB) {
-	    Test.query("POST",["db/",db,"/forms/create"],exampleC,auth).result("id").map(function(idC) {
+    Test.query("POST",["db/",db,"/forms/create"],exampleA,auth).result("id")(function(idA) {
+	Test.query("POST",["db/",db,"/forms/create"],exampleB,auth).result("id")(function(idB) {
+	    Test.query("POST",["db/",db,"/forms/create"],exampleC,auth).result("id")(function(idC) {
 
 		var expected = {
 		    "list" : [ {
@@ -145,7 +145,8 @@ TEST("Returns 404 when database does not exist.", function(next) {
 // - ... if the provided token does not grant mathch contact `{as}`.
 
 TEST("Returns 401 when token is not valid.", function(next) {
-    Test.query("GET",["db/00000000000/forms"],{token:"012345789a",id:"0123456789a"})
+    var db = Query.mkdb();
+    Test.query("GET",["db/",db,"/forms"],{token:"012345789a",id:"0123456789a"})
 	.error(401).then(next);
 });
  
