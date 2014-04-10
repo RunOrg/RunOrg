@@ -2,6 +2,7 @@ Clock
 Common
 EventStream
 FeedMapView
+HardStuffCache
 ManyToManyView
 MapView
 Names

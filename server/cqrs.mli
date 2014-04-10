@@ -365,6 +365,28 @@ module SearchView : sig
 
 end
 
+(** Cache the result of hard computations. Includes a lock for preventing
+    multiple evaluation within a single process. *)
+module HardStuffCache : sig
+
+  (** the type of a cache that performs computations returning ['value]
+      from data of type ['key]. *)
+  type ('key,'value) t
+
+  (** Create a new cache. Includes a name ([[a-zA-Z0-9.]]) and a version number. 
+      Also provided: the function that performs the hard computation. *)
+  val make : string -> int -> 
+    (module Fmt.FMT with type t = 'key) ->
+    (module Fmt.FMT with type t = 'value) ->
+    ('key -> (ctx, 'value) Run.t) -> 
+    ('key,'value) t
+      
+  (** Read a value from the cache. Blocks until the value is computed. The provided
+      clock is used to determine if the value in the cache is still fresh. *)
+  val get : ('key,'value) t -> 'key -> Clock.t -> (#ctx,'value) Run.t
+
+end
+
 (** Keeping track of running instances. *)
 module Running : sig
 
