@@ -172,7 +172,10 @@ module type STREAM = sig
   (** Have a view track events from this stream, running an effect for every
       one of them. *)
   val track : Projection.view -> (event -> ctx Run.effect) -> unit
-    
+
+  (** As [track], but provides the current stream clock as well. *)
+  val track_full : Projection.view -> (< clock : Clock.t ; event : event > -> ctx Run.effect) -> unit
+
 end
 
 (** Creates a new stream with the specified name and (packable) event type. *)

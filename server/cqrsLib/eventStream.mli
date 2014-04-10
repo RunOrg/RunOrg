@@ -9,6 +9,7 @@ module type STREAM = sig
   val count : unit -> ( #ctx, int ) Run.t
   val clock : unit -> ( #ctx, Clock.t ) Run.t
   val track : Projection.view -> (event -> ctx Run.effect) -> unit
+  val track_full : Projection.view -> (< clock : Clock.t ; event : event > -> ctx Run.effect) -> unit
 end
 
 module Stream : functor(Event:sig 

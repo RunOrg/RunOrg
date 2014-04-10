@@ -12,6 +12,7 @@ module type STREAM = sig
   val count : unit -> ( #ctx, int ) Run.t
   val clock : unit -> ( #ctx, Clock.t ) Run.t
   val track : Projection.view -> (event -> ctx Run.effect) -> unit
+  val track_full : Projection.view -> (< clock : Clock.t ; event : event > -> ctx Run.effect) -> unit
 end
 
 module Stream = functor(Event:sig 
@@ -164,7 +165,7 @@ end) -> struct
 
   let trackers = Hashtbl.create 10
 
-  let track view action = 
+  let track_full view action = 
 
     let name = Projection.name (Projection.of_view view) in
 
@@ -179,8 +180,15 @@ end) -> struct
 
 	let ev = wrap # event and clock = wrap # clock and db = wrap # db and time = wrap # time in 
 
+	let arg = object
+	  val event = ev
+	  method event = event
+	  val clock = clock
+	  method clock = clock
+	end in
+
 	(Run.edit_context (fun ctx -> (ctx # with_time time) # with_db db)
-	   (List.M.iter_seq (fun action -> action ev) actions)), clock
+	   (List.M.iter_seq (fun action -> action arg) actions)), clock
 
       end (follow clock)
     in
@@ -191,6 +199,9 @@ end) -> struct
     in
 
     Hashtbl.add trackers name (action :: actions)
+
+  let track view action = 
+    track_full view (fun arg -> action (arg # event))
 
 end
 
