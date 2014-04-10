@@ -184,7 +184,7 @@ let join ?(limit=100) ?(offset=0) map lefts =
       ^ dbname 
       ^ "\" WHERE "^l^" IN (" 
       ^ String.concat "," List.(map (fun i -> !! "$%d" (i + 2)) (0 -- leftN))
-      ^ ") ORDER BY "^r
+      ^ ") AND \"db\" = $1 ORDER BY "^r
       ^ (!! " LIMIT %d OFFSET %d" limit offset)
     in
 
