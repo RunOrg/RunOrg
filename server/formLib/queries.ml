@@ -37,7 +37,28 @@ let list cid ~limit ~offset =
 (* Retrieving filled forms
    ======================= *)
 
-let get_filled id fid = 
-  assert false
+let belongs_to fid cid = match fid with
+  | `Contact cid' -> cid = Some cid'
+
+let get_filled cid id fid = 
+
+  (* Form should exist... *)
+  let! form = Cqrs.MapView.get View.info id in
+  match form with None -> return (`NoSuchForm id) | Some form -> 
+
+    (* ...and be visible. *)
+    let! access = FormAccess.compute cid (form # audience) in
+    if not (Set.mem `Fill access) then return (`NoSuchForm id) else 
+
+      (* The user should have access to the filled instance *)
+      if not (Set.mem `Admin access || belongs_to fid cid) then return (`NeedAdmin (id,fid)) else
+
+	(* And the filled instance should exist. *)
+	let! info = Cqrs.MapView.get View.fillInfo (id, fid) in
+	match info with None -> return (`NotFilled (id,fid)) | Some info -> 
+
+	  return (`OK (info # data))
+	
+      
 
 

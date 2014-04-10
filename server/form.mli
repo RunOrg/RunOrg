@@ -91,8 +91,12 @@ val fill :
 					]) Run.t
 
 (** Get the filled data for a form. *)
-val get_filled : 
+val get_filled :
+  CId.t option -> 
   I.t ->
   FilledI.t ->
-  (#O.ctx, (Field.I.t, Json.t) Map.t option) Run.t
-
+  (#O.ctx, [ `NoSuchForm of I.t
+	   | `NotFilled of I.t * FilledI.t 
+	   | `NeedAdmin of I.t * FilledI.t
+	   | `OK of (Field.I.t, Json.t) Map.t 
+	   ]) Run.t
