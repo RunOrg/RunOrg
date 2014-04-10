@@ -749,7 +749,7 @@ module Pack = struct
 	let r = recurse <:expr< $lid:value$ >> t in
 	let src = <:expr< Array.to_list $src$ >> in
 	let e_fun = <:expr< fun $lid:value$ $lid:packer$ -> $r$ >> in
-	<:expr< Pack.Pack.list $e_fun$ $src$ >> 
+	<:expr< Pack.Pack.list $e_fun$ $src$ $lid:packer$ >> 
       end 
 	
       | `tuple l -> begin
