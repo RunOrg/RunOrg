@@ -170,6 +170,8 @@ class mutex = object (self)
   method if_unlocked : 'ctx 'a . ('ctx, 'a) t -> ('ctx, 'a) t = fun m ->
     if locked then self # lock m else m 
     
+  method locked = locked
+
 end 
 
 class ['ctx] semaphore = object

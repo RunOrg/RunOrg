@@ -161,6 +161,11 @@ class mutex : object
       If the mutex is locked, performs exactly as [lock]. *)
   method if_unlocked : ('ctx, 'a) t -> ('ctx, 'a) t 
 
+  (** Returns false if this mutex is not currently locked, and will remain
+      unlocked until the end of the current synchronous operation (the next
+      time it will yield control to the scheduler). *)
+  method locked : bool
+
 end
 
 (** A counting semaphore.*)
