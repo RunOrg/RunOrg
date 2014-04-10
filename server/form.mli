@@ -118,3 +118,58 @@ val list_filled :
 	   | `NeedAdmin of I.t
 	   | `OK of < count : int ; list : filled list > 
 	   ]) Run.t
+
+(** Form statistics *)
+module Stats : sig 
+
+  (** Statistics about a single form field. JSON serialization ignores the
+      variand and returns an object with properties appropriate to the field
+      kind. *)
+  module FieldStat : Fmt.FMT with type t = 
+    [ `Text of <
+        missing : int ;
+        filled  : int ;
+        words   : int ;
+      >
+    | `Time of <
+        missing : int ;
+        filled  : int ;
+	first   : Time.t option ;
+	last    : Time.t option ;
+      >
+    | `Json of <
+        missing   : int ;
+        filled    : int ;
+      >
+    | `Single of <
+        missing : int ;
+        filled  : int ;
+	items   : int array ;
+      >
+    | `Multi of <
+        missing : int ;
+        filled  : int ;
+	items   : int array ;
+      >
+    | `Contact of <
+        missing : int ;
+        filled : int ;
+	contacts : int ;
+	top100 : (CId.t * int) list ;
+      >
+    ]
+
+  (** Maps statistics to fields, represented as a JSON dictionary. *)
+  module Summary : Fmt.FMT with type t = 
+    ( Field.I.t, FieldStat.t ) Map.t
+
+end
+
+(** Compute and return statistics for a form. *)
+val stats : 
+  CId.t option ->
+  I.t ->
+  (#O.ctx, [ `NoSuchForm of I.t
+	   | `NeedAdmin of I.t
+	   | `OK of Stats.Summary.t 
+	   ]) Run.t
