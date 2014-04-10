@@ -121,6 +121,18 @@ Query.prototype = {
 	});
     },
 
+    success: function(http,more) {
+	var query = this;
+	return query.always().map(function(data,status,xhr){
+	    if (status != "success") 
+		return Test.fail("Should succed: "+query);
+	    if (xhr.status != http) 
+		return Test.fail("Expected "+http+": "+query);
+	    if (more)
+		more(xhr.responseText);		    
+	});
+    },
+
     error: function(http,more) {
 	var query = this;
 	return query.always().map(function(xhr,status){
