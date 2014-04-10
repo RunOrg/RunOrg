@@ -14,24 +14,28 @@ module Info = type module <
   custom : Json.t ;
   empty : bool ; 
   audience : FormAccess.Audience.t ; 
+  clock : Cqrs.Clock.t ;
 >
 
 let info = 
 
-  let infoV, info = Cqrs.MapView.make projection "info" 0 
+  let infoV, info = Cqrs.MapView.make projection "info" 1 
     (module I : Fmt.FMT with type t = I.t)
     (module Info : Fmt.FMT with type t = Info.t) in
 
-  let () = Store.track infoV begin function
+  let () = Store.track_full infoV begin fun arg ->
+
+    let clock = arg # clock in 
+    match arg # event with 
 
     | `Created ev -> 
-
+      
       Cqrs.MapView.update info (ev # id) 
 	(function 
 	| None   -> `Put (Info.make 
 			    ~owner:(ev # owner) ~label:(ev # label) 
 			    ~fields:(ev # fields) ~custom:(ev # custom)
-			    ~audience:(ev # audience) ~empty:true)
+			    ~audience:(ev # audience) ~empty:true ~clock)
 	| Some _ -> `Keep) 
 
     | `Updated ev -> 
@@ -47,17 +51,18 @@ let info =
 			    ~fields:(Option.default (f # fields) (ev # fields))
 			    ~custom:(Option.default (f # custom) (ev # custom))
 			    ~audience:(Option.default (f # audience) (ev # audience))
-			    ~empty:(f # empty)))
+			    ~empty:(f # empty)
+			    ~clock))
 
     | `Filled ev -> 
 
       Cqrs.MapView.update info (ev # id) 
 	(function 
-	| Some f when f # empty -> `Put (Info.make 
-					   ~owner:(f # owner) ~label:(f # label) 
-					   ~fields:(f # fields) ~custom:(f # custom)
-					   ~audience:(f # audience) ~empty:false) 
-	| _ -> `Keep) 
+	| Some f -> `Put (Info.make 
+			    ~owner:(f # owner) ~label:(f # label) 
+			    ~fields:(f # fields) ~custom:(f # custom)
+			    ~audience:(f # audience) ~empty:false ~clock) 
+	| None -> `Keep) 
 
   end in
 
