@@ -1,11 +1,12 @@
 {< if root }
-   <div>
+   <div style="text-align:center">
      {< if running }
 	<div class="progress">
 	  <div style="width:{{ done }}%"></div>
 	</div>
      {else}
-	<button> <span>Run tests</span> </button> 
+	<button class="this"> <span>Run</span> </button> 
+	<button class="all"> <span>Run all</span> </button> 
      {>}
    </div>
 {>}

@@ -21,9 +21,7 @@
   font-size: 12px;
 
   button {
-    display: block;
     margin: 8px auto;
-    box-sizing: box-content;
     border: 0 none white;
     padding: 0;
     height: 28px;

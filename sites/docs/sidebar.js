@@ -73,8 +73,13 @@
 	    while ($a.length > 0) $a = $a.parent().closest('ul').show();	    
 
 	    if (!Test.running) {
-		var $button = $sidebar.find('button').click(function(){
-		    Test.run(function(fixture,test) {
+		$sidebar.find('button.all').click(function(){
+		    Test.run(null,function(fixture,test) {
+			sidebar(new Renderer($sidebar))
+		    });
+		});
+		$sidebar.find('button.this').click(function(){
+		    Test.run(document.location.hash.replace(/^#\//,''),function(fixture,test) {
 			sidebar(new Renderer($sidebar))
 		    });
 		});

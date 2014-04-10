@@ -105,18 +105,16 @@ var Test = (function() {
 	// Get the contents of a test, parsed (see parse.js for the format)
 	get: function(id, callback) {
 	    Test.get_ = Test.get_ || {};
-	    var cache = Test.get_[id] = Test.get_[id] || {};
+	    var pending = Test.get_[id] = Test.get_[id] || {};
 
-	    if ('fixture' in cache) {	    
-		callback(cache.fixture);
-	    } else if ('wait' in cache) {
-		cache.wait.push(callback);
+	    if ('wait' in pending) {
+		pending.wait.push(callback);
 	    } else {
-		cache.wait = [callback];
+		pending.wait = [callback];
 		$.get("/docs/" + id, function(contents){
-		    cache.fixture = /.js$/.exec(id) ? parseTestFixture(contents) : parseDoc(contents);
-		    for (var i = 0; i < cache.wait.length; ++i) cache.wait[i](cache.fixture);
-		    delete cache.wait;
+		    var fixture = /.js$/.exec(id) ? parseTestFixture(contents) : parseDoc(contents);
+		    for (var i = 0; i < pending.wait.length; ++i) pending.wait[i](fixture);
+		    delete pending.wait;
 		}, 'text');
 	    }
 	},
@@ -124,7 +122,7 @@ var Test = (function() {
 	// Run all tests. Call the provided callback every time a test finishes
 	// running.
 	running: false,
-	run: function(callback) {
+	run: function(id, callback) {
 
 	    if (Test.running) return;
 	    Test.running = true;
@@ -134,13 +132,14 @@ var Test = (function() {
 
 		for (var k in fixtures) {
 		    if (!fixtures[k].hasTests()) continue;
+		    if (id && fixtures[k].file != id) continue;
 		    fixtures[k].startTesting();
 		    all.push(k);
 		}
 
 		Test.ping();
 
-		// This loop performs work on every test.
+		// This loop performs work on every test fixture selected above
 		function loop(i) {
 		    if (i == all.length) { Test.running = false; callback(null,null); return; }
 
