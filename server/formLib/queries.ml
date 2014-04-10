@@ -54,8 +54,8 @@ let get_filled cid id fid =
       if not (Set.mem `Admin access || belongs_to fid cid) then return (`NeedAdmin (id,fid)) else
 
 	(* And the filled instance should exist. *)
-	let! info = Cqrs.MapView.get View.fillInfo (id, fid) in
-	match info with None -> return (`NotFilled (id,fid)) | Some info -> 
+	let! info = Cqrs.FeedMapView.get View.fillInfo id fid in
+	match info with None -> return (`NotFilled (id,fid)) | Some (_,info) -> 
 
 	  return (`OK (info # data))
 	

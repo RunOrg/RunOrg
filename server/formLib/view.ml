@@ -91,15 +91,15 @@ let byAccess =
 (* Filled forms
    ============ *)
 
-module FillKey = type module (I.t * FilledI.t)
 module FillInfo = type module <
   data : FillData.t
 > 
 
 let fillInfo = 
   
-  let fillInfoV, fillInfo = Cqrs.MapView.make projection "fillInfo" 0
-    (module FillKey : Fmt.FMT with type t = FillKey.t)
+  let fillInfoV, fillInfo = Cqrs.FeedMapView.make projection "fillInfo" 1
+    (module I : Fmt.FMT with type t = I.t)
+    (module FilledI : Fmt.FMT with type t = FilledI.t)
     (module FillInfo : Fmt.FMT with type t = FillInfo.t) in
 
   let () = Store.track fillInfoV begin function 
@@ -109,10 +109,11 @@ let fillInfo =
 
     | `Filled ev -> 
 
-      Cqrs.MapView.update fillInfo (ev # id, ev # fid) 
+      let! ctx = Run.context in
+      Cqrs.FeedMapView.update fillInfo (ev # id) (ev # fid) 
 	(function 
-	| None   -> `Put (FillInfo.make ~data:(ev # data))
-	| Some t -> `Put (FillInfo.make ~data:(Map.union (t # data) (ev # data))))  
+	| None       -> `Put (ctx # time, FillInfo.make ~data:(ev # data))
+	| Some (_,t) -> `Put (ctx # time, FillInfo.make ~data:(Map.union (t # data) (ev # data))))  
 
   end in
 
