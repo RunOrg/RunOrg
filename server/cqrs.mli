@@ -230,18 +230,21 @@ module FeedMapView : sig
   (** Does an item exist in the specified feed ? *)
   val exists : ('key, 'id, 'value) t -> 'key -> 'id -> (#ctx, bool) Run.t
 
+  (** Get a value from the feed, if it exists. *)
+  val get : ('key, 'id, 'value) t -> 'key -> 'id -> (#ctx, (Time.t * 'value) option) Run.t
+
   (** How many items in a feed, and when are the first and last elements ? *)
   val stats : ('key, 'id, 'value) t -> 'key -> (#ctx, <
     count : int ;
-    first : Time.t option ;
-    last  : Time.t option ;
-  >) Run.t
+						first : Time.t option ;
+						last  : Time.t option ;
+						>) Run.t
 
   (** List elements in a feed, in reverse chronological order (latest 
       first). *)
   val list : ('key, 'id, 'value) t -> ?limit:int -> ?offset:int -> 'key ->
     (#ctx, ('id * Time.t * 'value) list) Run.t
- 
+      
 end
 
 (** Maps bind values to keys. *)

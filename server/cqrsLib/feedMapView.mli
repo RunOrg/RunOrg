@@ -1,4 +1,5 @@
 (* © 2014 RunOrg *)
+
 type ('key, 'id, 'value) t
 
 val make : Projection.t -> string -> int ->
@@ -14,6 +15,8 @@ val update : ('key, 'id, 'value) t -> 'key -> 'id ->
 val delete : ('key, 'id, 'value) t -> 'key -> # Common.ctx Run.effect
 
 val exists : ('key, 'id, 'value) t -> 'key -> 'id -> (#Common.ctx, bool) Run.t
+
+val get : ('key, 'id, 'value) t -> 'key -> 'id -> (#Common.ctx, (Time.t * 'value) option) Run.t
 
 val stats : ('key, 'id, 'value) t -> 'key -> (#Common.ctx, <
   count : int ;
