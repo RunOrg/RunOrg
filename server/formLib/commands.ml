@@ -56,11 +56,15 @@ let update ?label ?owner ?audience ?custom ?fields cid id =
 (* Filling the form
    ================ *)
 
-let check_fid form id fid = 
+let check_fid cid form id fid = 
+  let! access = FormAccess.compute cid (form # audience) in 
   match form # owner, fid with 
-    | `Contact, `Contact cid -> 
-      let! info = Contact.get cid in 
-      return (if info = None then Some (`NoSuchOwner (id,fid)) else None)
+    | `Contact, `Contact cid' -> 
+      if Set.mem `Admin access || Set.mem `Fill access && cid = Some cid' then      
+	let! info = Contact.get cid' in 
+	return (if info = None then Some (`NoSuchOwner (id,fid)) else None)
+      else
+	return (Some (`NeedAdmin (id,fid))) 
 
 let is_empty_data = function 
   | Json.Null 
@@ -98,14 +102,15 @@ let check_fill form id data =
 
 let fill cid id fid data = 
 
-  (* Check that everything is fine *)
+  (* Does the form exist ? *)
   let! form  = Cqrs.MapView.get View.info id in
-  match form with None -> return (Bad (`NoSuchForm id)) | Some form -> 
-    let! fid_error = check_fid form id fid in
-    match fid_error with Some e -> return (Bad e) | None -> 
+  match form with None -> return (`NoSuchForm id) | Some form -> 
+
+    let! fid_error = check_fid cid form id fid in
+    match fid_error with Some e -> return e | None -> 
       let! fill_error = check_fill form id data in
-      match fill_error with Some e -> return (Bad e) | None -> 
+      match fill_error with Some e -> return e | None -> 
 
 	(* Save the data. *)
 	let! clock = Store.append [ Events.filled ~id ~cid ~fid ~data ] in
-	return (Ok clock) 
+	return (`OK clock) 
