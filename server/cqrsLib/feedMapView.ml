@@ -168,7 +168,7 @@ let list map ?(limit=1000) ?(offset=0) k =
 
   let! result = Sql.query 
     (!! "SELECT \"id\", \"t\", \"value\" FROM \"%s\" WHERE \"db\" = $1 AND \"key\" = $2 
-         ORDER BY \"t\" LIMIT %d OFFSET %d" dbname limit offset)
+         ORDER BY \"t\" DESC LIMIT %d OFFSET %d" dbname limit offset)
     [ `Id (ctx # db) ; `Binary k ]
   in
   
