@@ -41,3 +41,12 @@ val list_filled :
 	   | `NeedAdmin of I.t
 	   | `OK of < count : int ; list : filled list > 
 	   ]) Run.t
+
+val stats : 
+  CId.t option ->
+  I.t ->
+  (#O.ctx, [ `NoSuchForm of I.t
+	   | `NeedAdmin of I.t
+	   | `OK of Stats.Summary.t 
+	   ]) Run.t
+

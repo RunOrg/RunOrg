@@ -90,3 +90,21 @@ let list_filled cid ?limit ?offset id =
 	  method count = count
 	  method list  = list
 	end))
+
+(* Statistics 
+   ========== *)
+
+let stats cid id = 
+
+  (* Form should exist... *)
+  let! form = Cqrs.MapView.get View.info id in  
+  match form with None -> return (`NoSuchForm id) | Some form -> 
+
+    (* ...and be visible. *)
+    let! access = FormAccess.compute cid (form # audience) in
+    if not (Set.mem `Fill access) then return (`NoSuchForm id) else 
+      if not (Set.mem `Admin access) then return (`NeedAdmin id) else
+	
+	let! summary = Cqrs.HardStuffCache.get Stats.compute id (form # clock) in	
+	return (`OK summary) 
+  
