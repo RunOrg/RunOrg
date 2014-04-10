@@ -106,5 +106,11 @@ let stats cid id =
       if not (Set.mem `Admin access) then return (`NeedAdmin id) else
 	
 	let! summary = Cqrs.HardStuffCache.get Stats.compute id (form # clock) in	
-	return (`OK summary) 
+	let! stats = Cqrs.FeedMapView.stats View.fillInfo id in
+
+	return (`OK (object
+	  method fields = summary
+	  method count = stats # count
+	  method updated = stats # last
+	end)) 
   

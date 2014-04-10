@@ -47,6 +47,6 @@ val stats :
   I.t ->
   (#O.ctx, [ `NoSuchForm of I.t
 	   | `NeedAdmin of I.t
-	   | `OK of Stats.Summary.t 
+	   | `OK of < fields : Stats.Summary.t ; count : int ; updated : Time.t option >
 	   ]) Run.t
 
