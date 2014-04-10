@@ -320,3 +320,30 @@ module ListFilled = Endpoint.Get(struct
     | `NeedAdmin  id -> return (needAdmin id)
 
 end)
+
+(* Form statistics 
+   =============== *)
+
+module Stats = Endpoint.Get(struct
+
+  module Arg = type module < id : Form.I.t >
+  module Out = type module <
+    count : int ;
+    fields : Form.Stats.Summary.t ;
+  >
+
+  let path = "forms/{id}/stats"
+
+  let needAdmin id =
+    `Forbidden (!! "You need admin access to view statistics of form %S." 
+		   (Form.I.to_string id))
+
+  let response req arg = 
+
+    let! stats = Form.stats (req # as_) (arg # id) in
+    match stats with 
+    | `NoSuchForm id -> return (notFound id)
+    | `NeedAdmin  id -> return (needAdmin id) 
+    | `OK       data -> return (`OK (data :> Out.t)) 
+    	
+end)
