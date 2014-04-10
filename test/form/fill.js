@@ -283,7 +283,7 @@ TEST("Unknown provided field.", function(next) {
 
     var tests = [];
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],data,auth)
-	.error(400);
+	.error(400).then(next);
 
 });
 
@@ -304,8 +304,8 @@ TEST("Missing required field.", function(next) {
 	    "choices": [ "A", "B" ],
 	    "label": "Single"
 	}, { 
-	    "id": "multi",
-	    "kind": "multi",
+	    "id": "multiple",
+	    "kind": "multiple",
 	    "choices": [ "A", "B" ],
 	    "label": "Multiple"
 	}, { 
@@ -324,9 +324,9 @@ TEST("Missing required field.", function(next) {
         { "single": [1] },
         { "single": "1" },
         { "single": 2 },
-        { "multi": 1 },
-        { "multi": [1,2] },
-        { "multi": {} },
+        { "multiple": 1 },
+        { "multiple": [1,2] },
+        { "multiple": {} },
         { "time": 0 },
         { "time": "2014/01/01" },
         { "contact": "00000000000" },
@@ -339,8 +339,8 @@ TEST("Missing required field.", function(next) {
     var success = [ 
 	{ "text": "Hello" },
         { "single": 1, },
-        { "multi": [1] },
-        { "multi": [] },
+        { "multiple": [1] },
+        { "multiple": [] },
         { "time": "2014-01-01" },
         { "time": "2014-01-01T23:59:59Z" },
         { "contact": auth.id },
