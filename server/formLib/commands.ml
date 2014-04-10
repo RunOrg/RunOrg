@@ -58,7 +58,8 @@ let update ?label ?owner ?audience ?custom ?fields cid id =
 
 let check_fid cid form id fid = 
   let! access = FormAccess.compute cid (form # audience) in 
-  match form # owner, fid with 
+  if not (Set.mem `Fill access) then return (Some (`NoSuchForm id)) else    
+    match form # owner, fid with 
     | `Contact, `Contact cid' -> 
       if Set.mem `Admin access || Set.mem `Fill access && cid = Some cid' then      
 	let! info = Contact.get cid' in 
