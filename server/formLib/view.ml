@@ -87,3 +87,33 @@ let byAccess =
   end in
 
   byAccess
+
+(* Filled forms
+   ============ *)
+
+module FillKey = type module (I.t * FilledI.t)
+module FillInfo = type module <
+  data : FillData.t
+> 
+
+let fillInfo = 
+  
+  let fillInfoV, fillInfo = Cqrs.MapView.make projection "fillInfo" 0
+    (module FillKey : Fmt.FMT with type t = FillKey.t)
+    (module FillInfo : Fmt.FMT with type t = FillInfo.t) in
+
+  let () = Store.track fillInfoV begin function 
+
+    | `Created _ 
+    | `Updated _ -> return ()  
+
+    | `Filled ev -> 
+
+      Cqrs.MapView.update fillInfo (ev # id, ev # fid) 
+	(function 
+	| None   -> `Put (FillInfo.make ~data:(ev # data))
+	| Some t -> `Put (FillInfo.make ~data:(Map.union (t # data) (ev # data))))  
+
+  end in
+
+  fillInfo
