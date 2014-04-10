@@ -279,3 +279,44 @@ module GetFilled = Endpoint.Get(struct
     | `NeedAdmin (id,fid) -> return (needAdmin id fid) 
 
 end)
+
+module ListFilled = Endpoint.Get(struct
+
+  module Arg = type module < id : Form.I.t >
+  module Item = type module <        
+    owner      : CId.t ;
+    data       : Json.t ;
+  >
+
+  module Out = type module <
+    list : Item.t list ;
+    count : int ;
+  >
+
+  let path = "forms/{id}/filled"
+
+  let needAdmin id =
+    `Forbidden (!! "You need admin access to list filled instances of form %S." 
+		   (Form.I.to_string id))
+
+  let response req args = 
+
+    let id     = args # id in
+    let limit  = Option.default 100 (req # limit) in
+    let offset = Option.default 0 (req # offset) in
+    
+    let! result = Form.list_filled (req # as_) ~limit ~offset id in
+    
+    let  output o = 
+      Out.make ~count:(o # count) ~list:(List.map (fun i -> Item.make
+	~owner:(match i # owner with `Contact cid -> cid)
+	~data:(Json.Object (List.map (fun (k,v) -> Field.I.to_string k, v) (Map.to_list (i # data))))
+      ) (o # list)) 
+    in
+
+    match result with 
+    | `OK       data -> return (`OK (output data))
+    | `NoSuchForm id -> return (notFound id)
+    | `NeedAdmin  id -> return (needAdmin id)
+
+end)
