@@ -30,7 +30,6 @@ let set_request_ip str =
   if enabled then 
     let! ctx = Run.context in 
     let  log = ctx # logreq in 
-    let  time = Unix.gettimeofday () in      
     let () = Log.trace "%04x =========== %s" log.id str in
     return ()
   else
@@ -40,7 +39,6 @@ let set_request_path str =
   if enabled then 
     let! ctx = Run.context in 
     let  log = ctx # logreq in 
-    let  time = Unix.gettimeofday () in      
     let () = Log.trace "%04x ----------- %s" log.id str in
     return ()
   else
