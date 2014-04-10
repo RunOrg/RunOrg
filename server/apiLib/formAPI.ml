@@ -162,7 +162,7 @@ let make_short cid =
 		      ~fields:(List.length (f # fields))		    
 		      ~access))
 
-module List = Endpoint.Get(struct
+module ListAll = Endpoint.Get(struct
 
   module Arg = type module unit
   module Out = type module <
@@ -177,5 +177,26 @@ module List = Endpoint.Get(struct
     let! forms = Form.list (req # as_) ~limit ~offset in
     let! list = List.M.filter_map (make_short (req # as_)) forms in 
     return (`OK (Out.make ~list))
+
+end)
+
+(* Filling forms
+   ============= *)
+
+module Fill = Endpoint.Put(struct
+
+  module Arg = type module < id : Form.I.t ; fid : Id.t >
+  module Put = type module <
+    data : Json.t ;
+  >
+
+  module Out = type module <
+    at : Cqrs.Clock.t ;
+  >
+
+  let path = "forms/{id}/filled/{fid}"
+
+  let response req put args = 
+    return (`BadRequest "Not implemented")
 
 end)
