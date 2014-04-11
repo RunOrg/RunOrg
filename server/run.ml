@@ -192,13 +192,14 @@ class ['ctx] semaphore = object
       ( Queue.add (fun () -> try ok () with exn -> bktrc "semaphore#queue" bad exn) waiting ; nop )
     
   method give n = fun (ctx : 'ctx) bad ok ->
+
     count <- count + n ;
 
-    let rec list n = 
-      if n = 0 then [] else 
+    let rec list i = 
+      if i = 0 then [] else 
 	if Queue.is_empty waiting then [] else
 	  let head = Queue.take waiting in
-	  head :: list (n-1)
+	  head :: list (i-1)
     in
     
     let next = list n in
