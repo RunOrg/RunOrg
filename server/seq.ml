@@ -191,46 +191,38 @@ let join list =
   { finite = List.for_all is_finite list ; next ; wait }
     
 let of_finite_cursor fetch cursor = 
-
-  (* Both blocking and non-blocking versions use a semaphore. 
-     But the non-blocking version checks the semaphore state first. *)
-
-  let q = Queue.create () in
-  let semaphore = new Run.semaphore in 
-  let e = ref false in
+  
+  (* An internal 'query_if_emptyn' function fills the queue with elements, 
+     using a mutex to have only one instance running at a time, and sets 
+     'empty' to true when no more elements are available.  *)
+  
+  let queue  = Queue.create () in
+  let mutex  = new Run.mutex in
+  let empty  = ref false in
   let cursor = ref cursor in  
-  let runs = ref false in
 
-  let run () = 
-    if !runs then return () else  
-      let () = runs := true in 
-      let! list, c = fetch !cursor in 
-      let () = 
-	runs := false ;
-	cursor := c ;
-	e := c = None ;
-	List.iter (fun x -> Queue.push x q) list ;
-      in
-      semaphore # give (List.length list)
+  let query_if_empty () = 
+    mutex # lock begin 
+      if not (Queue.is_empty queue) then return () else 
+	let! list, c = if !empty then return ([],None) else fetch !cursor in 
+	return (
+	  cursor := c ;
+	  empty  := c = None ;
+	  List.iter (fun x -> Queue.push x queue) list ;
+	)
+    end
   in
 
   let rec next () = 
-    if !e then 
-      return `End 
-    else if semaphore # count <= 0 then
-      Run.fork (fun exn -> return ()) (run ()) (return `Blocked)
-    else
-      let! () = semaphore # take in 
-      return (`Next (Queue.take q))
+    if mutex # locked then return `Blocked else
+      if not (Queue.is_empty queue) then return (`Next (Queue.take queue)) else
+	if !empty then return `End else
+	  Run.fork (fun exn -> return ()) (query_if_empty ()) (return `Blocked)
   in
 
   let rec wait () = 
-    if !e then 
-      return None 
-    else 
-      let! () = if semaphore # count <= 0 then run () else return () in 
-      let! () = semaphore # take in       
-      return (Some (Queue.take q))
+    let! () = query_if_empty () in
+    return (if Queue.is_empty queue then None else Some (Queue.take queue))
   in
 
   { finite = true ; next ; wait }
