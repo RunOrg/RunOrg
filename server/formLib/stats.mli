@@ -31,7 +31,7 @@ module FieldStat : Fmt.FMT with type t =
       missing : int ;
       filled : int ;
       contacts : int ;
-      top100 : (CId.t * int) list ;
+      top10 : (CId.t * int) list ;
     >
   ]
 

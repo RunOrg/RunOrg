@@ -38,7 +38,7 @@ module SContact = type module <
   missing : int ;
   filled : int ;
   contacts : int ;
-  top100 : (CId.t * int) list ;
+  top10 : (CId.t * int) list ;
 >
 
 (* JSON output does not include variant information : just an object
@@ -215,10 +215,10 @@ class contact = object (self)
   method missing  = missing
   method filled   = filled
   method contacts = Map.cardinal counts
-  method top100   = counts
+  method top10    = counts
     |> Map.to_list
     |> List.sort (fun (_,a) (_,b) -> compare b a)
-    |> List.take 100 
+    |> List.take 10 
 
   method compile = ( `Contact (self :> SContact.t) : FieldStat.t )
 
