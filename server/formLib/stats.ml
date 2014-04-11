@@ -8,7 +8,6 @@ open Std
 module SText = type module <
   missing : int ;
   filled  : int ;
-  words   : int ;
 >
 
 module STime = type module <
@@ -98,26 +97,18 @@ class type aggregator = object
   method compile : FieldStat.t 
 end
 
-let nonword = Str.regexp "[^a-zA-Z]+"
-let count_words str = List.length (Str.split nonword str) 
-
 class text = object (self)
 
   val mutable missing = 0
   val mutable filled  = 0
-  val mutable words   = 0
 
   method add = function 
     | Json.Null -> missing <- missing + 1
-    | Json.String s -> let w = count_words s in
-		       filled <- filled + 1 ;
-		       words <- words + w ;
-		       
+    | Json.String s -> filled <- filled + 1 ;		       
     | _ -> ()
 
   method missing = missing 
   method filled  = filled
-  method words   = words
 
   method compile = ( `Text (self :> SText.t) : FieldStat.t )
 

@@ -129,7 +129,6 @@ module Stats : sig
     [ `Text of <
         missing : int ;
         filled  : int ;
-        words   : int ;
       >
     | `Time of <
         missing : int ;

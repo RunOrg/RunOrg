@@ -6,7 +6,6 @@ module FieldStat : Fmt.FMT with type t =
   [ `Text of <
       missing : int ;
       filled  : int ;
-      words   : int ;
     >
   | `Time of <
       missing : int ;
