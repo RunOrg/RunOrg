@@ -102,9 +102,10 @@ class text = object (self)
   val mutable missing = 0
   val mutable filled  = 0
 
-  method add = function 
-    | Json.Null -> missing <- missing + 1
-    | Json.String s -> filled <- filled + 1 ;		       
+  method add = function
+    | Json.Null 
+    | Json.String "" -> missing <- missing + 1
+    | Json.String s -> filled <- filled + 1 		       
     | _ -> ()
 
   method missing = missing 
@@ -142,11 +143,12 @@ class json = object (self)
   val mutable missing = 0
   val mutable filled  = 0
 
-  method add json = 
-    if json = Json.Null then
-      missing <- missing + 1 
-    else 
-      filled <- filled + 1
+  method add = function 
+  | Json.Null
+  | Json.Array []
+  | Json.Object []
+  | Json.String "" ->  missing <- missing + 1 
+  | _ -> filled <- filled + 1
 
   method missing = missing
   method filled  = filled
@@ -264,7 +266,10 @@ let traverse fid aggregators =
 
   let process_instance instance =
     let data = instance # data in 
-    Map.iter (fun fid agg -> agg # add (try Map.find fid data with Not_found -> Json.Null)) aggregators
+    Map.iter (fun fid agg -> 
+      let json = try Map.find fid data with Not_found -> Json.Null in
+      agg # add json 
+    ) aggregators
   in
 
   let! () = Seq.iter ~parallel:true process_instance seq in
