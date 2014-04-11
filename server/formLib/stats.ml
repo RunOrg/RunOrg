@@ -246,7 +246,8 @@ let traverse fid aggregators =
   (* Build a finite async sequence *)
 
   let per_batch = 5000 (* Cells per batch *) in
-  let limit = max 10 (per_batch / Map.cardinal aggregators) in
+
+  let limit = max 10 (per_batch / max 1 (Map.cardinal aggregators)) in
 
   let cursor offset =
     let  offset = Option.default 0 offset in 
@@ -273,7 +274,9 @@ let traverse fid aggregators =
 let process fid =
   let! form = Cqrs.MapView.get View.info fid in
   match form with None -> return Map.empty | Some form -> 
-    traverse fid (aggregators (form # fields))
+    let aggregators = aggregators (form # fields) in
+    if Map.is_empty aggregators then return Map.empty else 
+      traverse fid aggregators
 
 (* Cache implementation 
    ==================== *)
