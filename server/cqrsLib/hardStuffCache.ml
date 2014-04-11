@@ -64,7 +64,7 @@ let insert t db kP clock value =
   let vP = Pack.to_string t.vpack value in 
 
   Sql.command 
-    ("UPDATE \"" ^ t.dbname ^ "\" SET \"clock\" = $1 AND \"value\" = $2 WHERE"
+    ("UPDATE \"" ^ t.dbname ^ "\" SET \"clock\" = $1, \"value\" = $2 WHERE"
      ^ " \"db\" = $3 AND \"key\" = $4")
     [ `Binary cP ; `Binary vP ; `Id db ; `Binary kP ]
 
@@ -108,7 +108,7 @@ let get t k clock =
 	match updated with 
 	| Some clock' when Clock.earlier_than_checkpoint clock' clock -> update t db kP clock value
 	| None -> insert t db kP clock value
-	| _ -> return ()
+	| _ -> 	return ()
 
       end in
 
