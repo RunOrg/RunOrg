@@ -20,3 +20,16 @@ val create :
   ?html:String.Rich.t ->
   Access.Audience.t -> (#O.ctx, [ `NeedAccess of Id.t
 				| `OK of I.t * Cqrs.Clock.t ]) Run.t
+
+(** Information about an e-mail. *)
+type info = <
+  id : I.t ;
+  from : CId.t ;
+  subject : String.Label.t ;
+  text : string option ;
+  html : String.Rich.t option ;
+  audience : Access.Audience.t ;
+>
+
+(** Get information about an e-mail by identifier. *)
+val get : I.t -> (#O.ctx, info option) Run.t
