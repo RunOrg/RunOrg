@@ -1,5 +1,7 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 (** Outgoing mail, both individual and in mass. *)
 
 (** The identifier of an e-mail. *)
@@ -13,7 +15,7 @@ module Access : Access.T with type t =
 val create : 
   CId.t option -> 
   from:CId.t -> 
-  subject:string ->
-  ?text:string ->
-  ?html:string ->
+  subject:String.Label.t ->
+  ?text:String.Rich.t ->
+  ?html:String.Rich.t ->
   Access.Audience.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
