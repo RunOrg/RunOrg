@@ -1,4 +1,4 @@
 (* © 2014 RunOrg *)
 
-let create ~from ~subject ?text ?html audience = 
+let create cid ~from ~subject ?text ?html audience = 
   assert false

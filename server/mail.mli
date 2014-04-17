@@ -11,6 +11,7 @@ module Access : Access.T with type t =
 
 (** Create an e-mail. The sender is NOT optional. *)
 val create : 
+  CId.t option -> 
   from:CId.t -> 
   subject:string ->
   ?text:string ->

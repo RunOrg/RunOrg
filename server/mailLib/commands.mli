@@ -1,6 +1,7 @@
 (* © 2014 RunOrg *)
 
 val create : 
+  CId.t option ->
   from:CId.t -> 
   subject:string ->
   ?text:string ->
