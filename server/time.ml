@@ -26,14 +26,18 @@ let of_compact s =
 
 let of_iso8601 s = 
   try 
-    if String.length s = 8 || String.length s = 14 then
-      of_compact s 
-    else if String.length s = 20 then
+    match String.length s with 
+    | 8 
+    | 14 -> of_compact s 
+    | 20 ->
       Scanf.sscanf s "%d-%d-%dT%d:%d:%dZ" 
 	(fun y m d h i s -> Some { y ; m ; d ; t = Some { h ; i ; s }})
-    else
+    | 10 -> 
       Scanf.sscanf s "%d-%d-%d" 
 	(fun y m d -> Some { y ; m ; d ; t = None }) 
+    | _ ->
+      Scanf.sscanf s "%d-%d-%dT%d:%d:%d.%dZ"
+	(fun y m d h i s _ -> Some { y ; m ; d ; t = Some { h ; i ; s }})
   with _ -> None
 
 let u4 i = if i < 0 then 0 else if i >= 10000 then 9999 else i 
