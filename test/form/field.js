@@ -72,7 +72,7 @@
 // ### Example value
 //     "2014-04-19T18:42:53Z"
 //
-// Acceptable values are [dates](/docs/#/types/date.js) : JSON strings containing 
+// Acceptable values are [dates](/docs/#/types/time.js): JSON strings containing 
 // an ISO-8601 formatted date (`yyyy-mm-dd`) or date-time (`yyyy-mm-ddThh:ii:ssZ`), 
 // or `null`. When marked as `required`, only dates are acceptable values.  
 //
