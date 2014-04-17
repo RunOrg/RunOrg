@@ -16,9 +16,12 @@
 // RunOrg will return them untouched. 
 //
 // The **sub-second** date-time format is `yyyy-mm-ddThh:ii:ss.tttttZ`. 
-// It is _not_ supported by RunOrg. When received by the API, the 
-// `.ttttt` part will always be discarded (regardless of how many digits 
-// after the dot). 
+// This format is accepted by RunOrg, but will _not_ be stored as such. 
+// The `.ttttt` part will always be discarded (regardless of how many digits 
+// after the dot) so that only second-level precision is kept. 
+//
+// The sub-second format is intended to be compatible with the return of
+// [`date.toISOString()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString).
 //
 // The behaviour of the RunOrg API when ill-formatted dates are provided 
 // is currently **unspecified**. In particular, we reserve the right to 
