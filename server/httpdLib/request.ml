@@ -107,7 +107,16 @@ let read_request config ssl_socket =
     let header = Buffer.create 1024 in
     let rec more retries =       
 
-      let l  = try Ssl.read ssl_socket buffer 0 1024 with Ssl.Read_error Ssl.Error_want_read -> 0 in
+      let l  = try Ssl.read ssl_socket buffer 0 1024 with 
+	| Ssl.Read_error Ssl.Error_want_read -> 0 
+	| Ssl.Read_error Ssl.Error_syscall   -> 
+	  let socket = Ssl.file_descr_of_socket ssl_socket in
+	  ( match Unix.getsockopt_error socket with 
+	    | None       -> Log.error "Ssl.read: Unexpected EOF." 
+	    | Some error -> Log.error "Ssl.read: %s" (Unix.error_message error)) ;
+	  raise Timeout 
+      in
+
       let () = Buffer.add_substring header buffer 0 l in
 
       if log_enabled then 
@@ -120,8 +129,9 @@ let read_request config ssl_socket =
 	return ()
       else if l = 0 then 
 	let now = Unix.gettimeofday () in 
+	let delay = delay retries timeout now in 
 	if now > timeout then raise Timeout else 
-	  let! () = Run.sleep (delay retries timeout now) in
+	  let! () = Run.sleep delay in
 	  more (retries + 1) 
       else 
 	more 0 
