@@ -104,7 +104,7 @@ type role = [ `Run | `Reset ]
 
 let path = Parse.path
 
-let test = true
+let test = Parse.string "test" "disabled" = "enabled"
 
 let role =
   if BatArray.mem "reset" Sys.argv then `Reset else `Run
