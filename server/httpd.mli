@@ -52,6 +52,9 @@ type request = <
   (** Whether the response should be formatted as JSON or MSGPACK. *)
   accept: [ `JSON | `MSGPACK ] ;
 
+  (** The [Origin:] header. *)
+  origin : string option ;
+
 > ;;
 
 (** A response. Should be returned by the handler. *)

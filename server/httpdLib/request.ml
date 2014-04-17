@@ -36,6 +36,7 @@ type t = <
   offset : int option ; 
 
   content_type : string option ; 
+  origin : string option ;
 
   accept: [ `JSON | `MSGPACK ] ;
 > ;;
@@ -269,6 +270,11 @@ let parse config ssl_socket =
 	with Not_found -> Some header	  
     with Not_found -> None 
   in
+
+  let origin = 
+    try Some (Map.find "ORIGIN" headers)  
+    with Not_found -> None 
+  in
   
   let path = List.map urldecode (List.filter (fun s -> s <> "") (String.nsplit uri "/")) in 
 
@@ -325,6 +331,7 @@ let parse config ssl_socket =
     method host = host 
     method verb = verb
     method content_type = content_type
+    method origin = origin
     method path = path
     method headers = headers 
     method params = params

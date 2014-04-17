@@ -63,6 +63,8 @@ type t = <
   (** Whether the response should be formatted as JSON or MSGPACK. *)
   accept: [ `JSON | `MSGPACK ] ;
 
+  (** The [Origin:] header. *)
+  origin : string option ;
 > ;;
 
 val parse : Common.config -> Ssl.socket -> ('any, t) Run.t
