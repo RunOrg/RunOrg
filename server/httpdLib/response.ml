@@ -68,6 +68,9 @@ let send ssl_socket config response =
   let content_length = String.length body in 
   let headers = ("Content-Length", string_of_int content_length) :: response.headers in 
 
+  let headers = try let _ = List.assoc "Content-Type" headers in headers with _ -> 
+    ("Content-Type", "application/octet-stream") :: headers in
+
   let b = Buffer.create 1024 in 
   Buffer.add_string b (!! "HTTP/1.1 %s\r\n" (status response.status)) ;
   List.iter (fun (k,v) -> Buffer.add_string b (!! "%s: %s\r\n" k v)) headers ;
@@ -131,10 +134,19 @@ let json headers status body = {
 
 let with_CORS request response = 
   match request # origin with None -> response | Some origin ->
-    { response with headers = 
-	( "Access-Control-Allow-Origin", origin ) 
-	      :: ( "Access-Control-Allow-Credentials", "true" )
-	      :: response.headers }
+
+    let headers = 
+      ( "Access-Control-Allow-Origin", origin ) 
+      :: ( "Access-Control-Allow-Credentials", "true" )
+      :: ( "Access-Control-Allow-Methods", "POST, PUT, GET, DELETE, OPTIONS" )
+      :: response.headers in
+
+    let headers = 
+      try ("Access-Control-Allow-Headers", 
+	   Map.find "ACCESS-CONTROL-REQUEST-HEADERS" (request # headers)) :: headers
+      with Not_found -> headers in
+
+    { response with headers }
 		    
 let for_request time request response = 
   with_CORS request 

@@ -181,28 +181,35 @@ module Dictionary = struct
   (* Dispatches a request, returns a response. *)
   let dispatch req = 
 
-    let lens = fst (match req # verb with 
-      | `GET -> get
-      | `POST -> post
-      | `PUT -> put
-      | `DELETE -> delete
-      | `OPTIONS -> assert false) in
+    let lens = match req # verb with 
+      | `GET     -> Some (fst get)
+      | `POST    -> Some (fst post)
+      | `PUT     -> Some (fst put)
+      | `DELETE  -> Some (fst delete)
+      | `OPTIONS -> None in
 
-    match find (req # path) with 
-      | [] -> let! () = LogReq.trace "API dispatch failed" in
-	      return (not_found None ("/" ^ String.concat "/" (req # path)) "No such resource") 
-      | [r] -> begin match lens r with 
-	| None -> let! () = LogReq.trace "API dispatch failed" in
-		  return (method_not_allowed (r.path) (allow r))
-	| Some action -> let! () = LogReq.trace "API dispatched" in
-			 action req 
-      end
-      | (h :: _) as list -> 
-	match List.find_map lens list with 
-	| Some f -> let! () = LogReq.trace "API dispatched" in
-		    f req 
-	| None   -> let! () = LogReq.trace "API dispatch failed" in
-		    return (method_not_allowed (h.path) (allow h))
+    match lens with 
+
+      (* Lens missing: OPTIONS *)
+      | None -> return (Httpd.raw "")
+
+      (* Lens available : GET, PUT, POST or DELETE. *)
+      | Some lens -> 
+	match find (req # path) with 
+  	  | [] -> let! () = LogReq.trace "API dispatch failed" in
+		  return (not_found None ("/" ^ String.concat "/" (req # path)) "No such resource") 
+	  | [r] -> begin match lens r with 
+	    | None -> let! () = LogReq.trace "API dispatch failed" in
+		      return (method_not_allowed (r.path) (allow r))
+	    | Some action -> let! () = LogReq.trace "API dispatched" in
+			     action req 
+	  end
+	  | (h :: _) as list -> 
+	    match List.find_map lens list with 
+	    | Some f -> let! () = LogReq.trace "API dispatched" in
+			f req 
+	    | None   -> let! () = LogReq.trace "API dispatch failed" in
+			return (method_not_allowed (h.path) (allow h))
 	  
 end
 
