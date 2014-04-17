@@ -2,3 +2,5 @@
 
 module I = MailLib.I
 module Access = MailLib.MailAccess
+
+include MailLib.Commands
