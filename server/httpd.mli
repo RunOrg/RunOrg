@@ -74,6 +74,7 @@ type status =
   | `NotModified 
   | `ServiceUnavailable
   | `Conflict
+  | `NoContent
   | `InternalServerError ]
 
 (** Responds with some raw data. *)

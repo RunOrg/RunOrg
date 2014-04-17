@@ -28,7 +28,8 @@ type status =
   | `Accepted 
   | `NotModified
   | `ServiceUnavailable
-  | `Conflict
+  | `Conflict 
+  | `NoContent 
   | `InternalServerError ]
 
 type t = {
@@ -46,6 +47,7 @@ type t = {
 let status = function
   | `OK -> "200 OK"
   | `Accepted -> "202 Accepted"
+  | `NoContent -> "204 No Content"
   | `NotModified -> "304 Not Modified" 
   | `BadRequest -> "400 Bad Request" 
   | `Unauthorized -> "401 Unauthorized"
@@ -61,14 +63,16 @@ let status = function
 (* Raw response function, merely formats the individual lines for output. *)
 let send ssl_socket config response = 
 
-  let content_length = String.length response.body in 
+  let body = if response.status = `NoContent then "" else response.body in 
+
+  let content_length = String.length body in 
   let headers = ("Content-Length", string_of_int content_length) :: response.headers in 
 
   let b = Buffer.create 1024 in 
   Buffer.add_string b (!! "HTTP/1.1 %s\r\n" (status response.status)) ;
   List.iter (fun (k,v) -> Buffer.add_string b (!! "%s: %s\r\n" k v)) headers ;
   Buffer.add_string b "\r\n" ;
-  Buffer.add_string b response.body ;
+  Buffer.add_string b body ;
 
   let output = Buffer.contents b in 
   let size = String.length output in 
@@ -125,8 +129,16 @@ let json headers status body = {
   started = None ;
 }
 
+let with_CORS request response = 
+  match request # origin with None -> response | Some origin ->
+    { response with headers = 
+	( "Access-Control-Allow-Origin", origin ) 
+	      :: ( "Access-Control-Allow-Credentials", "true" )
+	      :: response.headers }
+		    
 let for_request time request response = 
-  { response with request = Some request ; started = Some time }
+  with_CORS request 
+    { response with request = Some request ; started = Some time }
 
 (* Response builders
    ================= *)

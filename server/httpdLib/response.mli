@@ -16,6 +16,7 @@ type status =
   | `NotModified 
   | `ServiceUnavailable
   | `Conflict
+  | `NoContent
   | `InternalServerError ]
 
 (** A response. *)
