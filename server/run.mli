@@ -1,4 +1,4 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 (** Lightweight cooperative threads, with context. *)
 
@@ -189,6 +189,29 @@ end
     for the result of that function. *)
 
 val background : ('a -> 'b) -> 'a -> ('ctx, 'b) t 
+
+(** {2 Services} *)
+
+(** A service is a long-running background thread. Unlike an actual thread, 
+    it does not run forever: it terminates as soon as it runs out of work 
+    to do. When new work becomes available, the thread that created the 
+    work can [ping] the service: if it is already running, nothing happens. 
+    Otherwise, the initiator thread is forked and the fork runs the 
+    service. *)
+type service
+
+(** Pings the service: if it is not already running, forks the thread and
+    starts running it. 
+
+    If it is already running, it will run the service once again after it
+    finishes. While a bit wasteful, this approach avoids all concurrency
+    issues by starting the service at least once after each call to [ping]. *)
+val ping : service -> 'ctx effect
+
+(** Create a new service from a work function that returns when there is no 
+    more work to do. Also includes the name of the service, used for logging
+    exceptions that occur while running the effect. *) 
+val service : string -> unit effect -> service
 
 (** {2 Utilities} *)
 

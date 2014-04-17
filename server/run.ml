@@ -1,4 +1,4 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 open BatResult
 
@@ -544,3 +544,61 @@ let sleep duration =
 
   of_channel channel 
 
+(* Services
+   ======== *)
+
+type service = {
+  work : unit effect ;
+  name : string ; 
+  mutable running : bool ;
+  mutable pinged : bool ;  
+}
+
+let service name work = { name ; work ; running = false ; pinged = false }
+
+let ping service = 
+
+  (* Possible states and transitions: 
+
+     ping: 
+       () -> (running) + thread
+       (running) + thread -> (running,pinged) + thread
+       (running,pinged) + thread -> (running,pinged) + thread
+
+     work returns:
+       (running) + thread -> ()
+       (running,pinged) + thread -> (running) + thread
+
+     work throws: 
+       (running) + thread -> (running) + thread
+       (running,pinged) + thread -> (running,pinged) + thread
+
+  *)
+
+  (* Runs 'work', then re-runs it again if 'pinged' is true when it finishes. 
+     Lasts until 'pinged' is false after 'work' finishes, or 'work' raises
+     an exception. *)
+  let rec run : unit -> unit effect = fun () ->  
+    bind 
+      (fun () -> 
+	if service.pinged then
+	  ( service.pinged <- false ; run ())
+	else
+	  ( service.running <- false ; return ()))
+      service.work
+  in
+
+  (* Runs 'run' once, and re-runs it if it throws an 
+     exception. Returns when 'run' returns normally. *)
+  let rec run_safe () = 
+    on_failure (fun exn -> Log.exn exn ("In service " ^ service.name) ; run_safe ())
+      (run ())
+  in
+
+  if service.running then return (service.pinged <- true) else begin
+    service.running <- true ; 
+    fork 
+      (fun exn -> return ())
+      (with_context () (run_safe ()))
+      (return ())
+  end
