@@ -8,4 +8,5 @@ val create :
   subject:String.Label.t ->
   ?text:string ->
   ?html:String.Rich.t ->
-  MailAccess.Audience.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+  MailAccess.Audience.t -> (#O.ctx, [ `NeedAccess of Id.t
+				    | `OK of I.t * Cqrs.Clock.t ]) Run.t

@@ -2,7 +2,6 @@
 
 open Std
 
-
 let notFound id = `NotFound (!! "Form '%s' does not exist." (Form.I.to_string id)) 
 let needAdmin id = `Forbidden (!! "You need 'admin' access to on form '%s'." (Form.I.to_string id)) 
 let formFilled id = `BadRequest (!! "Form '%s' is already filled." (Form.I.to_string id))

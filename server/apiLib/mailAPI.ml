@@ -20,10 +20,17 @@ module Create = Endpoint.Post(struct
 
   let path = "mail/create"
 
+  let needAccess id = 
+    `Forbidden (!! "Not allowed to create mail in database %S." (Id.to_string id))
+
   let response req () post = 
-    let! id, at = 
-      Mail.create (req # as_) ~from:(post # from) ~subject:(post # subject) 
-	?text:(post # text) ?html:(post # html) (post # audience) in
-    return (`OK (Out.make ~id ~at))
+    
+    let! result = Mail.create (req # as_) 
+      ~from:(post # from) ~subject:(post # subject) 
+      ?text:(post # text) ?html:(post # html) (post # audience) in
+    
+    match result with 
+    | `NeedAccess id -> return (needAccess id)
+    | `OK   (id, at) -> return (`OK (Out.make ~id ~at))
 
 end)
