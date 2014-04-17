@@ -185,7 +185,8 @@ module Dictionary = struct
       | `GET -> get
       | `POST -> post
       | `PUT -> put
-      | `DELETE -> delete) in
+      | `DELETE -> delete
+      | `OPTIONS -> assert false) in
 
     match find (req # path) with 
       | [] -> let! () = LogReq.trace "API dispatch failed" in

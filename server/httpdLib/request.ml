@@ -23,7 +23,7 @@ type t = <
   client_ip : IpAddress.t ; 
   path : string list ; 
 
-  verb : [ `GET | `PUT | `POST | `DELETE ] ;
+  verb : [ `GET | `PUT | `POST | `DELETE | `OPTIONS ] ;
   body : [ `JSON of Json.t | `Raw of string ] option ;
 
   headers : (string, string) Map.t ;
@@ -46,7 +46,8 @@ let to_string req =
     | `PUT -> "PUT"
     | `GET -> "GET"
     | `POST -> "POST"
-    | `DELETE -> "DELETE") 
+    | `DELETE -> "DELETE"
+    | `OPTIONS -> "OPTIONS") 
     (String.concat "/" req # path) 
 
 (* Decoding functions 
@@ -257,6 +258,7 @@ let parse config ssl_socket =
     | "POST" -> `POST
     | "PUT" -> `PUT
     | "DELETE" -> `DELETE 
+    | "OPTIONS" -> `OPTIONS
     | _ -> raise (NotImplemented verb)
   in
 

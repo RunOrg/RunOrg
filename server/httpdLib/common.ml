@@ -18,6 +18,7 @@ let verb = function
   | `POST -> "POST"
   | `PUT -> "PUT"
   | `DELETE -> "DELETE"    
+  | `OPTIONS -> "OPTIONS"
 
 let trace_requests = LogReq.enabled
 

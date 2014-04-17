@@ -19,7 +19,7 @@ type request = <
   path : string list ; 
 
   (** The HTTP verb. *)
-  verb : [ `GET | `PUT | `POST | `DELETE ] ;
+  verb : [ `GET | `PUT | `POST | `DELETE | `OPTIONS ] ;
 
   (** The request body. [`JSON] is parsed if the method body was either 
       [application/json] or [application/x-msgpack] *)
