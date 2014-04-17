@@ -15,7 +15,7 @@
 //     { "token": <token>,
 //       "self" : <shortcontact>, 
 //       "at"   : <clock> }
-// - `token` is an [authentication token](/docs/#/types/token.md). 
+// - `token` is an [authentication token](/docs/#/types/token.js). 
 // - `self ` is the [short profile](/docs/#/contact/short-contact.js) for the authenticated
 //   contact.
 // - `at` is the time when the contact (if it was created by this request) will be present

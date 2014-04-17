@@ -15,7 +15,7 @@
 //       "proof"  : <hex-string> }
 // - `id` is the identifier of the contact that the user is authenticating as. 
 // - `expires` is the time after which this token becomes invalid, formated as 
-//   an [ISO-8601 timestamp](/docs/#/types/time.md).
+//   an [ISO-8601 timestamp](/docs/#/types/time.js).
 // - `key` is the identifier of the secret key used to compute the HMAC, as
 //   returned by the [create key endpoint](/docs/#/key/create.js).
 // - `proof` is the HMAC proof, encoded in hexadecimal. 
@@ -36,7 +36,7 @@
 // ### Response format
 //     { "token": <token>,
 //       "self" : <shortcontact> }
-// - `token` is an [authentication token](/docs/#/types/token.md). 
+// - `token` is an [authentication token](/docs/#/types/token.js). 
 // - `self ` is the [short profile](/docs/#/contact/short-contact.js) for the authenticated
 //   contact.
 // 
