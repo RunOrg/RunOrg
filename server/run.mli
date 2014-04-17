@@ -226,7 +226,7 @@ val memo : ('ctx,'a) t -> ('ctx,'a) t
 (** [of_call f a] is equivalent to [bind f (return a)] *) 
 val of_call  : ('a -> ('ctx,'b) t) -> 'a -> ('ctx,'b) t
 
-(** [of_func f] is equivalent to [of_call f ()] *)
+(** [of_func f] is equivalent to [of_call (map f) ()] *)
 val of_func  : (unit -> 'value) -> ('ctx,'value) t
 
 (** [of_lazy l] forces [l] every time it is evaluated. *)

@@ -44,6 +44,11 @@ type t = {
      read an event from a sequence, run all event handlers,
      and return the clock of the event (for checkpointing). *)
   mutable streams : (Clock.t -> (ctx, ctx Run.effect * Clock.t) Seq.t) list ;  
+
+  (* This service is responsible for running the projection functions. 
+     It is woken up when the program starts and when an event is appended
+     to a tracked stream. *)
+  service : Run.service ;
 }  
 
 (* We're being sneaky : a view IS a projection. The different types
@@ -145,7 +150,7 @@ let save_clock t clock =
   Sql.command ("UPDATE \"meta:projections\" SET \"clock\" = $1 WHERE \"id\" = $2")
     [ `Binary (Pack.to_string Clock.pack clock) ; `Int id ]
 
-(* Runs a projection. Forever. *)
+(* Runs a projection. Returns when out of events to process. *)
 let run t = 
 
   Pool.using t.config (fun cqrs -> new cqrs_ctx cqrs) begin  
@@ -160,7 +165,7 @@ let run t =
       let! ready_actions = Seq.to_list ~min:1 100 actions in      
       if ready_actions = [] then 
 
-	continue
+	return () (* Out of items ! *)
       
       else 
 
@@ -187,10 +192,15 @@ let run t =
     end
  
   end
-  
-(* Creates a projection. Registers it for being run with all the
-   others. *)
+
+(* Creates a projection. Its service will be pinged by the 'run()' function below, 
+   as well as by tracked streams. *)
 let make name config = 
+
+  let self = ref None in 
+  
+  let service = Run.service ("proj:" ^ name)
+    (Run.of_call (fun () -> match !self with None -> assert false | Some t -> run t) ()) in
 
   let t = {
     name ;
@@ -201,9 +211,12 @@ let make name config =
     version = None ;
     prefix = None ;
     streams = [] ;
+    service ; 
   } in
+
+  self := Some t ; 
   
-  projection_run_functions := (fun () -> run t) :: !projection_run_functions ;
+  projection_run_functions := (fun () -> Run.ping service) :: !projection_run_functions ;  
   t
 
 (* Projection methods: stream side 
@@ -214,7 +227,8 @@ let of_view t = t
 let name t = t.name
 
 let register t stream = 
-  t.streams <- stream :: t.streams
+  t.streams <- stream :: t.streams ;
+  t.service
 
 (* Running all projections 
    ======================= *)

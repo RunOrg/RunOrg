@@ -595,10 +595,10 @@ let ping service =
       (run ())
   in
 
-  if service.running then return (service.pinged <- true) else begin
+  if service.running then return (service.pinged <- true) else begin    
     service.running <- true ; 
     fork 
-      (fun exn -> return ())
+      (fun exn -> return ()) (* <-- should not happen, run_safe never throws. *)
       (with_context () (run_safe ()))
       (return ())
   end

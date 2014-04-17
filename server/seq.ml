@@ -164,29 +164,33 @@ let join list =
       return (`Next (Queue.pop queue))
   in
 
-  (* Blocking version uses a semaphore to wait for values to 
-     become available. *)
+  let mutex = new Run.mutex in
 
-  let semaphore = new Run.semaphore in
-  let blist = List.map (fun source -> ref false, source) list in 
-  
-  let rec wait () =
+  let search () =
     let! n = next () in  
     match n with `End -> return None | `Next x -> return (Some x) | `Blocked -> 
+
+      let not_empty = ref (List.length list) in
+      let semaphore = new Run.semaphore in 
+
+      (* Forks a parallel search for any value, then waits on a semaphore. The forked
+	 threads trigger the semaphore when a value is found OR when all lists have
+	 turned up empty. *)
       Run.fork 
 	(fun exn -> return ())
-	(List.M.iter (fun (blocked, source) -> 
-	  if !blocked then return () else (
-	    let () = blocked := true in
-	    let! value = source.wait () in
-	    let () = blocked := false in 
-	    match value with 
-	    | None -> return ()
-	    | Some value -> let () = Queue.add value queue in 
-			    semaphore # give 1)) blist)
+
+	(List.M.iter (fun source -> 
+	  let! value = source.wait () in
+	  match value with 
+	  | None -> decr not_empty ; if !not_empty = 0 then semaphore # give 1 else return ()
+	  | Some value -> let () = Queue.add value queue in 
+			  semaphore # give 1) list)
+
 	(let! () = semaphore # take in
-	 wait ())
+	 return (if Queue.is_empty queue then None else Some (Queue.pop queue)))
   in
+
+  let wait () = mutex # lock (Run.of_call search ()) in
 
   { finite = List.for_all is_finite list ; next ; wait }
     
