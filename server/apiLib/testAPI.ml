@@ -88,7 +88,7 @@ module TestUnturing = Endpoint.SPost(struct
 	
 	let start    = Unix.gettimeofday () in
 	let result   = Unturing.template ~html:(post # html) script input in
-	let duration = Unix.gettimeofday () -. start in 
+	let duration = (Unix.gettimeofday () -. start) /. 1000. in 
 	let size     = String.length result in 
 
 	return (`OK (Out.make ~result ~size ~duration)) 

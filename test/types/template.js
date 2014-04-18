@@ -21,7 +21,7 @@
 // 
 // # Basic example
 //
-// Consider the template which would say `Hello, Victor !` using the first name
+// Consider the template which would say `Hello, Marcus !` using the first name
 // `Victor` as an input: 
 //
 // ### Example template and data 
@@ -32,12 +32,12 @@
 //
 //     // context data 
 //     { "to" : { 
-//         "firstname" : "Victor", 
-//         "lastname": "Nicollet" },
+//         "firstname" : "Marcus", 
+//         "lastname": "Cato",
+//         "fullname" : "Marcus Porcius Cato" },
 //       "from" : {
-//         "firstname" : "Genghis", 
-//         "lastname" : "K" } }
-//
+//         "firstname" : "Hannibal", 
+//         "fullname" : "Hannibal, son of Hamilcar Barca" } }
 //
 // # Syntax reference
 // 
@@ -75,3 +75,30 @@
 //     // output
 //     Hello, <b>EVIL &lt;script&gt;...</b> !
 
+TEST("Text-based template.", function(next){
+
+    var data = {
+	script: "$0;to.firstname;$1",
+	inline: [ "Hello, ", " !" ],
+	more  : { "to": { "firstname": "Victor&", "lastname": "Nicollet" } },
+	html  : false
+    };
+
+    var result = Test.query("POST","/test/unturing",data).result("result");
+    Assert.areEqual("Hello, Victor& !", result).then(next);
+
+});
+
+TEST("HTML-based template.", function(next){
+
+    var data = {
+	script: "$0;to.firstname;$1",
+	inline: [ "Hello, <b>", "</b> !" ],
+	more  : { "to": { "firstname": "Victor&", "lastname": "Nicollet" } },
+	html  : true
+    };
+
+    var result = Test.query("POST","/test/unturing",data).result("result");
+    Assert.areEqual("Hello, <b>Victor&amp;</b> !", result).then(next);
+
+});
