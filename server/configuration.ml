@@ -143,3 +143,9 @@ end
 
 let token_key = Parse.req "token.key"
 
+(* eg "https://runorg.local:4443 *)
+module Mail = struct
+
+  let url = Parse.req "mail.url"
+
+end

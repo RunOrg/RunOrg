@@ -56,3 +56,10 @@ end
 (** The crypto key used to generate session values *)
 val token_key : string
 
+(** Configuration for the mailing module *)
+module Mail : sig
+
+  (** The base URL used to create links in e-mail bodies. *)
+  val url : string
+    
+end
