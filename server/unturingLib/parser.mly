@@ -11,12 +11,12 @@
   Name
 
 %token 
-  Semicolon BracketO BracketC Dot This Eos
+  Semicolon BracketO BracketC Dot This EOF
 
 %%
 
 script:
-  | l = separated_nonempty_list(Semicolon, expr) ; Eos { Ast.Flat l }
+  | l = separated_nonempty_list(Semicolon, expr) ; EOF { Ast.Flat l }
 
 expr: 
   | i = Inline { Ast.Inline i }

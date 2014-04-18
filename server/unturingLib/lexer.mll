@@ -16,7 +16,7 @@
     | BracketC  -> "]"
     | Dot       -> "."
     | This      -> "this"
-    | Eos       -> "<end-of-script>"  
+    | EOF       -> "<end-of-script>"  
 }
 
 let wsp = [ ' ' '\t' ] *
