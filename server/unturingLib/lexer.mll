@@ -29,7 +29,7 @@ rule token = parse
   | ';'     { Semicolon }
   | '['     { BracketO }
   | ']'     { BracketC }
-  | eof     { Eos }
+  | eof     { EOF }
   | id as s { if s = "this" then This else Name s }
   | _  as c { let p = lexbuf.lex_start_p in
 	      raise (UnknownToken (p.pos_lnum, p.pos_cnum-p.pos_bol, c)) }   
