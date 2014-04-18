@@ -3,7 +3,7 @@
 type t = 
   | Inline  of int
   | This
-  | Context of int
-  | Member  of t * int
+  | Context of string
+  | Member  of t * string
   | Index   of t * int
   | Flat    of t list 
