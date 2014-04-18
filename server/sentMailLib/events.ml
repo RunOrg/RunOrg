@@ -57,7 +57,6 @@ include type module
     (* The sending subsystem could not compose and/or send the e-mail, and gave
        up permanently. *)
   | `SendingFailed of <
-      id   : I.t ;
       mid  : Mail.I.t ;
       cid  : CId.t ;
       why  : [ `NoInfoAvailable 
