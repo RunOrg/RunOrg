@@ -12,6 +12,7 @@ include type module
 	text : Unturing.t option ;
 	html : Unturing.t option ;
 	custom : Json.t ;
-	urls : String.Url.t list ; 
+	urls : String.Url.t list ;
+	self : String.Url.t option ; 
       >
     ]

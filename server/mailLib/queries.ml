@@ -11,6 +11,7 @@ type info = <
   audience : MailAccess.Audience.t ;
   custom : Json.t ;
   urls : String.Url.t list ;
+  self : String.Url.t option ; 
 >
 
 let make id info = object
@@ -22,6 +23,7 @@ let make id info = object
   method audience = info # audience
   method custom = info # custom
   method urls = info # urls 
+  method self = info # self
 end 
 
 let get id = 

@@ -11,6 +11,7 @@ type info = <
   audience : MailAccess.Audience.t ;
   custom : Json.t ;
   urls : String.Url.t list ;
+  self : String.Url.t option ; 
 >
 
 val get : I.t -> (#O.ctx, info option) Run.t

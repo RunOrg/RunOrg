@@ -20,6 +20,7 @@ val create :
   ?html:Unturing.t ->
   ?custom:Json.t ->
   ?urls:String.Url.t list -> 
+  ?self:(I.t -> String.Url.t) -> 
   Access.Audience.t -> (#O.ctx, [ `NeedAccess of Id.t
 				| `OK of I.t * Cqrs.Clock.t ]) Run.t
 
@@ -33,6 +34,7 @@ type info = <
   audience : Access.Audience.t ;
   custom : Json.t ;
   urls : String.Url.t list ; 
+  self : String.Url.t option ; 
 >
 
 (** Get information about an e-mail by identifier. *)

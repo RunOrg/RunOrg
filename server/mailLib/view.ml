@@ -15,6 +15,7 @@ module Info = type module <
   audience : MailAccess.Audience.t ; 
   custom   : Json.t ;
   urls     : String.Url.t list ; 
+  self     : String.Url.t option ; 
 >
 
 let info = 
@@ -32,7 +33,7 @@ let info =
 	| None   -> `Put (Info.make 
 			    ~from:(ev # from) ~subject:(ev # subject) ~text:(ev # text)
 			    ~html:(ev # html) ~custom:(ev # custom) ~urls:(ev # urls) 
-			    ~audience:(ev # audience))
+			    ~self:(ev # self) ~audience:(ev # audience))
 	| Some _ -> `Keep) 
 
   end in
