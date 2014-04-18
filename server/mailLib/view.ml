@@ -9,9 +9,9 @@ let projection = Cqrs.Projection.make "mail" O.config
 
 module Info = type module <
   from     : CId.t ;
-  subject  : String.Label.t ;
-  text     : string option ;
-  html     : String.Rich.t option ; 
+  subject  : Unturing.t ;
+  text     : Unturing.t option ;
+  html     : Unturing.t option ; 
   audience : MailAccess.Audience.t ; 
   custom   : Json.t ;
   urls     : String.Url.t list ; 
@@ -30,11 +30,9 @@ let info =
       Cqrs.MapView.update info (ev # id) 
 	(function 
 	| None   -> `Put (Info.make 
-			    ~from:(ev # from) 
-			    ~subject:(match ev # subject with `Raw s -> s) 
-			    ~text:(match ev # text with `None -> None | `Raw s -> Some s)
-			    ~html:(match ev # html with `None -> None | `Raw s -> Some s) 
-			    ~custom:(ev # custom) ~urls:(ev # urls) ~audience:(ev # audience))
+			    ~from:(ev # from) ~subject:(ev # subject) ~text:(ev # text)
+			    ~html:(ev # html) ~custom:(ev # custom) ~urls:(ev # urls) 
+			    ~audience:(ev # audience))
 	| Some _ -> `Keep) 
 
   end in

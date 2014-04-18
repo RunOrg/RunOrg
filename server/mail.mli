@@ -15,9 +15,9 @@ module Access : Access.T with type t =
 val create : 
   CId.t option -> 
   from:CId.t -> 
-  subject:String.Label.t ->
-  ?text:string ->
-  ?html:String.Rich.t ->
+  subject:Unturing.t ->
+  ?text:Unturing.t ->
+  ?html:Unturing.t ->
   ?custom:Json.t ->
   ?urls:String.Url.t list -> 
   Access.Audience.t -> (#O.ctx, [ `NeedAccess of Id.t
@@ -27,9 +27,9 @@ val create :
 type info = <
   id : I.t ;
   from : CId.t ;
-  subject : String.Label.t ;
-  text : string option ;
-  html : String.Rich.t option ;
+  subject : Unturing.t ;
+  text : Unturing.t option ;
+  html : Unturing.t option ;
   audience : Access.Audience.t ;
   custom : Json.t ;
   urls : String.Url.t list ; 

@@ -7,10 +7,10 @@ include type module
 	id : I.t ; 
         cid : CId.t option ; 
 	from : CId.t ; 
-        subject : [ `Raw of String.Label.t ] ;
+        subject : Unturing.t ;
 	audience : MailAccess.Audience.t ; 
-	text : [ `None | `Raw of string ] ;
-	html : [ `None | `Raw of String.Rich.t ] ;
+	text : Unturing.t option ;
+	html : Unturing.t option ;
 	custom : Json.t ;
 	urls : String.Url.t list ; 
       >
