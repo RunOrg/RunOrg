@@ -4,7 +4,6 @@ open Std
 open Compiler
 
 type input = { 
-  inline : Json.t list ;
   this : Json.t ;
   context : (string,Json.t) Map.t ;
 }

@@ -2,4 +2,4 @@
 
 type script = unit
 
-let compile str = Some () 
+let compile str inline = Some () 

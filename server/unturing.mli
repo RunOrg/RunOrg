@@ -20,15 +20,11 @@ expr = <expr> ; <expr>
     ]}
 *)
 
-(** A compiled script. *)
+(** A compiled script. Includes inline data. *)
 type script 
 
 (** Input data for a script *)
 type input = { 
-
-  (** The data that was provided alongside the script. Accessed through [$<int>] syntax, 
-      with [$1] being the first element. *)
-  inline : Json.t list ;
 
   (** Data from the object hosting the script, such as an e-mail using a script for 
       templating. Available as [this] in the script. *)
@@ -40,8 +36,9 @@ type input = {
 
 }
 
-(** Compile a script. If an error occurs, returns [None]. *)
-val compile : string -> script option 
+(** Compile a script. Includes a list of inline data accessed as [$<int>] in the script. 
+    If an error occurs, returns [None]. *)
+val compile : string -> Json.t list -> script option 
 
 (** Run the script in template mode, generating a string that is either 
     properly escaped HTML or raw text. *)
