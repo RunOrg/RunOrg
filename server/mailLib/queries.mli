@@ -9,6 +9,8 @@ type info = <
   text : string option ;
   html : String.Rich.t option ;
   audience : MailAccess.Audience.t ;
+  custom : Json.t ;
+  urls : String.Url.t list ;
 >
 
 val get : I.t -> (#O.ctx, info option) Run.t

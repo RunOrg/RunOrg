@@ -11,5 +11,7 @@ include type module
 	audience : MailAccess.Audience.t ; 
 	text : [ `None | `Raw of string ] ;
 	html : [ `None | `Raw of String.Rich.t ] ;
+	custom : Json.t ;
+	urls : String.Url.t list ; 
       >
     ]

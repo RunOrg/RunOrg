@@ -13,6 +13,8 @@ module Info = type module <
   text     : string option ;
   html     : String.Rich.t option ; 
   audience : MailAccess.Audience.t ; 
+  custom   : Json.t ;
+  urls     : String.Url.t list ; 
 >
 
 let info = 
@@ -32,7 +34,7 @@ let info =
 			    ~subject:(match ev # subject with `Raw s -> s) 
 			    ~text:(match ev # text with `None -> None | `Raw s -> Some s)
 			    ~html:(match ev # html with `None -> None | `Raw s -> Some s) 
-			    ~audience:(ev # audience))
+			    ~custom:(ev # custom) ~urls:(ev # urls) ~audience:(ev # audience))
 	| Some _ -> `Keep) 
 
   end in

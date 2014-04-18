@@ -9,6 +9,8 @@ type info = <
   text : string option ;
   html : String.Rich.t option ;
   audience : MailAccess.Audience.t ;
+  custom : Json.t ;
+  urls : String.Url.t list ;
 >
 
 let make id info = object
@@ -18,6 +20,8 @@ let make id info = object
   method text = info # text
   method html = info # html
   method audience = info # audience
+  method custom = info # custom
+  method urls = info # urls 
 end 
 
 let get id = 

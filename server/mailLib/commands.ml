@@ -8,7 +8,7 @@ open Std
 (* Who is allowed to create new e-mails ? *)
 let create_audience = Audience.admin 
 
-let create cid ~from ~subject ?text ?html audience = 
+let create cid ~from ~subject ?text ?html ?(custom=Json.Null) ?(urls=[]) audience = 
 
   let! allowed = Audience.is_member cid create_audience in 
   
@@ -22,6 +22,7 @@ let create cid ~from ~subject ?text ?html audience =
     let html = match html with None -> `None | Some t -> `Raw t in
     let subject = `Raw subject in 
     
-    let! at = Store.append [ Events.created ~id ~cid ~from ~subject ~text ~html ~audience ] in
+    let! at = Store.append 
+      [ Events.created ~id ~cid ~from ~subject ~text ~html ~audience ~custom ~urls ] in
     
     return (`OK (id, at)) 

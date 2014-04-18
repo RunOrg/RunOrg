@@ -18,6 +18,8 @@ val create :
   subject:String.Label.t ->
   ?text:string ->
   ?html:String.Rich.t ->
+  ?custom:Json.t ->
+  ?urls:String.Url.t list -> 
   Access.Audience.t -> (#O.ctx, [ `NeedAccess of Id.t
 				| `OK of I.t * Cqrs.Clock.t ]) Run.t
 
@@ -29,6 +31,8 @@ type info = <
   text : string option ;
   html : String.Rich.t option ;
   audience : Access.Audience.t ;
+  custom : Json.t ;
+  urls : String.Url.t list ; 
 >
 
 (** Get information about an e-mail by identifier. *)
