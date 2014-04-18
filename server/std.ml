@@ -132,6 +132,7 @@ module String = struct
 
   module Label = StdLib.Label
   module Rich = StdLib.Rich
+  module Url = StdLib.Url
   module Word = StdLib.Word
     
 end
