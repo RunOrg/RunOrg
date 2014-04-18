@@ -21,7 +21,7 @@ module Create = Endpoint.Post(struct
     at : Cqrs.Clock.t ;
   >
 
-  let path = "mail/create"
+  let path = "mail"
 
   let needAccess id = 
     `Forbidden (!! "Not allowed to create mail in database %S." (Id.to_string id))
