@@ -60,7 +60,7 @@ module TestUnturing = Endpoint.SPost(struct
   module Post = type module <
     script : string ;
     inline : Json.t list ;
-   ?more   : Json.t = Json.Object [] ;
+   ?input  : Json.t = Json.Object [] ;
    ?html   : bool = true ;
   >
 
@@ -82,7 +82,7 @@ module TestUnturing = Endpoint.SPost(struct
       | `SyntaxError e -> return (syntax_error e) 
       | `OK script -> 
 
-	let input = match post # more with 
+	let input = match post # input with 
 	  | Json.Object l -> Map.of_list l 
 	  | _ -> Map.empty in
 	
