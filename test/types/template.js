@@ -22,7 +22,7 @@
 // # Basic example
 //
 // Consider the template which would say `Hello, Marcus !` using the first name
-// `Victor` as an input: 
+// `Marcus` as an input: 
 //
 // ### Example template and data 
 //
