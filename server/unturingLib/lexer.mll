@@ -9,7 +9,7 @@
 
   let string_of_token = function 
     | Int       i  -> string_of_int i 
-    | Inline (i,_) -> !! "$%d" (i + 1)
+    | Inline (i,_) -> !! "$%d" i
     | Name      n  -> n
     | Semicolon    -> ";"
     | BracketO     -> "["
@@ -20,7 +20,7 @@
 
 let wsp = [ ' ' '\t' ] *
 let id = [ 'a' - 'z' 'A' - 'Z' '_' ] [ 'a' - 'z' 'A' - 'Z' '_' '0' - '9' ] *
-let int = ['1' - '9'] ['0' - '9'] * 
+let int = '0' | (['1' - '9'] ['0' - '9'] *) 
 
 rule token inline = parse
 

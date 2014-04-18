@@ -7,7 +7,7 @@ type script = Ast.t
 let compile str inline = 
 
   let inline = Array.of_list inline in 
-  let inline x = if x > Array.length inline || x < 1 then Json.Null else inline.(x - 1) in
+  let inline x = if x >= Array.length inline || x < 0 then Json.Null else inline.(x) in
 
   let lexbuf = Lexing.from_string str in 
   let token  = Lexer.token inline in 
