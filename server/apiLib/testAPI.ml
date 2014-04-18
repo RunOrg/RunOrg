@@ -50,3 +50,50 @@ module AuthDb = Endpoint.Post(struct
 	return (`Accepted (Out.make ~id:cid ~token ~at))
 
 end)
+
+(* Testing Unturing templates 
+   ========================== *)
+
+module TestUnturing = Endpoint.SPost(struct
+
+  module Arg = type module unit
+  module Post = type module <
+    script : string ;
+    inline : Json.t list ;
+   ?this   : Json.t = Json.Null ;
+   ?more   : Json.t = Json.Object [] ;
+   ?html   : bool = true ;
+  >
+
+  module Out = type module <
+    result   : string ;
+    size     : int ; 
+    duration : float ;  
+  >
+
+  let path = "test/unturing"
+
+  let syntax_error (token, line, col) = 
+    let str = !! "Line %d, col %d: unexpected token %S" (line+1) (col+1) token in 
+    `BadRequest str
+
+  let response req () post = 
+    if not Configuration.test then return bad_auth else
+      match Unturing.compile (post # script) (post # inline) with 
+      | `SyntaxError e -> return (syntax_error e) 
+      | `OK script -> 
+
+	let context = match post # more with 
+	  | Json.Object l -> Map.of_list l 
+	  | _ -> Map.empty in
+	
+	let input  = Unturing.({ this = post # this ; context }) in
+	
+	let start    = Unix.gettimeofday () in
+	let result   = Unturing.template ~html:(post # html) script input in
+	let duration = Unix.gettimeofday () -. start in 
+	let size     = String.length result in 
+
+	return (`OK (Out.make ~result ~size ~duration)) 
+
+end)
