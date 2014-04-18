@@ -32,9 +32,10 @@ include type module
 
     (* The e-mail has actually been sent to the specified contact. *)
   | `Sent of <
-      id   : I.t ;
-      mid  : Mail.I.t ;
-      cid  : CId.t ;
+      id      : I.t ;
+      mid     : Mail.I.t ;
+      cid     : CId.t ;
+      contact : Json.t ; 
     >
 
     (* A link in the e-mail was clicked or followed. The event indicates whether
