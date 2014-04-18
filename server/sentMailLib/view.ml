@@ -51,3 +51,41 @@ let status =
   end in
 
   status
+
+(* Wave information 
+   ================ *)
+
+module Wave = type module <
+  cid : CId.t option ;
+  mid : Mail.I.t ;
+  gid : GId.t ;
+  from : CId.t ;
+  subject : Unturing.t ;
+  text : Unturing.t option ;
+  html : Unturing.t option ;
+  custom : Json.t ;
+  urls : String.Url.t list ; 
+  self : String.Url.t option ; 
+>
+
+let wave = 
+
+  let waveV, wave = Cqrs.MapView.make projection "wave" 0
+    (module I : Fmt.FMT with type t = I.t)
+    (module Wave : Fmt.FMT with type t = Wave.t) in
+
+  let () = Store.track waveV begin function 
+
+    | `GroupWaveCreated ev ->
+
+      let put = (ev :> Wave.t) in
+      Cqrs.MapView.update wave (ev # id) (fun _ -> `Put put) 
+
+    | `BatchScheduled    _  
+    | `Sent              _ 
+    | `LinkFollowed      _ 
+    | `SendingFailed     _ -> return ()
+
+  end in 
+
+  wave
