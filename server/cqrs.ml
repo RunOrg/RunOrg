@@ -14,3 +14,4 @@ module Running = CqrsLib.Running
 module SearchView = CqrsLib.SearchView
 module SetView = CqrsLib.SetView
 module Sql = CqrsLib.Sql
+module StatusView = CqrsLib.StatusView

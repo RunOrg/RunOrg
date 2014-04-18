@@ -301,6 +301,33 @@ module MapView : sig
 
 end
 
+(** Maps bind statuses to keys. *)
+module StatusView : sig
+
+  (** A persistent status mapping. *)
+  type ('key, 'status) t 
+
+  (** Create a map from a key type and a status type. Both types must support 
+      packing. A map always has a name, and is placed inside a projection. 
+      The provided status is used as a default. *)
+  val make : Projection.t -> string -> int -> 'status ->
+    (module Fmt.FMT with type t = 'key) ->
+    (module Fmt.FMT with type t = 'status) ->
+    Projection.view * ('key, 'status) t
+
+  (** Update a map. *) 
+  val update : ('key, 'status) t -> 'key -> ('status -> 'status) -> # ctx Run.effect
+
+  (** Grab a status from a map. *)
+  val get : ('key, 'status) t -> 'key -> (# ctx, 'status) Run.t
+
+  (** Returns keys with a specific status, ordered by the binary representation of the key,
+      across all databases.*)
+  val global_by_status : ?limit:int -> ?offset:int -> ('key, 'status) t 
+    -> 'status -> (#ctx, (Id.t * 'key) list) Run.t 
+
+end
+
 (** Many-to-many maps bind identifiers to identifiers. *)
 module ManyToManyView : sig
 
