@@ -49,4 +49,4 @@ type full = <
 >
 
 (** Get the full profile of a contact. *)
-val full : CId.t -> (#O.ctx, full option) Run.t
+val full : CId.t -> (#Cqrs.ctx, full option) Run.t

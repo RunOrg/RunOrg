@@ -29,4 +29,4 @@ type full = <
   lastname  : String.Label.t option ; 
 >
 
-val full : CId.t -> (#O.ctx, full option) Run.t
+val full : CId.t -> (#Cqrs.ctx, full option) Run.t
