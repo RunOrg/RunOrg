@@ -22,12 +22,14 @@ let status =
     | `BatchScheduled   ev -> 
 
       let mid = ev # mid in 
-      List.M.iter (fun cid -> 
+      let! () = List.M.iter (fun cid -> 
 	Cqrs.StatusView.update status (mid,cid) (function 
 	| `Unknown 
 	| `Scheduled -> `Scheduled
 	| `Sent      -> `Sent
-	| `Failed    -> `Failed)) (ev # list) 
+	| `Failed    -> `Failed)) (ev # list) in
+      
+      Common.ping_sender_service () 
 
     | `Sent ev -> 
       
