@@ -1,5 +1,7 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 include type module
 
     (* A new wave is created. Includes a copy of all the data required to render
@@ -15,8 +17,8 @@ include type module
       text : Unturing.t option ;
       html : Unturing.t option ;
       custom : Json.t ;
-      urls : string list ; 
-      self : string option ; 
+      urls : String.Url.t list ; 
+      self : String.Url.t option ; 
     >
 
     (* A batch of contacts is scheduled for receiving a copy, as part of a wave. 
