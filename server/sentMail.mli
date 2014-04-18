@@ -56,4 +56,8 @@ end
 val follow : Link.t -> (#O.ctx, [ `NotFound of Link.t * Id.t
 				| `Auth of Token.I.t * string
 				| `Link of string
-				| `Track ])  Run.t
+				| `Track ]) Run.t
+
+(** Try sending all currently scheduled mail. Call this function 
+    at start-up to run the mailing service. *)
+val run : unit -> 'ctx Run.effect
