@@ -15,7 +15,7 @@ let urlencode str =
 let encodedRE = Str.regexp "%[0-9a-fA-F][0-9a-fA-F]"
 
 let urldecode str = 
-  Str.global_substitude encodedRE
+  Str.global_substitute encodedRE
     (fun s -> Scanf.sscanf str "%%%x" (fun i -> String.make 1 (Char.chr i)))
     str
 
