@@ -52,6 +52,90 @@ let status =
 
   status
 
+(* Individual e-mail info by (mid,cid) pair.
+   =========================================== *)
+
+module SentInfo = type module <
+  sent   : Time.t ;
+  input  : Json.t ; 
+  from   : string ;
+  to_    : string ; 
+  link   : Link.Root.t ; 
+>
+
+module FailInfo = type module <
+  failed : Time.t ;
+  reason : [ `NoInfoAvailable 
+	   | `NoSuchContact 
+	   | `NoSuchSender    of CId.t 
+	   | `SubjectError    of string * int * int 
+	   | `TextError       of string * int * int 
+	   | `HtmlError       of string * int * int 
+	   | `Exception       of string 
+	   ]
+> 
+
+module Info = type module <
+  wid    : I.t ;
+  pos    : int ; 
+  status : [ `Scheduled 
+	   | `Sent of SentInfo.t 
+	   | `Failed of FailInfo.t ] ;
+>
+
+let info = 
+
+  let infoV, info = Cqrs.MapView.make projection "info" 0
+    (module MidCid : Fmt.FMT with type t = MidCid.t)
+    (module Info : Fmt.FMT with type t = Info.t) in
+
+  let () = Store.track infoV begin function 
+
+    | `GroupWaveCreated  _ -> return ()
+    | `BatchScheduled   ev -> 
+
+      let mid = ev # mid in 
+      List.M.iter 
+	(fun (pos,cid) -> 
+	  Cqrs.MapView.update info (mid,cid) (function 
+	  | Some _ -> `Keep 
+	  | None   -> `Put (Info.make ~wid:(ev # id) ~pos ~status:`Scheduled)))
+	(List.mapi (fun i cid -> (i + ev # pos), cid) (ev # list)) 
+
+    | `Sent ev -> 
+
+      let! ctx = Run.context in 
+      let  status = `Sent 
+	(SentInfo.make 
+	   ~sent:(ctx # time) ~input:(ev # input) ~link:(ev # link)
+	   ~from:(ev # from) ~to_:(ev # to_)) in
+
+      Cqrs.MapView.update info (ev # mid, ev # cid) (function 
+      | None   -> `Keep 
+      | Some i -> match i # status with 
+	| `Sent    _ 
+	| `Failed  _ -> `Keep
+	| `Scheduled -> `Put (Info.make ~wid:(i # wid) ~pos:(i # pos) ~status)) 
+
+    | `LinkFollowed   _ -> return () 
+    | `SendingFailed ev -> 
+
+      let! ctx = Run.context in 
+      let  status = `Failed 
+	(FailInfo.make 
+	   ~failed:(ctx # time) ~reason:(ev # why)) in
+
+      Cqrs.MapView.update info (ev # mid, ev # cid) (function 
+      | None   -> `Keep 
+      | Some i -> match i # status with 
+	| `Sent    _ 
+	| `Failed  _ -> `Keep
+	| `Scheduled -> `Put (Info.make ~wid:(i # wid) ~pos:(i # pos) ~status)) 
+    
+  end in
+
+  info
+
 (* Wave information 
    ================ *)
 
