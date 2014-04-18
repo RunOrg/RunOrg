@@ -80,7 +80,7 @@ TEST("Text-based template.", function(next){
     var data = {
 	script: "$0;to.firstname;$1",
 	inline: [ "Hello, ", " !" ],
-	more  : { "to": { "firstname": "Victor&", "lastname": "Nicollet" } },
+	input : { "to": { "firstname": "Victor&", "lastname": "Nicollet" } },
 	html  : false
     };
 
@@ -94,7 +94,7 @@ TEST("HTML-based template.", function(next){
     var data = {
 	script: "$0;to.firstname;$1",
 	inline: [ "Hello, <b>", "</b> !" ],
-	more  : { "to": { "firstname": "Victor&", "lastname": "Nicollet" } },
+	input : { "to": { "firstname": "Victor&", "lastname": "Nicollet" } },
 	html  : true
     };
 
