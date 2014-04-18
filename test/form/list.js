@@ -101,9 +101,9 @@ TEST("Returns data for all forms.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    Test.query("POST",["db/",db,"/forms/create"],exampleA,auth).result("id")(function(idA) {
-	Test.query("POST",["db/",db,"/forms/create"],exampleB,auth).result("id")(function(idB) {
-	    Test.query("POST",["db/",db,"/forms/create"],exampleC,auth).result("id")(function(idC) {
+    Test.query("POST",["db/",db,"/forms"],exampleA,auth).result("id")(function(idA) {
+	Test.query("POST",["db/",db,"/forms"],exampleB,auth).result("id")(function(idB) {
+	    Test.query("POST",["db/",db,"/forms"],exampleC,auth).result("id")(function(idC) {
 
 		var expected = {
 		    "list" : [ {

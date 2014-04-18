@@ -44,7 +44,7 @@ TEST("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb(),
         token = Query.auth(db),
-        id = Test.query("POST",["db/",db,"/forms/create"],example,token).result('id'),
+        id = Test.query("POST",["db/",db,"/forms"],example,token).result('id'),
         response = Test.query("GET",["db/",db,"/forms/",id],token).response();
 
     response.map(function(r) {
@@ -104,7 +104,7 @@ TEST("Returns correct data in fill level.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],example,token).result('id');
 
     var form = Test.query("GET",["db/",db,"/forms/",id]).result();
 
@@ -146,7 +146,7 @@ TEST("Returns correct data in admin level.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],example,token).result('id');
 
     var form = Test.query("GET",["db/",db,"/forms/",id],token).result();
 
@@ -208,7 +208,7 @@ TEST("Returns 404 when form not viewable.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
 
     var peon = Query.auth(db,false,"peon@runorg.com");
     Test.query("GET",["db/",db,"/forms/",id],peon)
@@ -231,7 +231,7 @@ TEST("Returns 401 when token is not valid.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
 
     Test.query("GET",["db/",db,"/forms/",id],{tok:"0123456789a",id:"0123456789a"})
 	.error(401).then(next);    

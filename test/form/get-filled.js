@@ -34,7 +34,7 @@ TEST("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],form,token).result('id');
 
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",token.id],data,token).response().then(function(){
 
@@ -76,7 +76,7 @@ TEST("Returns correct data.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],form,token).result('id');
 
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",token.id],{"data":data},token).response().then(function(){
 
@@ -133,7 +133,7 @@ TEST("Returns 404 when form is not filled.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],form,token).result('id');
 
     Test.query("GET",["db/",db,"/forms/",id,"/filled/",token.id],token)
 	.error(404).then(next);
@@ -160,7 +160,7 @@ TEST("Returns 404 when form not viewable.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
 
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],data,auth).response().then(function(){
     
@@ -186,7 +186,7 @@ TEST("Returns 401 when token is not valid.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
 
     Test.query("GET",["db/",db,"/forms/",id,"/filled/",auth.id],{tok:"0123456789a",id:"0123456789a"})
 	.error(401).then(next);    
@@ -217,7 +217,7 @@ TEST("Returns 403 when form instance not viewable.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
 
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],data,auth).response().then(function(){
     

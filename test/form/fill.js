@@ -38,7 +38,7 @@ TEST("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],form,token).result('id');
 
     var response = Test.query("PUT",["db/",db,"/forms/",id,"/filled/",token.id],data,token).response();
 
@@ -81,7 +81,7 @@ TEST("Correct data is available.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],form,token).result('id');
 
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",token.id],{"data":data},token).response().then(function(){
 
@@ -142,7 +142,7 @@ TEST("Returns 404 when form not viewable.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
 
     var peon = Query.auth(db,false,"peon@runorg.com");
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",peon.id],data,peon)
@@ -164,7 +164,7 @@ TEST("Returns 401 when token is not valid.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
 
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],{"data":{}},{tok:"0123456789a",id:"0123456789a"})
 	.error(401).then(next);    
@@ -195,7 +195,7 @@ TEST("Returns 403 when form instance not viewable.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
 
     var peon = Query.auth(db,false,"peon@runorg.com");
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],data,peon)
@@ -218,7 +218,7 @@ TEST("Allow cross-filling when admin", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
 
     var peon = Query.auth(db,false,"peon@runorg.com");
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",peon.id],data,auth)
@@ -251,7 +251,7 @@ TEST("Missing required field.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
 
     var tests = [];
     for (var i = 0; i < data.length; ++i) 
@@ -279,7 +279,7 @@ TEST("Unknown provided field.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
 
     var tests = [];
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],data,auth)
@@ -347,7 +347,7 @@ TEST("Missing required field.", function(next) {
 	{ "contact": null }
     ]; 
 
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
 
     var tests = [];
     for (var i = 0; i < fail.length; ++i) 

@@ -53,7 +53,7 @@ TEST("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],example,token).result('id');
     var response = Test.query("GET",["db/",db,"/forms/",id,"/stats"],token).response();
 
     response.map(function(r) {
@@ -174,7 +174,7 @@ TEST("Returns correct stats.", function(next) {
 	"contact": peon1.id
     }}; 
     
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],example,token).result('id');
 
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",token.id],data1,token).result().then(function(){
 	Test.query("PUT",["db/",db,"/forms/",id,"/filled/",peon1.id],data2,token).result().then(function(){
@@ -261,7 +261,7 @@ TEST("Returns 404 when form not viewable.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
 
     var peon = Query.auth(db,false,"peon@runorg.com");
     Test.query("GET",["db/",db,"/forms/",id,"/stats"],peon)
@@ -283,7 +283,7 @@ TEST("Returns 403 when not form admin.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
 
     var peon = Query.auth(db,false,"peon@runorg.com");
     Test.query("GET",["db/",db,"/forms/",id,"/stats"],peon)
@@ -305,7 +305,7 @@ TEST("Returns 401 when token is not valid.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
 
     Test.query("GET",["db/",db,"/forms/",id,"/stats"],{tok:"0123456789a",id:"0123456789a"})
 	.error(401).then(next);    

@@ -42,7 +42,7 @@ TEST("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb(),
         token = Query.auth(db),
-        id = Test.query("POST",["db/",db,"/forms/create"],example,token).result('id'),
+        id = Test.query("POST",["db/",db,"/forms"],example,token).result('id'),
         response = Test.query("PUT",["db/",db,"/forms/",id],example,token).response();
 
     response.map(function(r) {
@@ -115,7 +115,7 @@ TEST("Returns 404 when form cannot be viewed.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
 
     var peon = Query.auth(db,false,"peon@runorg.com");
     Test.query("PUT",["db/",db,"/forms/",id],example,peon)
@@ -145,7 +145,7 @@ TEST("Returns 403 no admin access.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
 
     var peon = Query.auth(db,false,"peon@runorg.com");
     Test.query("PUT",["db/",db,"/forms/",id],example,peon)
@@ -166,7 +166,7 @@ TEST("Returns 401 when token is not valid.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
 
     Test.query("PUT",["db/",db,"/forms/",id],example,{tok:"0123456789a",id:"0123456789a"})
 	.error(401).then(next);    

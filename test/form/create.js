@@ -1,4 +1,4 @@
-// POST /db/{db}/forms/create
+// POST /db/{db}/forms
 // Forms / Create a form
 //
 // Alpha @ 0.1.38
@@ -40,7 +40,7 @@ TEST("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb(),
         token = Query.auth(db),
-        response = Test.query("POST",["db/",db,"/forms/create"],example,token).response();
+        response = Test.query("POST",["db/",db,"/forms"],example,token).response();
 
     response.map(function(r) {
 	Assert.areEqual(202, r.status).then();
@@ -68,7 +68,7 @@ TEST("Form with forced id appears.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],example,token).result('id');
     var owner = Test.query("GET",["db/",db,"/forms/",id],token).result("owner");
     
     [
@@ -94,8 +94,8 @@ TEST("Multiple creations create multiple forms.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    var id1 = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
-    var id2 = Test.query("POST",["db/",db,"/forms/create"],example,auth).result("id");
+    var id1 = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
+    var id2 = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
     
     [
 	Assert.notEqual(id1, id2),
@@ -105,7 +105,7 @@ TEST("Multiple creations create multiple forms.", function(next) {
 
 //
 // ### Example request
-//     POST /db/0SNQc00211H/groups/create
+//     POST /db/0SNQc00211H/forms
 //     Content-Type: application/json
 // 
 //     { "label" : "Personal information", 
@@ -150,7 +150,7 @@ TEST("Returns 404 when database does not exist.", function(next) {
 	"fields": []
     };
 
-    Test.query("POST",["db/00000000000/forms/create"],example)
+    Test.query("POST",["db/00000000000/forms"],example)
 	.error(404).then(next);
         
 });
@@ -169,7 +169,7 @@ TEST("Returns 403 when contact cannot create a form.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db,false);
     
-    Test.query("POST",["db/",db,"/forms/create"],example,auth)
+    Test.query("POST",["db/",db,"/forms"],example,auth)
 	.error(403).then(next);
     
 });
@@ -185,8 +185,8 @@ TEST("Returns 400 when custom id is invalid.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var r1 = Test.query("POST",["db/",db,"/forms/create"],ex1,auth).response();
-    var r2 = Test.query("POST",["db/",db,"/forms/create"],ex2,auth).response();
+    var r1 = Test.query("POST",["db/",db,"/forms"],ex1,auth).response();
+    var r2 = Test.query("POST",["db/",db,"/forms"],ex2,auth).response();
     
     [
 	Assert.areEqual(400, r1.map('status')),
@@ -209,7 +209,7 @@ TEST("Returns 409 when the form exists.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],example,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],example,token).result('id');
 
     var example2 = {
 	"id": id,
@@ -218,7 +218,7 @@ TEST("Returns 409 when the form exists.", function(next) {
 	"fields": []
     };
 
-    Test.query("POST",["db/",db,"/forms/create"],example2,token).error(409).then(next);
+    Test.query("POST",["db/",db,"/forms"],example2,token).error(409).then(next);
 });
 
 // ## Returns `401 Unauthorized` 
@@ -233,7 +233,7 @@ TEST("Returns 401 when token is not valid.", function(next) {
     };
 
     var db = Query.mkdb();
-    Test.query("POST",["db/",db,"/forms/create"],example,{tok:"0123456789a",id:"0123456789a"})
+    Test.query("POST",["db/",db,"/forms"],example,{tok:"0123456789a",id:"0123456789a"})
 	.error(401).then(next);    
 });
 

@@ -37,7 +37,7 @@ TEST("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,token).result('id');
+    var id = Test.query("POST",["db/",db,"/forms"],form,token).result('id');
 
     var response = Test.query("GET",["db/",db,"/forms/",id,"/filled"],token).response();
 
@@ -85,7 +85,7 @@ TEST("Returns correct items and count.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
     var peon = Query.auth(db,false,"peon@runorg.com");
 
     Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],data1,auth).result().then(function() {
@@ -141,7 +141,7 @@ TEST("Returns 404 when form cannot be viewed.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
     
     Test.query("GET",["db/",db,"/forms/",id,"/filled"]).error(404).then(next);
 
@@ -160,7 +160,7 @@ TEST("Returns 404 when form cannot be viewed.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
     var peon = Query.auth(db,false,"peon@runorg.com");
 
     Test.query("GET",["db/",db,"/forms/",id,"/filled"],peon).error(403).then(next);
@@ -180,7 +180,7 @@ TEST("Returns 401 when token is not valid.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms/create"],form,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
  
     Test.query("GET",["db/",db,"/forms/",id,"/filled"],{token:"012345789a",id:"0123456789a"})
 	.error(401).then(next);
