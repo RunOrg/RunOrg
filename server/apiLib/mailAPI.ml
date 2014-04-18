@@ -11,6 +11,8 @@ module Create = Endpoint.Post(struct
    ?text : string option ;
    ?html : String.Rich.t option ;
     audience : Mail.Access.Audience.t ;
+   ?urls : String.Url.t list = [] ;
+   ?custom : Json.t = Json.Null ;
   >
 
   module Out = type module <
@@ -27,7 +29,8 @@ module Create = Endpoint.Post(struct
     
     let! result = Mail.create (req # as_) 
       ~from:(post # from) ~subject:(post # subject) 
-      ?text:(post # text) ?html:(post # html) (post # audience) in
+      ?text:(post # text) ?html:(post # html) 
+      ~urls:(post # urls) ~custom:(post # custom) (post # audience) in
     
     match result with 
     | `NeedAccess id -> return (needAccess id)
