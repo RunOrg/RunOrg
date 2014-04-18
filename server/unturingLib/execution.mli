@@ -1,6 +1,13 @@
 (* © 2014 RunOrg *)
 
-val run : 
-  inline:Json.t ->
-  context:Json.t ->
-  Compiler.script -> Json.t
+open Std
+open Compiler
+
+type input = { 
+  inline : Json.t list ;
+  this : Json.t ;
+  context : (string,Json.t) Map.t ;
+}
+
+val template : html:bool -> script -> input -> string 
+val filter : script -> input -> input 
