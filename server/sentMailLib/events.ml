@@ -37,7 +37,10 @@ include type module
       id      : I.t ;
       mid     : Mail.I.t ;
       cid     : CId.t ;
-      contact : Json.t ; 
+      from    : string ; 
+      to_     : string ; 
+      input   : Json.t ; 
+      link    : Link.Root.t ; 
     >
 
     (* A link in the e-mail was clicked or followed. The event indicates whether
@@ -57,7 +60,14 @@ include type module
       id   : I.t ;
       mid  : Mail.I.t ;
       cid  : CId.t ;
-      why  : [ `NoSuchContact ]
+      why  : [ `NoInfoAvailable 
+	     | `NoSuchContact 
+	     | `NoSuchSender    of CId.t 
+	     | `SubjectError    of string * int * int 
+	     | `TextError       of string * int * int 
+	     | `HtmlError       of string * int * int 
+	     | `Exception       of string 
+	     ]	
     >
 
   ]
