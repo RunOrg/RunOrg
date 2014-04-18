@@ -5,7 +5,7 @@
   open Parser
   open Lexing
 
-  exception UnknownToken of int * int * char
+  exception UnknownToken of char
 
   let string_of_token = function 
     | Int       i  -> string_of_int i 
@@ -37,5 +37,4 @@ rule token inline = parse
 		     Inline (i, inline i) }
 
   | id as s { if s = "this" then This else Name s }
-  | _  as c { let p = lexbuf.lex_start_p in
-	      raise (UnknownToken (p.pos_lnum, p.pos_cnum-p.pos_bol, c)) }   
+  | _  as c { raise (UnknownToken c) }

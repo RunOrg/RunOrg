@@ -2,5 +2,5 @@
 
 type script 
 
-val compile : string -> Json.t list -> script option 
+val compile : string -> Json.t list -> [ `OK of script | `SyntaxError of string * int * int ]
 

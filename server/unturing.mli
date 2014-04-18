@@ -36,9 +36,8 @@ type input = {
 
 }
 
-(** Compile a script. Includes a list of inline data accessed as [$<int>] in the script. 
-    If an error occurs, returns [None]. *)
-val compile : string -> Json.t list -> script option 
+(** Compile a script. Includes a list of inline data accessed as [$<int>] in the script. *)
+val compile : string -> Json.t list -> [ `OK of script | `SyntaxError of string * int * int ]
 
 (** Run the script in template mode, generating a string that is either 
     properly escaped HTML or raw text. *)

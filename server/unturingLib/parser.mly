@@ -1,7 +1,5 @@
 %{ 
 
- exception ParseError
-
 %}
 
 %start <Ast.t> script
@@ -29,4 +27,4 @@ expr:
   | e = expr ; Dot ; n = Name { Ast.Member (e,n) }
   | This { Ast.This }
   | n = Name { Ast.Context n }
-  | error { raise ParseError }
+  | error { raise Parsing.Parse_error }
