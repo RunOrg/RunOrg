@@ -37,3 +37,7 @@ val template : html:bool -> script -> input -> string
     the script (to keep memory usage down). *)
 val filter : script -> input -> input 
   
+include Fmt.FMT with type t = <
+  script : string ; 
+  inline : Json.t list 
+> 

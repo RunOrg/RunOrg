@@ -73,7 +73,7 @@ module TestUnturing = Endpoint.SPost(struct
   let path = "test/unturing"
 
   let syntax_error (token, line, col) = 
-    let str = !! "Line %d, col %d: unexpected token %S" (line+1) (col+1) token in 
+    let str = !! "Line %d, char %d: unexpected token %S" (line+1) (col+1) token in 
     `BadRequest str
 
   let response req () post = 
