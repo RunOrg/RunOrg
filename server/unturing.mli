@@ -13,8 +13,7 @@ open Std
     {[
 expr = <expr> ; <expr>
      | $<int>
-     | this
-     | contact
+     | <context>
      | <expr>.<field> 
      | <expr>[<int>]
     ]}
@@ -23,18 +22,9 @@ expr = <expr> ; <expr>
 (** A compiled script. Includes inline data. *)
 type script 
 
-(** Input data for a script *)
-type input = { 
-
-  (** Data from the object hosting the script, such as an e-mail using a script for 
-      templating. Available as [this] in the script. *)
-  this : Json.t ;
-
-  (** Additional data from the environment. Writing the variable [foo] accesses field [foo]
+(** Input data for a script. Writing the variable [foo] accesses field [foo]
       of this map. *)
-  context : (string,Json.t) Map.t ;
-
-}
+type input = (string,Json.t) Map.t 
 
 (** Compile a script. Includes a list of inline data accessed as [$<int>] in the script. *)
 val compile : string -> Json.t list -> [ `OK of script | `SyntaxError of string * int * int ]

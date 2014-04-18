@@ -60,7 +60,6 @@ module TestUnturing = Endpoint.SPost(struct
   module Post = type module <
     script : string ;
     inline : Json.t list ;
-   ?this   : Json.t = Json.Null ;
    ?more   : Json.t = Json.Object [] ;
    ?html   : bool = true ;
   >
@@ -83,11 +82,9 @@ module TestUnturing = Endpoint.SPost(struct
       | `SyntaxError e -> return (syntax_error e) 
       | `OK script -> 
 
-	let context = match post # more with 
+	let input = match post # more with 
 	  | Json.Object l -> Map.of_list l 
 	  | _ -> Map.empty in
-	
-	let input  = Unturing.({ this = post # this ; context }) in
 	
 	let start    = Unix.gettimeofday () in
 	let result   = Unturing.template ~html:(post # html) script input in

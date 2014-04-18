@@ -14,7 +14,7 @@
   Name
 
 %token 
-  Semicolon BracketO BracketC Dot This EOF
+  Semicolon BracketO BracketC Dot EOF
 
 %%
 
@@ -25,6 +25,5 @@ expr:
   | i = Inline { Ast.Inline (snd i) }
   | e = expr ; BracketO ; i = Int ; BracketC { Ast.Index (e,i) }
   | e = expr ; Dot ; n = Name { Ast.Member (e,n) }
-  | This { Ast.This }
   | n = Name { Ast.Context n }
   | error { raise Parsing.Parse_error }

@@ -3,10 +3,7 @@
 open Std
 open Compiler
 
-type input = { 
-  this : Json.t ;
-  context : (string,Json.t) Map.t ;
-}
+type input = (string,Json.t) Map.t 
 
 val template : html:bool -> script -> input -> string 
 val filter : script -> input -> input 

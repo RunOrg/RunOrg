@@ -15,7 +15,6 @@
     | BracketO     -> "["
     | BracketC     -> "]"
     | Dot          -> "."
-    | This         -> "this"
     | EOF          -> "<end-of-script>"  
 }
 
@@ -36,5 +35,5 @@ rule token inline = parse
   | '$' (int as i) { let i = int_of_string i in 
 		     Inline (i, inline i) }
 
-  | id as s { if s = "this" then This else Name s }
+  | id as s { Name s }
   | _  as c { raise (UnknownToken c) }

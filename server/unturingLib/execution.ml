@@ -2,10 +2,7 @@
 
 open Std
 
-type input = { 
-  this : Json.t ;
-  context : (string,Json.t) Map.t ;
-}
+type input = (string,Json.t) Map.t 
 
 (* Internal representation of values 
    ================================= *)
@@ -78,8 +75,7 @@ let eval script input =
 
   let rec eval = function 
     | Ast.Inline    j  -> value_of_json ~html:true j
-    | Ast.This         -> value_of_json input.this
-    | Ast.Context   s  -> (try value_of_json (Map.find s input.context) with Not_found -> null)
+    | Ast.Context   s  -> (try value_of_json (Map.find s input) with Not_found -> null)
     | Ast.Flat      l  -> FlatL (List.map eval l)
     | Ast.Index  (e,i) -> index  i (eval e)
     | Ast.Member (e,m) -> member m (eval e)
