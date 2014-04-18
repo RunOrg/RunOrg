@@ -15,9 +15,18 @@ include Fmt.Make(struct
     inline : Json.t list ;
   >
 
-  let json_of_t = to_json 
+  let json_of_t t = 
+    match t # script, t # inline with 
+      | "$0", [Json.String s] -> Json.String s
+      | _ -> to_json t 
+      
   let t_of_json json =
-    let t = of_json json in 
+
+    let t = match json with 
+      | Json.String s -> make ~script:"$0" ~inline:[Json.String s]
+      | json          -> of_json json 
+    in
+
     let r = compile (t # script) (t # inline) in
     match r with 
     | `OK _ -> t
