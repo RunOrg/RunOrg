@@ -46,3 +46,4 @@ val template : html:bool -> script -> input -> string
 (** Filter the script's input to keep only data that is actually used by 
     the script (to keep memory usage down). *)
 val filter : script -> input -> input 
+  
