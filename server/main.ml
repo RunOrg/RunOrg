@@ -18,6 +18,7 @@ module OpenHack = struct
   open CustomId
   open Key
   open Mail
+  open SentMail
   open Form
   open Unturing
 end
