@@ -40,3 +40,7 @@ let to_string = function
   
 let of_string url = 
   Some (`Raw url)
+
+let of_string_template id url = 
+  Some (fun i -> let segs = BatString.nsplit url ("{"^id^"}") in
+		 `Raw (String.concat i segs))

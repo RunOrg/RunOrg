@@ -12,6 +12,7 @@ module Create = Endpoint.Post(struct
    ?html : Unturing.t option ;
     audience : Mail.Access.Audience.t ;
    ?urls : String.Url.t list = [] ;
+   ?self : string option = None ; 
    ?custom : Json.t = Json.Null ;
   >
 
@@ -27,10 +28,14 @@ module Create = Endpoint.Post(struct
 
   let response req () post = 
     
+    let self = match post # self with None -> None | Some self ->      
+      match String.Url.of_string_template "id" self with None -> None | Some url -> 
+	Some (fun id -> url (Mail.I.to_string id)) in
+	
     let! result = Mail.create (req # as_) 
       ~from:(post # from) ~subject:(post # subject) 
       ?text:(post # text) ?html:(post # html) 
-      ~urls:(post # urls) ~custom:(post # custom) (post # audience) in
+      ~urls:(post # urls) ~custom:(post # custom) ?self (post # audience) in
     
     match result with 
     | `NeedAccess id -> return (needAccess id)
