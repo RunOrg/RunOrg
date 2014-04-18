@@ -7,7 +7,10 @@
 %start <Ast.t> script
 
 %token <int>
-  Int Inline 
+  Int 
+
+%token <int * Json.t>
+  Inline
 
 %token <string>
   Name
@@ -21,7 +24,7 @@ script:
   | l = separated_nonempty_list(Semicolon, expr) ; EOF { Ast.Flat l }
 
 expr: 
-  | i = Inline { Ast.Inline i }
+  | i = Inline { Ast.Inline (snd i) }
   | e = expr ; BracketO ; i = Int ; BracketC { Ast.Index (e,i) }
   | e = expr ; Dot ; n = Name { Ast.Member (e,n) }
   | This { Ast.This }

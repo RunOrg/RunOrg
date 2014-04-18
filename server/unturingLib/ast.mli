@@ -1,7 +1,7 @@
 (* © 2014 RunOrg *)
 
 type t = 
-  | Inline  of int
+  | Inline  of Json.t
   | This
   | Context of string
   | Member  of t * string

@@ -1,5 +1,7 @@
 (* © 2014 RunOrg *)
 
-type script = unit
+type script = Ast.t 
 
-let compile str inline = Some () 
+let compile str inline = 
+  assert false
+  
