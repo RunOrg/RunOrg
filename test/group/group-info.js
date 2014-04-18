@@ -22,7 +22,7 @@ TEST("The groups's identifier is returned.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    var id = Test.query("POST",["db/",db,"/groups/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/groups"],example,auth).result("id");
     var id2 = Test.query("GET",["db/",db,"/groups/",id,"/info"],auth).result("id");
 
     Assert.areEqual(id,id2).then(next);
@@ -38,7 +38,7 @@ TEST("The groups's label is returned if available.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    var id = Test.query("POST",["db/",db,"/groups/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/groups"],example,auth).result("id");
     var label = Test.query("GET",["db/",db,"/groups/",id,"/info"],auth).result("label");
 
     Assert.areEqual(example.label,label).then(next);
@@ -54,7 +54,7 @@ TEST("The group's member count is returned.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    var id = Test.query("POST",["db/",db,"/groups/create"],example,auth).result("id");
+    var id = Test.query("POST",["db/",db,"/groups"],example,auth).result("id");
     
     Test.query("POST",["db/",db,"/groups/",id,"/add"],[auth.id],auth).result().then(function(){
 

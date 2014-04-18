@@ -19,7 +19,7 @@ module Create = Endpoint.Post(struct
     at : Cqrs.Clock.t ;
   >
 
-  let path = "groups/create"
+  let path = "groups"
 
   let alreadyExists id = 
     `Conflict (!! "Identifier %S is already taken." (CustomId.to_string id))

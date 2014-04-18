@@ -1,4 +1,4 @@
-// POST /db/{db}/groups/create
+// POST /db/{db}/groups
 // Groups / Create a group
 // 
 // Alpha @ 0.1.37
@@ -25,7 +25,7 @@ TEST("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var response = Test.query("POST",["db/",db,"/groups/create"],example,auth).response();
+    var response = Test.query("POST",["db/",db,"/groups"],example,auth).response();
 
     [
 	Assert.areEqual(202, response.map('status')),
@@ -45,7 +45,7 @@ TEST("The response has valid return code and content type.", function(next) {
 // request). 
 //
 // ### Example request
-//     POST /db/0SNQc00211H/groups/create
+//     POST /db/0SNQc00211H/groups
 //     Content-Type: application/json
 // 
 //     { "id": "board", 
@@ -66,7 +66,7 @@ TEST("Group with forced id appears.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     
-    Test.query("POST",["db/",db,"/groups/create"],example,auth).response().then(function(){
+    Test.query("POST",["db/",db,"/groups"],example,auth).response().then(function(){
 
 	var get = Test.query("GET",["db/",db,"/groups/",id,"/info"],auth).result();
 	
@@ -86,13 +86,13 @@ TEST("New group with forced id created after deletion.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     
-    Test.query("POST",["db/",db,"/groups/create"],example,auth).response().then(function(){
+    Test.query("POST",["db/",db,"/groups"],example,auth).response().then(function(){
 
 	Test.query("DELETE",["db/",db,"/groups/",id],auth).response().then(function(){
 
 	    example.label = "Board members";
 
-	    Test.query("POST",["db/",db,"/groups/create"],example,auth).response().then(function(){
+	    Test.query("POST",["db/",db,"/groups"],example,auth).response().then(function(){
 
 		var get = Test.query("GET",["db/",db,"/groups/",id,"/info"],auth).result();
 		
@@ -110,7 +110,7 @@ TEST("New group with forced id created after deletion.", function(next) {
 // request twice will create two groups.
 // 
 // ### Example request
-//     POST /db/0SNQc00211H/groups/create
+//     POST /db/0SNQc00211H/groups
 //     Content-Type: application/json
 // 
 //     { "label": "Members imported on Nov 1, 2013" }
@@ -129,8 +129,8 @@ TEST("Multiple creations create multiple groups.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    var id1 = Test.query("POST",["db/",db,"/groups/create"],example,auth).result("id");
-    var id2 = Test.query("POST",["db/",db,"/groups/create"],example,auth).result("id");
+    var id1 = Test.query("POST",["db/",db,"/groups"],example,auth).result("id");
+    var id2 = Test.query("POST",["db/",db,"/groups"],example,auth).result("id");
 
     var get1 = Test.query("GET",["db/",db,"/groups/",id1,"/info"],auth).result();
     var get2 = Test.query("GET",["db/",db,"/groups/",id2,"/info"],auth).result();
@@ -157,8 +157,8 @@ TEST("Returns 400 when custom id is invalid.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var r1 = Test.query("POST",["db/",db,"/groups/create"],ex1,auth).response();
-    var r2 = Test.query("POST",["db/",db,"/groups/create"],ex2,auth).response();
+    var r1 = Test.query("POST",["db/",db,"/groups"],ex1,auth).response();
+    var r2 = Test.query("POST",["db/",db,"/groups"],ex2,auth).response();
     
     [
 	Assert.areEqual(400, r1.map('status')),
@@ -171,7 +171,7 @@ TEST("Returns 400 when custom id is invalid.", function(next) {
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(next) {
-    var response = Test.query("POST",["db/01234567890/groups/create"],{},"00000000000").response();
+    var response = Test.query("POST",["db/01234567890/groups"],{},"00000000000").response();
     Assert.areEqual(404, response.map('status')).then(next);
 });
 
@@ -186,8 +186,8 @@ TEST("Returns 409 when the group exists.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     
-    Test.query("POST",["db/",db,"/groups/create"],example,auth).response().then(function(){
-	var response = Test.query("POST",["db/",db,"/groups/create"],example,auth).response();
+    Test.query("POST",["db/",db,"/groups"],example,auth).response().then(function(){
+	var response = Test.query("POST",["db/",db,"/groups"],example,auth).response();
 	Assert.areEqual(409, response.map('status')).then(next);
     });
 });
@@ -200,7 +200,7 @@ TEST("Returns 409 when re-creating the admin group.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     
-    var response = Test.query("POST",["db/",db,"/groups/create"],example,auth.tok).response();
+    var response = Test.query("POST",["db/",db,"/groups"],example,auth.tok).response();
     Assert.areEqual(409, response.map('status')).then(next);
 });
 
@@ -209,7 +209,7 @@ TEST("Returns 409 when re-creating the admin group.", function(next) {
 
 TEST("Returns 401 when token is not valid.", function(next) {
     var db = Query.mkdb();
-    Test.query("POST",["db/",db,"/groups/create"],{},{tok:"0123456789a",id:"0123456789a"})
+    Test.query("POST",["db/",db,"/groups"],{},{tok:"0123456789a",id:"0123456789a"})
 	.error(401).then(next);    
 });
 
