@@ -100,3 +100,60 @@ let search =
   end in    
 
   search
+
+(* Full contact information 
+   ======================== *)
+
+module Full = type module < 
+  email     : String.Label.t ;
+  fullname  : String.Label.t option ; 
+  firstname : String.Label.t option ;
+  lastname  : String.Label.t option ; 
+  name      : String.Label.t ; 
+  force     : bool ; 
+  gender    : [`F|`M] option ;
+>
+
+let full = 
+  
+  let fullV, full = Cqrs.MapView.make projection "full" 0
+    (module CId : Fmt.FMT with type t = CId.t)
+    (module Full : Fmt.FMT with type t = Full.t)  in
+
+  let () = Store.track fullV begin function 
+
+    | `Created ev -> 
+
+      Cqrs.MapView.update full (ev # id) 
+	(function 
+	| None -> `Put (Full.make ~email:(ev # email) ~name:(ev # email) ~gender:None
+			  ~fullname:None ~lastname:None ~firstname:None ~force:false )
+	| Some o -> `Keep)
+
+    | `InfoUpdated ev -> 
+
+      let force = ev # fullname <> None in 
+      let name  = 
+	match ev # fullname with Some name -> Some name | None -> 
+	  match ev # firstname, ev # lastname with 
+  	    | None, None -> None
+	    | Some name, None 
+	    | None, Some name -> Some name
+	    | Some fn, Some ln -> let fns = String.Label.to_string fn in
+				  let lns = String.Label.to_string ln in 
+				  match String.Label.of_string (fns ^ " " ^ lns) with 
+				  | None -> Some fn
+				  | Some l -> Some l
+      in
+
+      Cqrs.MapView.update full (ev # id) 
+	(function None -> `Keep | Some old -> 
+	  let name = if force || not (old # force) then Option.default (old # email) name else old # name in
+	  let gender = if ev # gender = None then old # gender else ev # gender in
+	  `Put (Full.make ~email:(old # email) ~name ~force ~gender
+		  ~fullname:(ev # fullname) ~firstname:(ev # firstname) ~lastname:(ev # lastname)))
+
+  end in    
+
+  full
+

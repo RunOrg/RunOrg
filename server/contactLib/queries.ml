@@ -63,4 +63,31 @@ let search ?(limit=10) prefix =
   in  
   List.M.filter_map get ids 
   
+(* Full profile 
+   ============ *)
 
+type full = <
+  id        : CId.t ;
+  name      : String.Label.t ;
+  pic       : string ; 
+  gender    : [`F|`M] option ; 
+  email     : String.Label.t ; 
+  fullname  : String.Label.t option ; 
+  firstname : String.Label.t option ;
+  lastname  : String.Label.t option ; 
+>
+
+let format_full cid full = object
+  method id        = cid
+  method name      = full # name
+  method gender    = full # gender
+  method email     = full # email
+  method pic       = Gravatar.pic_of_email (String.Label.to_string (full # email))
+  method fullname  = full # fullname
+  method firstname = full # firstname
+  method lastname  = full # lastname
+end 
+
+let full cid = 
+  let! found = Cqrs.MapView.get View.full cid in 
+  match found with None -> return None | Some full -> return (Some (format_full cid full))

@@ -36,3 +36,17 @@ val search : ?limit:int -> string -> (#O.ctx, short list) Run.t
     brand new contact. *)
 val auth_persona : string -> (# O.ctx, ([`Contact] Token.I.id * short * Cqrs.Clock.t) option) Run.t
   
+(** A full profile for a contact. *)
+type full = <
+  id        : CId.t ;
+  name      : String.Label.t ;
+  pic       : string ; 
+  gender    : [`F|`M] option ; 
+  email     : String.Label.t ; 
+  fullname  : String.Label.t option ; 
+  firstname : String.Label.t option ;
+  lastname  : String.Label.t option ; 
+>
+
+(** Get the full profile of a contact. *)
+val full : CId.t -> (#O.ctx, full option) Run.t
