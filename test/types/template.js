@@ -74,6 +74,19 @@
 //
 //     // output
 //     Hello, <b>EVIL &lt;script&gt;...</b> !
+// 
+// # Short format
+//
+// When template functionality is not required, it is not necessary to write out
+// the entire object. A single string can be provided instead
+//
+// ### Short format template
+//     "Hello, world!"
+//
+// ### Equivalent template with standard format
+//     { "script": "$0", 
+//       "inline": [ "Hello, world!" ] }
+// 
 
 TEST("Text-based template.", function(next){
 
