@@ -1,219 +1,130 @@
-// Queries are sent to the API, and return results available for many things, including 
-// examples. Query parameters can be acceptable as futures.
+// The query module returns connections, and connections are 
+// used to perform queries against the server. 
 
-// url is an async string function
-// data is an async object function (to be converted to JSON)
-// token is an async string function
-function Query(verb, url, data, token, as)  {
+var Query = (function(){
 
-    this.uid = ++Query.uid;
-    this.verb = verb;
-    this.url = url;
-    this.data = data;
-    this.token = token;
-    this.as = as;
+    // Utility. Appends query parameter to URL. 
+    function addParameter(url, key, value) {
+	return url + (/\?/.exec(url) ? '&' : '?') 
+	    + encodeURIComponent(key) + '=' 
+	    + encodeURIComponent(value);
+    }
 
-    // When the request is sent, it will be stored here.
-    this.request = null;
+    function Connection() {	
+	this._clock = null;
+    }
 
-    // All functions invoked on the request once it is actually
-    // created.
-    this.pending = null;
-}
+    Connection.prototype = {
 
-Query.prototype = {
+	// Running a query and returns the jQuery deferred object representing the 
+	// result. This is the meat of the connection class, most other methods 
+	// simply forward calls to this one.	
+	//
+	// All parameters are expected to be synchronous values. 
+	query: function(verb, url, data, auth) {
 
-    toString: function() {
-	return this.verb + ' ' + this.usedUrl;
-    },
-    
-    send: function(callback) {
+	    var self = this;
 
-	var query = this;
+	    auth = auth || {};
+	    var token = auth.token, as = auth.as;
 
-	// Only run a query once
-	if (query.pending) {
-	    query.pending.push(callback);
-	    return;
-	}
-	
-	query.pending = [getClock,callback];
+	    if (!/^\//.exec(url)) url = "/" + url;
+	    if (as) url = addParameter(url, 'as', as);
+	    if (this._clock) url = addParameter(url, 'at', this._clock);
 
-	// Extract all the asynchronous data.
-	query.token(function(token) {
-	    query.usedToken = token;
-	    query.as(function(as) {
-		query.usedAs = as;
-		query.url(function(url) {
-		    query.data(function(data) {		    
-			data = JSON.stringify(data);
-			query.usedData = data;		    
-
-		        if (as) url = url + (/\?/.exec(url) ? '&' : '?') + 'as=' + as;			
-			if (! /^\//.exec(url)) url = "/" + url;
-			if (Query.clock) url = url + (/\?/.exec(url) ? '&' : '?') + 'at=' + Query.clock; 
-			query.usedUrl = url;
-			
-			// Send the request and save it.
-			Test.ping();
-			query.request = $.ajax({
-			    url: url,
-			    type: query.verb,
-			    dataType: 'json',
-			    contentType: 'application/json',
-			    data: (query.verb == "GET" || query.verb == "DELETE") ? {} : data,
-			    beforeSend: function(xhr) {
-				if (token) xhr.setRequestHeader('Authorization','RUNORG token=' + token);
-			    }
-			}).always(query.pending);
-			
-			query.pending = null;
-		    });
-		});
+	    var promise = $.ajax({
+		url: url,
+		type: verb, 
+		dataType: 'json',
+		contentType: 'application/json',
+		data: (verb == 'PUT' || verb == 'POST') ? {} : JSON.stringify(data),
+		beforeSend: function(xhr) {
+		    if (token) xhr.setRequestHeader('Authorization', 'RUNORG token=' + token);
+		}
 	    });
-	});
 
-	function getClock(data,status) {
-	    if (status == "success" && "at" in data) {
-		var c = Query.clock ? JSON.parse(Query.clock) : [], i, j;
+	    promise.always(function(data,status) {
+		if (status != 'success' || ! ('at' in data)) return;
+
+		var c = self.clock ? JSON.parse(self.clock) : [], i, j, at = data.at;
 
 		// Merge the new clock value with the old one
-		for (i = 0; i < data.at.length; ++i) {
+		for (i = 0; i < at.length; ++i) {
 		    for (j = 0; j < c.length; ++j) 
-			if (c[j][0] == data.at[i][0]) { c[j][1] = data.at[i][1]; break; }
+			if (c[j][0] == at[i][0]) { c[j][1] = at[i][1]; break; }
 		    if (j == c.length) 
-			c.push(data.at[i]);
+			c.push(at[i]);
 		}
 		
-		Query.clock = JSON.stringify(c);
-	    }
-	}
-    },
-
-    always: function() {
-	var query = this;
-	return function(callback) {
-	    if (query.request != null) query.request.always(callback);
-	    else query.send(callback);
-	}
-    },
-
-    response: function() {
-	return this.always().map(function(fst,status,snd) {
-	    return (status == "success") ? snd : fst;
-	});
-    },
-
-    result: function() {
-	var query = this,
-	    path = arguments,
-	    result = query.always().map(function(data,status){
-		if (status == "success") return data; 
-		Test.fail("Failed: "+query);	    
+		self.clock = JSON.stringify(c);
 	    });
 
-	return result.map(function(data){
-	    var original = data;
-	    for (var i = 0; data && i < path.length; ++i) data = data[path[i]];
-	    if (i != path.length || typeof data == 'undefined') 
-		Test.fail("No "+Array.prototype.slice.call(path,0,i).join(".")+" in "+JSON.stringify(original));
-	    return data;
-	});
-    },
+	    return promise;
+	},
 
-    success: function(http,more) {
-	var query = this;
-	return query.always().map(function(data,status,xhr){
-	    if (status != "success") 
-		return Test.fail("Should succed: "+query);
-	    if (xhr.status != http) 
-		return Test.fail("Expected "+http+": "+query);
-	    if (more)
-		more(xhr.responseText);		    
-	});
-    },
+	// Like 'query', but applies Async.wait to all parameters (except the verb).
+	// If the URL is an array (or has a join function), uses url.join(''). 
+	queryAsync: function(verb,url,data,auth) {
+	    var self = this;
+	    $.wait(Async.wait(url),Async.wait(data),Async.wait(auth))
+		.then(function(url,data,auth) { 
+		    if ('join' in url) url = url.join('');
+		    return self.query(verb,url,data,auth); 
+		});
+	},
 
-    error: function(http,more) {
-	var query = this;
-	return query.always().map(function(xhr,status){
-	    if (status == "success") 
-		return Test.fail("Should fail: "+query);
-	    if (xhr.status != http) 
-		return Test.fail("Expected "+http+": "+query);
-	    if (more)
-		more(xhr.responseText);		    
-	});
-    }
+	// Performs a GET request
+	get: function(url,token,as) {
+	    return this.queryAsync("GET",url,null,auth);
+	},
 
-};
+	// Performs a PUT request
+	put: function(url,data,auth) {
+	    return this.queryAsync("PUT",url,data,auth);
+	},
 
-// url may be: 
-//   - a string
-//   - an async string function
-//   - an array mixing strings and async string functions
-// data may be a JSON-convertible object with some pieces being
-// async object functions
-Query.create = function(verb, url, data, auth) {
+	// Performs a POST request
+	post: function(url,data,auth) {
+	    return this.queryAsync("POST",url,data,auth);
+	},
 
-    if (verb == "GET" || verb == "DELETE") auth = data;
+	// Performs a DELETE request
+	del: function(url,auth) {
+	    return this.queryAsync("DELETE",url,null,auth);
+	},
 
-    var token = auth ? auth.token : void(0);
-    var as = auth ? auth.id : void(0);
+	// Authenticate as a server administrator. 
+	asServerAdmin: function() {
+	    return {
+		token: this.post("test/auth",{}).always(function(data){ return data.token; }),
+		id:    void(0)
+	    };
+	},
 
-    if (typeof token == "string" || typeof token == "undefined") 
-	token = (function(token){ return function(callback) { callback(token) } })(token);
+	// Create a brand new database and return the id. 
+	mkdb: function() {
+	    var auth = this.asServerAdmin();
+	    return this.post("db/create",{label:"Test database " + new Date()},auth);
+	},
 
-    if (typeof as == "string" || typeof as == "undefined") 
-	as = (function(as){ return function(callback) { callback(as) } })(as);
+	// Authenticate with a specific database
+	auth: function(db,admin,email) {
 
-    if (typeof url == "string") 
-	url = (function(url){ return function(callback) { callback(url) } })(url);
+	    var result = this.post(["db/",db,"/test/auth"],{
+		email : (email || void(0)),
+		admin : (admin === false ? false : true)
+	    }).always(function(data) { return data; })
 
-    if (typeof url == "object") // An array ! 
-	url = (function(url){ return function(callback) { 
-
-	    function loop(i) {
-		if (i == url.length) return callback(url.join(''));
-		if (typeof url[i] == "string") return loop(i+1);
-		url[i](function(seg) { 
-		    url[i] = seg; 
-		    loop(i+1); 
-		})
-	    }
-
-	    loop(0);
-
-	}})(url);
-
-    if (typeof data != "function") {
-	data = Async.lift(data);
-    }
-
-    return new Query(verb, url, data, token, as);
-};
-
-Query.uid = 0;
-
-Query.authAsServerAdmin = function() {
-    return {
-	token : Query.create("POST","test/auth",{}).result('token'),
-	id    : void(0)
+	    return {
+		token : result.then(function(r) { return r.token; }),
+		id    : result.then(function(r) { return r.id; })
+	    };
+	}
     };
-};
-
-Query.auth = function(db,admin,email) {
-    var r = Query.create("POST",["db/",db,"/test/auth"],{
-	email : (email || void(0)),
-	admin : (admin === false ? false : true)
-    }).result();
 
     return {
-	token : r.map('token'),
-	id    : r.map('id')
+	create: function() { return new Connection(); }
     };
-};
 
-Query.mkdb = function() {
-    var token = Query.authAsServerAdmin();
-    return Query.create("POST","db/create",{label:"Test database " + new Date()}, token).result('id');
-};
+})();
+

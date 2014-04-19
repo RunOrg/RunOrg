@@ -1,81 +1,54 @@
-// Asynchronous operations
+// Asynchronous operations. 
+//
+// This module contains a handful of functions related to promises and thenables. 
+ 
 var Async = (function() {
-    
-    // Extend functions with "map" and "then" methods 
-    Function.prototype.map = function(applied) {
+   
+    // Returns true if an object is 'thenable' (it has a 'then' member
+    // function). 
+    function isThenable(obj) { 
+	return typeof obj == 'object' && obj !== null && 'then' in obj;
+    }
 
-	if (typeof applied != "function") {
-	    var key = applied;
-	    applied = function(obj) { return obj[key]; }
-	}
+    // Returns a promise that waits for all promises inside the passed object
+    // to return with a result. The provided value is also modified in-place
+    // so that all promises are replaced with their concrete values.  
+    function wait(value) {
 
-	var self = this;
-	return function(callback) {
-	    self(function(){ callback(applied.apply(this,arguments)); });
-	}
-    };
-    
-    Function.prototype.then = function(callback) {
-	if (callback) 
-	    this(function() { callback() });    
-	else
-	    this(function() {});
-    };
+	if (isThenable(value)) return value;
 
-    // Extend arrays with "then" methods
-    Array.prototype.then = function(callback) {
-	var left = this.length, result = [], self = this;
-	for (var i = 0; i < this.length; ++i) 
-	    (function(i){ 
-		self[i].then(function(r){ 
-		    result[i] = r;
-		    if (--left == 0) callback.apply(this,result); 
-		});
-	    })(i);
-    };
-
-    // Cleans up a value by instantiating any sub-elements, calls the callback
-    // on it when it's done. 
-    function cleanup(value,callback) {
-	if (typeof value == "function") return value(callback);
 	if (typeof value == "object") {
-	    if (Array.isArray(value)) { 
-		
-		function arrayLoop(i) {
-		    if (i == value.length) return callback(value);
-		    cleanup(value[i], function(x) {
-			value[i] = x;
-			arrayLoop(i+1);
-		    });
-		}
-		
-		arrayLoop(0);
-		
+
+	    var deferred = [ { then: function(callback) { return callback(value); } } ];
+
+	    if ('each' in value) {
+
+		value.each(function(e,i) {
+		    deferred.push(wait(e).then(function(v) { value[i] = r; }));
+		}); 
+
 	    } else {
 		
-		var keys = [];
-		for (var k in value) if (value.hasOwnProperty(k)) keys.push(k);
-		
-		function objectLoop(i) {
-		    if (i == keys.length) return callback(value);
-		    cleanup(value[keys[i]], function(x) {
-			value[keys[i]] = x;
-			objectLoop(i+1);
-		    });
+		for (var k in value) {
+		    if (!value.hasOwnProperty(k)) continue;
+		    (function(k) {
+			deferred.push(wait(value[k]).then(function(v) { value[k] = v; }));
+		    })(k);
 		}
-		
-		objectLoop(0);
+
 	    }
-	    
-	    return;
-	}
 	
-	// Only basic types are left
-	callback(value);
+	    return $.wait.apply($, deferred)
+	        // Keep only the first deferred argument.
+		.then(function(a) { return a; });
+	}
+
+	return value;
     }
     
     return {
-	lift: function(data){ return function(callback){ cleanup(data, callback) } }
+	isThenable : isThenable,
+	wait       : wait
     };
 
 })();
