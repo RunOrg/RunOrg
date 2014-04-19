@@ -23,10 +23,14 @@ var Async = (function() {
 
 	    var deferred = [ self ];
 
-	    if ('each' in value) {
+	    if (value === null ) {
 
-		value.each(function(e,i) {
-		    deferred.push(wait(e).then(function(v) { value[i] = r; }));
+		return self;
+
+	    } else  if ('forEach' in value) {
+
+		value.forEach(function(e,i) {
+		    deferred.push(wait(e).then(function(v) { value[i] = v; }));
 		}); 
 
 	    } else {

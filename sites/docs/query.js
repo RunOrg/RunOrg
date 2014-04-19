@@ -24,7 +24,7 @@ var Query = (function(){
 	    var self = this;
 
 	    auth = auth || {};
-	    var token = auth.token, as = auth.as;
+	    var token = auth.token, as = auth.id;
 
 	    if (!/^\//.exec(url)) url = "/" + url;
 	    if (as) url = addParameter(url, 'as', as);
@@ -72,7 +72,7 @@ var Query = (function(){
 	},
 
 	// Performs a GET request
-	get: function(url,token,as) {
+	get: function(url,auth) {
 	    return this.queryAsync("GET",url,null,auth);
 	},
 

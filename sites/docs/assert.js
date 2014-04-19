@@ -26,29 +26,27 @@ var Assert = (function(){
 
 	areEqual: function(a,b) {
 
-	    return Async.lift([a,b]).map(function(p){
-		var a = p[0], b = p[1]; 
-		if (equal(a,b)) return Async.lift(true);
-		else Test.fail("Not equal: "+JSON.stringify(a)+" and "+JSON.stringify(b));
+	    return $.when(Async.wait(a),Async.wait(b)).then(function(a,b){
+		if (equal(a,b)) return true;
+		else throw ("Not equal: "+JSON.stringify(a)+" and "+JSON.stringify(b));
 	    });
 
 	},
 
 	notEqual: function(a,b) {
 
-	    return Async.lift([a,b]).map(function(p){
-		var a = p[0], b = p[1]; 
-		if (!equal(a,b)) return Async.lift(true);
-		else Test.fail("Both equal to: "+JSON.stringify(a));
+	    return $.when(Async.wait(a),Async.wait(b)).then(function(a,b){
+		if (!equal(a,b)) return true;
+		else throw ("Both equal to: "+JSON.stringify(a));
 	    });
 
 	},
 
 	isTrue: function(a, reason) {
 
-	    return Async.lift(a).map(function(a){
-		if (a) return Async.lift(true);
-		else Test.fail("False: " + reason);
+	    return Async.wait(a).then(function(a){
+		if (a) return true;
+		else throw ("False: " + reason);
 	    });
 
 	},
