@@ -64,7 +64,7 @@
 	    // Test buttons
 
 	    $sidebar.on('click','button.test',function(ev){
-		var catPath = ev.target.dataset.catPath;
+		var catPath = $(ev.target).closest('button')[0].dataset.catPath;
 		Fixture.root.then(function(root) {
 		    var tested = root.findByCatPath(catPath);
 		    if (tested) return tested.run(function(){
