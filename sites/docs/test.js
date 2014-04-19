@@ -36,17 +36,17 @@ var Test = (function() {
 	    this._failure = null;
 
 	    return this.func.call(null,Query.create())
-		.then(function() { 
-		          onTestEnd(); 
+		.then(function() {  
 		          self._ran = true; 
 		          self._running = false;
+		          onTestEnd();
 		      },
-		      function(reason) { 
-			  onTestEnd();
+		      function(reason) {
 			  self._ran = true;
 			  self._running = false;
 			  self._failed = true;
-			  self._failure = reason;
+			  self._failure = reason; 
+			  onTestEnd();
 		      });
 	},
 
