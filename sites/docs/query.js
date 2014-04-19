@@ -96,7 +96,7 @@ var Query = (function(){
 	// Authenticate as a server administrator. 
 	asServerAdmin: function() {
 	    return {
-		token: this.post("test/auth",{}).always(function(data){ return data.token; }),
+		token: this.post("test/auth",{}).always(function(r){ return r.token; }),
 		id:    void(0)
 	    };
 	},
