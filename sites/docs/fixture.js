@@ -90,6 +90,11 @@ var Fixture = (function(){
 	    return this.description;
 	},
 
+	// All the child fixtures
+	children: function() {
+	    return this._fixtures;
+	},
+
 	// The 'category path' of a fixture's parent category fixture, of the form A::B
 	catParent: function() { return this.categories.join('::'); }
 
@@ -129,22 +134,25 @@ var Fixture = (function(){
 	//  - tests: the number of tests
 	//  - failed: the number of tests that ran and failed
 	//  - ran: the number of tests that ran
+	//  - running: the number of tests still running
 	stats: function() {
 
-	    var mine = { tests: this.nTests, failed: 0, ran: 0 };
+	    var mine = { tests: this.nTests, failed: 0, ran: 0, running: 0 };
 
 	    if (this._tests !== null) {
 		this._tests.forEach(function(test) {
-		    if (test.ran())    mine.ran++;
-		    if (test.failed()) mine.failed++;
+		    if (test.running()) mine.running++;
+		    if (test.ran())     mine.ran++;
+		    if (test.failed())  mine.failed++;
 		});
 	    }
 
 	    this._fixtures.forEach(function(fixture) {
 		var stats = fixture.stats();
-		mine.tests  += stats.tests;
-		mine.failed += stats.failed;
-		mine.ran    += stats.ran;
+		mine.tests   += stats.tests;
+		mine.failed  += stats.failed;
+		mine.ran     += stats.ran;
+		mine.running += stats.running;
 	    });
 
 	    return mine;
@@ -178,6 +186,26 @@ var Fixture = (function(){
 		return parsed.tests.map(function(t) { return new Test(t.name,t.func); });
 	    });
 	},
+
+	// Return a child by its category path. Follows the descriptions all the way 
+	// down to a fixture an returns it. Argument can be a catPath()-like string, or
+	// an array. 
+	findByCatPath: function(catPath) {
+
+	    if (typeof catPath == "string") 
+		catPath = catPath.split('::').filter(function(s) { return s != ''; });
+	    else
+		catPath = catPath.slice(0);
+
+	    if (catPath.length == 0) return this;
+	    var first = catPath.shift();
+
+	    for (var i = 0; i < this._fixtures.length; ++i)
+		if (this._fixtures[i].description == first) 
+		    return this._fixtures[i].findByCatPath(catPath);
+
+	    return null;
+	}
 	
     };
 

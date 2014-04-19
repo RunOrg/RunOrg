@@ -4,86 +4,75 @@
     function sidebar(R) {
 	window.$sidebar = R.$;
 
-	Test.tree(function(tree) {
+	Fixture.root.then(function(root) { 
 
-	    // This function is only called on category nodes
-	    function clean(tree) {
+	    // The identifier of the currently opened fixture
+	    var current = document.location.hash.toString().replace(/^\//,'');
 
-		var out = { sub: [], tests: [], count: 0, ok: true, ran: true, rcount: 0 };
+	    // Turn the fixture tree into the kind of tree expected by 
+	    // the template. That is, each node should contain: 
+	    // - label: the text to be displayed
+	    // - verb: an API verb, if any
+	    // - path: an API path, if any 
+	    // - url: the url for the corresponding page
+	    // - current: is this the currently opened fixture ?
+	    // - active: is the current fixture a descendant of this fixture ? 
+	    // - status: 'running', 'ok', 'fail', 'unknown'
+	    // - count: number of tests	
+	    // - running: the number of tests not finished yet
+	    // - done: the percentage of tests not running
+	    // - sub: a list of child nodes to be displayed
+	    // - catPath: the category path of the node
+	    function prepare(fixture) {
 
-		// If category node has an associated document
-		if (tree._f) {
-		    var fixture = tree._f;
-		    out.count += fixture.tests;
-		    out.rcount += fixture.rcount;
-		    out.ok = out.ok && !fixture.hasFailed();
-		    out.file = "/docs/#/" + fixture.file;
-		    out.verb = fixture.verb;
-		    out.path = fixture.path;
-		}
+		var stats     = fixture.stats();
+		var sub       = fixture.children().map(prepare);
+		var isCurrent = fixture.file === current;
+		var subF      = sub.filter(function(f) { return f.active; });
 
-		// Recurse through subnodes to populate 'out.sub' and 'out.tests'
-		for (var k in tree) {
-		    var node = tree[k];
-		    if (k == '__' || k == '_f') continue;
-		    if (node['__'] == 'cat') {
-			var s = clean(node);
-			s.name = k;
-			out.sub.push(s);
-			out.count += s.count;
-			out.rcount += s.rcount;
-			out.ok = out.ok && s.ok;
-		    } else {             
-			var fixture = node._f;
-			out.tests.push({ 
-			    name: k, 
-			    ok:   !fixture.hasFailed(),
-			    ran:  fixture.ran,
-			    verb: fixture.verb,
-			    path: fixture.path,
-			    file: "/docs/#/" + fixture.file,
-			    count: fixture.tests,
-			    failed: fixture.failed
-			});
-			out.count += fixture.tests;
-			out.rcount += fixture.rcount;
-			out.ok = out.ok && !fixture.hasFailed();
-			out.ran = out.ran && fixture.hasRun();
-		    }
-		}
-		out.ran = out.ran && out.count > 0;
-		return out;
+		var active    = isCurrent || subF.length > 0;
+
+		// The rule for a node being displayed: 
+		//  - they are the current node
+		//  - they are a parent of the current node, and it has no children
+		//  - they are a child of the current node
+		//  - they are an ascendant of the current node
+
+		sub = ( isCurrent || active && sub[0].current && sub[0].sub.length == 0 ) ? sub : subF; 
+
+		return {
+		    label: fixture.description || "RunOrg API documentation",
+		    verb: fixture.verb,
+		    path: fixture.path,
+		    current: isCurrent,
+		    url: '/docs/#/' + fixture.file,
+		    status: (stats.running > 0 ? 'running' :
+			     stats.failed  > 0 ? 'failed'  : 
+			     stats.ran     > 0 ? 'ok'      : 'unknown' ),
+		    count: stats.tests,
+		    running: stats.running,
+		    active: active, 
+		    done: ((stats.tests - stats.running) / stats.running * 100).toFixed(2),
+		    sub: sub,
+		    catPath: fixture.catPath()
+		};
 	    }
-	    
-	    var data = clean(tree);
-	    data.running = Test.running;
-	    data.done = (data.rcount * 100 / data.count).toFixed(2);
-	    data.root = true;
 
-	    R.sidebar(data);
+	    R.sidebar(prepare(tree));
 	    R.show();
 
-	    var location = document.location.pathname + document.location.hash;
-	    var $a = $sidebar.find('a[href="' + location + '"]').addClass('active');
+	    // Test buttons
 
-	    // When clicked on category, show sub-elements
-	    $a.next().show();
-
-	    // Open all parent categories
-	    while ($a.length > 0) $a = $a.parent().closest('ul').show();	    
-
-	    if (!Test.running) {
-		$sidebar.find('button.all').click(function(){
-		    Test.run(null,function(fixture,test) {
+	    $sidebar.click('button.test',function(){
+		var catPath = this.data.catPath;
+		Fixture.root.then(function(root) {
+		    var tested = root.findByCatPath(catPath);
+		    if (tested) return tested.run(function(){
 			sidebar(new Renderer($sidebar))
 		    });
 		});
-		$sidebar.find('button.this').click(function(){
-		    Test.run(document.location.hash.replace(/^#\//,''),function(fixture,test) {
-			sidebar(new Renderer($sidebar))
-		    });
-		});
-	    }
+	    });
+	    
 	});
     }
 
