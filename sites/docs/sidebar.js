@@ -52,7 +52,7 @@
 		    count: stats.tests,
 		    running: stats.running,
 		    active: active, 
-		    done: ((stats.tests - stats.running) / stats.running * 100).toFixed(2),
+		    done: ((stats.tests - stats.running) / stats.tests * 100).toFixed(2),
 		    sub: sub,
 		    catPath: fixture.catPath()
 		};
