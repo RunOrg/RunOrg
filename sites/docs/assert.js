@@ -20,15 +20,20 @@ var Assert = (function(){
 	return a === b;
     }
 
+    // Returns a failing promise, that will cause the overall test to fail.
+    function fail(reason) {
+	return $.Deferred().reject(reason).promise();
+    }
+
     return {
 
-	fail: function() { Test.fail("Assert.fail()"); },
+	fail: function() { return fail("Assert.fail()"); },
 
 	areEqual: function(a,b) {
 
 	    return $.when(Async.wait(a),Async.wait(b)).then(function(a,b){
 		if (equal(a,b)) return true;
-		else throw ("Not equal: "+JSON.stringify(a)+" and "+JSON.stringify(b));
+		else return fail("Not equal: "+JSON.stringify(a)+" and "+JSON.stringify(b));
 	    });
 
 	},
@@ -37,7 +42,7 @@ var Assert = (function(){
 
 	    return $.when(Async.wait(a),Async.wait(b)).then(function(a,b){
 		if (!equal(a,b)) return true;
-		else throw ("Both equal to: "+JSON.stringify(a));
+		else return fail("Both equal to: "+JSON.stringify(a));
 	    });
 
 	},
@@ -46,7 +51,7 @@ var Assert = (function(){
 
 	    return Async.wait(a).then(function(a){
 		if (a) return true;
-		else throw ("False: " + reason);
+		else return fail("False: " + reason);
 	    });
 
 	},

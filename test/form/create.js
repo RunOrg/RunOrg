@@ -172,7 +172,7 @@ TEST("Returns 403 when contact cannot create a form.", function(Query) {
     var auth = Query.auth(db,false);
     
     return Query.post(["db/",db,"/forms"],example,auth).then(function(d,s,r) {
-	return Assert.areEqual(404, r.status);
+	return Assert.areEqual(403, r.status);
     });
     
 });
