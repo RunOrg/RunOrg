@@ -34,8 +34,9 @@ let make (type k) (type s) projection name version dflt key status =
 	     ^ "\"status\" BYTEA, "
 	     ^ "PRIMARY KEY (\"db\",\"key\") "
 	     ^ ");") [] in
-    Sql.command 
-      ("CREATE INDEX \"" ^ dbname ^ "/db,status\" ON \"" ^ dbname ^ "\" (\"status\",\"db\")") []
+    return () 
+    (* Sql.command 
+       ("CREATE INDEX \"" ^ dbname ^ "/db,status\" ON \"" ^ dbname ^ "\" (\"status\",\"db\")") [] *)
   end in
 
   view, { name ; dbname ; wait ; dflt ; 
