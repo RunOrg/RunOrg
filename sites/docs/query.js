@@ -14,8 +14,11 @@ var Query = (function(){
 
     Connection.prototype = {
 
-	// Running a query and returns the jQuery deferred object representing the 
-	// result. This is the meat of the connection class, most other methods 
+	// Running a query and returns a promise representing the result. 
+	// The promise is similar to the jQuery result, except that it never
+	// fails because of a 4xx status.
+	//
+	// This is the meat of the connection class, most other methods 
 	// simply forward calls to this one.	
 	//
 	// All parameters are expected to be synchronous values. 
@@ -41,7 +44,7 @@ var Query = (function(){
 		}
 	    });
 
-	    promise.always(function(data,status) {
+	    promise.then(function(data,status) {
 		if (status != 'success' || ! ('at' in data)) return;
 
 		var c = self._clock ? JSON.parse(self._clock) : [], i, j, at = data.at;
@@ -57,7 +60,16 @@ var Query = (function(){
 		self._clock = JSON.stringify(c);
 	    });
 
-	    return promise;
+	    // Use a 'bounce' deferred to hide errors.
+	    var result = $.Deferred();
+
+	    promise.always(function(a,status,b) {
+		var xhr  = ('responseJSON' in a) ? a : b;
+		var data = xhr.responseJSON;
+		result.resolve(data, status, xhr);
+	    });
+
+	    return result.promise();
 	},
 
 	// Like 'query', but applies Async.wait to all parameters (except the verb).
