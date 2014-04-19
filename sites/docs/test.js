@@ -35,7 +35,7 @@ var Test = (function() {
 	    this._failed  = false;
 	    this._failure = null;
 
-	    return this.func.call(null,Assert.create(),Query.create())
+	    return this.func.call(null,Query.create())
 		.then(function() { 
 		          onTestEnd(); 
 		          self._ran = true; 

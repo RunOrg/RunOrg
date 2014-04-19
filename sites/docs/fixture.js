@@ -124,13 +124,13 @@ var Fixture = (function(){
 		self._tests = tests;
 
 		// Start all tests and wait for them to finish
-		return $.wait.apply($, tests.map(function(test) { return test.run(onTestEnd); }));
+		return $.when.apply($, tests.map(function(test) { return test.run(onTestEnd); }));
 
 	    });
 
-	    var myChildren = $.wait.apply($, this._fixtures.map(function(f) { return f.run(onTestEnd); }));
+	    var myChildren = $.when.apply($, this._fixtures.map(function(f) { return f.run(onTestEnd); }));
 
-	    return $.wait(myTests, myChildren);
+	    return $.when(myTests, myChildren);
 	},
 	
 	// Returns an object with statistics about this fixture and
