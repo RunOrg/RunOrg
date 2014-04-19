@@ -41,6 +41,12 @@
 	    color: #A22;
 	}
 
+	&.ok {
+	    background: #8C8;
+	    color: #050;
+	    border: 1px solid #4A4;
+	}
+
     }
 
     .node {
