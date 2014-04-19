@@ -1,174 +1,86 @@
-#left {
-  position: fixed;
-  top: -10px;
-  bottom: 0px;
-  left: 0;
-  width: 330px; 
-  z-index: 0;
-  background-color: #1d1f21;
-  box-shadow: inset -6px 0 12px rgba(0,0,0,0.75);
-  border-right: #888 1px solid;
-}
-
 .sidebar {
-  width: 310px;
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  color: #c5c8c6;  
-  padding: 5px;
-  font-size: 12px;
 
-  button {
-    margin: 8px auto;
-    border: 0 none white;
-    padding: 0;
-    height: 28px;
+    margin: 110px 30px 0;
+    float: left;
     overflow: hidden;
-    background-color: transparent;
-    cursor: pointer;
+    width: 300px;
 
-    span:hover {
-      background-color: #4C4;
-      background: linear-gradient(top, #55dd55, #33cc33);
+    ul {
+	list-style-type: none;
+	border-top: 1px solid #CCC;
+	margin: 4px 0;
+	padding: 4px 0;
     }
 
-    span {
-      color: white;
-      text-shadow: 0 -1px 0 #007700;
-      background-color: #3B3;
-      background: linear-gradient(top, #44cc44, #22aa22);
-      border: 1px solid #070;
-      display: block;
-      margin: 3px;
-      height: 14px;
-      padding: 3px 11px;
-      line-height: 14px;
-      font-weight: bold;
-      font-size: 14px;
-      border-radius: 2px;
-      text-align: center;
-      box-shadow: 0 0 3px rgba(0,0,0,0.5);
-    }
-  }
+    button.test {
+	border: 0;
+	background: none;
+	padding: 0px;
+	margin: 1px;
+	cursor: pointer; 
 
-  .progress {
+	span {
+	    display: block;
+	    width: 30px;
+	    height: 16px;
+	    padding: 3px 4px;
+	    text-align: center;
+	    font-size: 11px;
+	    line-height: 16px;	    
+	}
 
-    margin: 12px 3px;
-    border: 1px solid #070;
-    box-shadow: 0 0 3px rgba(0,0,0,0.5);
-    height: 20px;
-
-    div {
-      background-color: #3B3;
-      background: linear-gradient(top, #44cc44, #22aa22);
-      border: 1px solid #070;
-      display: block;
-      height: 20px;
-      margin: -1px;
-      border-radius: 2px;
-      width: 0px;
-      float: left;
-      transition: width 0.5s;
-      -webkit-transition: width 0.5s;
-    }
-  }
-
-  li {
-    border-top: 1px solid rgba(255,255,255,0.05)
-  }
-  
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  li ul {
-    display: none;
-    padding-left: 5px;
-  }
-
-  li > .node {
-    cursor: pointer;
-    font-weight: bold;
-    padding: 6px 4px;
-    line-height: 18px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-  }
-
-  a.verb > span { margin-top: 6px }
-
-  span {
-    float: right; 
-    border-radius: 30px;
-    height: 18px;
-    line-height: 18px;
-    padding: 0 6px;    
-    font-weight: bold;
-    font-size: 0.8em;
-    background-color: #BBB;
-    color: #111;
-  }
-
-  span.ok {
-    background-color: #9C0;
-  }
-
-  span.failed {
-    background-color: #F44;
-  }
-
-  a {
-    display: block;
-    text-decoration: none;
-    &, &:hover, &:visited { color: #c5c8c6 }      
-    padding: 6px 4px;
-    line-height: 1.3em;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-
-    &.active {
-      background-color: rgba(255,255,255,0.05)
+	&.unknown {
+	    background-color: #CCC;
+	    border: 1px solid #888;
+	    color: #333;
+	}
     }
 
-    a.verb {
-      height: 30px;
-    }
+    .node {
 
-    code {
-      display: block;
-      color: #888;
-      font-size: 0.95em;
-    }
-  }
+	height: 26px;
+	&.verb { height: 40px; }
+	
+	padding: 4px;
+	
+	> .test {
+	    float: right; 
+	    margin-left: 8px;
+	}
 
-  a.active + .failed { display: block; }
+	&.verb > .test {
+	    margin-top: 8px;
+	}
 
-  .failed {
-    margin-left: 10px;
-      
-    li { 
-	padding: 3px; 
-	background-color: rgba(255,0,0,0.15);
-    }
-    
-    strong { 
-      font-weight: normal; 
-      font-size: 11px;
-      display: block;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
+	> a {
+	    display: block;
+	    white-space: nowrap;
+	    overflow: hidden;
+	    text-overflow: ellipsis;
+	    font-size: 13px;
+	    color: #333;
+	    line-height: 26px;
+	    code {
+		font-weight: normal;
+		display: block;
+		color: #888;
+		font-size: 11px;
+		margin-top: -7px;
+	    }
+	}
 
-    small {
-      display: block;
-      color: #888;
-      font-size: 11px;
+	&.verb > a {
+	    line-height: 24px;
+	}
+
+	&.active {
+	    > a {
+		font-weight: bold;
+	    }
+	}
+
+	&.current {	    
+	    background-color: #CCC;
+	}
     }
-  }
 }

@@ -1,18 +1,15 @@
-<div class="node{< if verb} verb{>}">
+<div class="node{< if verb} verb{>}{< if active } active{>}{< if current} current{>}">
 
    {< if count}
-      <span class="{{status}}">
-	 {< if running }
+      {< if running }
+	 <span class="test {{status}}">
 	    <span style="width:{{ done }}%"></span>
-	 {else}
-	    {{ count }}
-	 {>}
-      </span>
-      {< if running }{ else }
-	 <button class="test" data-catPath="{{ catPath }}">
-	    ▶
+	 </span>
+      {else}
+	 <button class="test {{status}}" data-catPath="{{ catPath }}">
+	    <span>{{ count }}</span>
 	 </button>
-      {>}
+      {>}      
    {>}
 
    <a href="{{url}}">
@@ -22,10 +19,12 @@
 
 </div>
 
-<ul {< if active }{else}style="display:none"{>}>
-  {< each sub }
-    <li>
-      {< sidebar >}
-    </li>
-  {>}
-</ul>
+{< if sub.length }
+   <ul>
+      {< each sub }
+	 <li>
+            {< sidebar >}
+	 </li>
+      {>}
+   </ul>
+{>}

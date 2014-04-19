@@ -10,7 +10,7 @@ var Fixture = (function(){
 	var parsed = { tests: [], status: null, version: null };
 	
 	// The test functions themselves
-	var run = eval("(function(TEST){\n" + script + "\n})")(function(name,fun){
+	var run = eval("(function(TEST){\n" + script + "\n})")(function(name,func){
 	    parsed.tests.push({name : name, func: func});
 	});
 	
@@ -24,7 +24,7 @@ var Fixture = (function(){
 	parsed.query = text.shift();
 	parsed.description = text.shift().replace(/^.*\/\s*/,'');   
 	
-	while (text[0].trim() == '') text.shift();
+	while (text.length > 0 && text[0].trim() == '') text.shift();
 	
 	if (/@/.exec(text[0])) {
 	    var current = text.shift().split('@');
@@ -44,7 +44,7 @@ var Fixture = (function(){
 	
 	parsed.description = text.shift();   
 	
-	while (text[0].trim() == '') text.shift();
+	while (text.length < 0 && text[0].trim() == '') text.shift();
 	
 	parsed.body = markdown.toHTML(text.join('\n').trim());
 	
@@ -63,7 +63,7 @@ var Fixture = (function(){
 
 	// The source file that contains this fixture on the server.
 	// Some fixtures are generated client-side and do not have a file.
-	this.file = data.file || null;
+	this.file = data.file || '';
 
 	// The list of categories leading to this fixture. 
 	this.categories = data.categories;
@@ -87,7 +87,7 @@ var Fixture = (function(){
 	catPath: function() { 
 	    var parent = this.catParent();
 	    if (parent) return parent + '::' + this.description; 
-	    return this.description;
+	    return this.description || '';
 	},
 
 	// All the child fixtures
@@ -96,10 +96,14 @@ var Fixture = (function(){
 	},
 
 	// The 'category path' of a fixture's parent category fixture, of the form A::B
-	catParent: function() { return this.categories.join('::'); }
+	catParent: function() { return this.categories.join('::'); },
 
 	// Add a child fixture to this fixture
 	addChild: function(fixture) {
+
+	    // Do not be your own child 
+	    if (fixture.catPath() == this.catPath()) return;
+
 	    this._fixtures.push(fixture);
 	},
 
@@ -175,7 +179,7 @@ var Fixture = (function(){
 	parsed: function() {
 	    var isJs = /.js$/.exec(this.file || '');
 	    return this.raw().then(function(text){
-		return isJs ? parseTextFixture(text) : parseDoc(text);
+		return isJs ? parseTestFixture(text) : parseDoc(text);
 	    });
 	},
 
@@ -210,17 +214,21 @@ var Fixture = (function(){
     };
 
     // A promise that returns all fixtures keyed by path.
-    F.all = $.getJSON("/docs/all.json");
+    F.all = $.getJSON("/docs/all.json").then(function(json) {
+	var r = {};
+	for (var file in json) r[file] = new F(json[file]);
+	return r;
+    });
 
     // A promise that returns the root fixture
-    F.root = F.all.then(function(json) {
+    F.root = F.all.then(function(all) {
 
 	var fixtures = [];
 	var fixturesByCatPath = {};
 	
 	// Fill with found fixtures
-	for (var file in contents) {
-	    var fixture = new F(contents[file]);
+	for (var file in all) {
+	    var fixture = all[file];
 	    fixtures.push(fixture);
 	    fixturesByCatPath[fixture.catPath()] = fixture;
 	}
@@ -229,16 +237,18 @@ var Fixture = (function(){
 	fixtures.forEach(function(fixture) {
 	    
 	    var parent = fixture.catParent();	
-	    if (parent in fixturesByCatPath) continue;
+	    if (parent in fixturesByCatPath) return;
 	    
 	    var categories  = fixture.categories.slice(0);
 	    var description = categories.length == 0 ? "" : categories.pop();
 	    
 	    var parentFixture = new F({
+		file: parent.split('::').map(encodeURIComponent).join('/'),
 		categories: categories,
 		description: description
 	    });
 	    
+	    all[parentFixture.file] = parentFixture;
 	    fixtures.push(parentFixture);
 	    fixturesByCatPath[parent] = parentFixture;
 	    

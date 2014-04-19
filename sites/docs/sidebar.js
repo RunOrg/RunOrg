@@ -7,11 +7,11 @@
 	Fixture.root.then(function(root) { 
 
 	    // The identifier of the currently opened fixture
-	    var current = document.location.hash.toString().replace(/^\//,'');
+	    var current = document.location.hash.toString().replace(/^#\//,'');
 
 	    // Turn the fixture tree into the kind of tree expected by 
 	    // the template. That is, each node should contain: 
-	    // - label: the text to be displayed
+	    // - name: the text to be displayed
 	    // - verb: an API verb, if any
 	    // - path: an API path, if any 
 	    // - url: the url for the corresponding page
@@ -38,10 +38,10 @@
 		//  - they are a child of the current node
 		//  - they are an ascendant of the current node
 
-		sub = ( isCurrent || active && sub[0].current && sub[0].sub.length == 0 ) ? sub : subF; 
+		sub = ( isCurrent || active && subF[0].current && subF[0].sub.length == 0 ) ? sub : subF; 
 
 		return {
-		    label: fixture.description || "RunOrg API documentation",
+		    name: fixture.description || "RunOrg API documentation",
 		    verb: fixture.verb,
 		    path: fixture.path,
 		    current: isCurrent,
@@ -58,13 +58,13 @@
 		};
 	    }
 
-	    R.sidebar(prepare(tree));
+	    R.sidebar(prepare(root));
 	    R.show();
 
 	    // Test buttons
 
-	    $sidebar.click('button.test',function(){
-		var catPath = this.data.catPath;
+	    $sidebar.on('click','button.test',function(ev){
+		var catPath = ev.target.dataset.catPath;
 		Fixture.root.then(function(root) {
 		    var tested = root.findByCatPath(catPath);
 		    if (tested) return tested.run(function(){
