@@ -30,7 +30,7 @@
 //     { "id" : <id>,
 //       "at" : <clock> }
 
-TEST("The response has valid return code and content type.", function(next) {
+TEST("The response has valid return code and content type.", function(Query) {
 
     var example = { 
 	"owner": "contact",
@@ -38,14 +38,15 @@ TEST("The response has valid return code and content type.", function(next) {
 	"fields": []
     };
 
-    var db = Query.mkdb(),
-        token = Query.auth(db),
-        response = Test.query("POST",["db/",db,"/forms"],example,token).response();
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var response = Query.post(["db/",db,"/forms"],example,auth);
 
-    response.map(function(r) {
+    return response.then(function(r,s,t) {
 	Assert.areEqual(202, r.status).then();
 	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
+    });
+
 });
 
 // 

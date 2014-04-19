@@ -17,9 +17,11 @@ var Async = (function() {
 
 	if (isThenable(value)) return value;
 
+	var self = $.Deferred().resolve(value).promise();
+
 	if (typeof value == "object") {
 
-	    var deferred = [ { then: function(callback) { return callback(value); } } ];
+	    var deferred = [ self ];
 
 	    if ('each' in value) {
 
@@ -38,12 +40,12 @@ var Async = (function() {
 
 	    }
 	
-	    return $.wait.apply($, deferred)
+	    return $.when.apply($, deferred)
 	        // Keep only the first deferred argument.
 		.then(function(a) { return a; });
 	}
 
-	return value;
+	return self;
     }
     
     return {

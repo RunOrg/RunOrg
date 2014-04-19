@@ -5,9 +5,7 @@ var Query = (function(){
 
     // Utility. Appends query parameter to URL. 
     function addParameter(url, key, value) {
-	return url + (/\?/.exec(url) ? '&' : '?') 
-	    + encodeURIComponent(key) + '=' 
-	    + encodeURIComponent(value);
+	return url + (/\?/.exec(url) ? '&' : '?') + key + '=' + value;
     }
 
     function Connection() {	
@@ -37,7 +35,7 @@ var Query = (function(){
 		type: verb, 
 		dataType: 'json',
 		contentType: 'application/json',
-		data: (verb == 'PUT' || verb == 'POST') ? {} : JSON.stringify(data),
+		data: (verb == 'PUT' || verb == 'POST') ? JSON.stringify(data) : {},
 		beforeSend: function(xhr) {
 		    if (token) xhr.setRequestHeader('Authorization', 'RUNORG token=' + token);
 		}
@@ -46,7 +44,7 @@ var Query = (function(){
 	    promise.always(function(data,status) {
 		if (status != 'success' || ! ('at' in data)) return;
 
-		var c = self.clock ? JSON.parse(self.clock) : [], i, j, at = data.at;
+		var c = self._clock ? JSON.parse(self._clock) : [], i, j, at = data.at;
 
 		// Merge the new clock value with the old one
 		for (i = 0; i < at.length; ++i) {
@@ -56,7 +54,7 @@ var Query = (function(){
 			c.push(at[i]);
 		}
 		
-		self.clock = JSON.stringify(c);
+		self._clock = JSON.stringify(c);
 	    });
 
 	    return promise;
@@ -66,9 +64,9 @@ var Query = (function(){
 	// If the URL is an array (or has a join function), uses url.join(''). 
 	queryAsync: function(verb,url,data,auth) {
 	    var self = this;
-	    $.wait(Async.wait(url),Async.wait(data),Async.wait(auth))
+	    return $.when(Async.wait(url),Async.wait(data),Async.wait(auth))
 		.then(function(url,data,auth) { 
-		    if ('join' in url) url = url.join('');
+		    if (typeof url === "object" && url && 'join' in url) url = url.join('');
 		    return self.query(verb,url,data,auth); 
 		});
 	},
@@ -96,7 +94,7 @@ var Query = (function(){
 	// Authenticate as a server administrator. 
 	asServerAdmin: function() {
 	    return {
-		token: this.post("test/auth",{}).always(function(r){ return r.token; }),
+		token: this.post("test/auth",{}).then(function(r){ return r.token; }),
 		id:    void(0)
 	    };
 	},
@@ -104,7 +102,8 @@ var Query = (function(){
 	// Create a brand new database and return the id. 
 	mkdb: function() {
 	    var auth = this.asServerAdmin();
-	    return this.post("db/create",{label:"Test database " + new Date()},auth);
+	    return this.post("db/create",{label:"Test database " + new Date()},auth)
+		.then(function(r) { return r.id; });
 	},
 
 	// Authenticate with a specific database
