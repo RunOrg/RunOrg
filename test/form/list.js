@@ -15,15 +15,10 @@
 // - `list` is a list of forms on the requested page, in 
 //   [short format](/docs/#/format/short.js)
 
-TEST("The response has valid return code and content type.", function(next) {
+TEST("The response has valid return code and content type.", function(Query) {
 
     var db = Query.mkdb();
-    var response = Test.query("GET",["db/",db,"/forms"]).response();
-
-    response.map(function(r) {
-	Assert.areEqual(200, r.status).then();
-	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
+    return Query.get(["db/",db,"/forms"]).assertStatus(200).assertIsJson();
 
 });
 
@@ -48,7 +43,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //         "fields" : 1,
 //         "pic" : ["admin","fill"] }
 
-TEST("Returns data for all forms.", function(next) {
+TEST("Returns data for all forms.", function(Query) {
 
     var exampleA = {
 	"owner": "contact",	
@@ -101,9 +96,9 @@ TEST("Returns data for all forms.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    Test.query("POST",["db/",db,"/forms"],exampleA,auth).result("id")(function(idA) {
-	Test.query("POST",["db/",db,"/forms"],exampleB,auth).result("id")(function(idB) {
-	    Test.query("POST",["db/",db,"/forms"],exampleC,auth).result("id")(function(idC) {
+    return Query.post(["db/",db,"/forms"],exampleA,auth).id().then(function(idA) {
+	return Query.post(["db/",db,"/forms"],exampleB,auth).id().then(function(idB) {
+	    return Query.post(["db/",db,"/forms"],exampleC,auth).id().then(function(idC) {
 
 		var expected = {
 		    "list" : [ {
@@ -121,10 +116,9 @@ TEST("Returns data for all forms.", function(next) {
 		    } ]
 		};
 		
-		var list = Test.query("GET",["db/",db,"/forms"]).result();
-
-		Assert.areEqual(expected, list).then(next);
-
+		return Query.get(["db/",db,"/forms"]).then(function(d,s,r) {
+		    return Assert.areEqual(expected, d);
+		});
 	    });
 	});
     });
@@ -136,18 +130,18 @@ TEST("Returns data for all forms.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
-    Test.query("GET",["db/00000000000/forms"]).error(404).then(next);
+TEST("Returns 404 when database does not exist.", function(Query) {
+    return Query.get(["db/00000000000/forms"]).assertStatus(404);
 });
 
 
 // ## Returns `401 Unauthorized` 
 // - ... if the provided token does not grant mathch contact `{as}`.
 
-TEST("Returns 401 when token is not valid.", function(next) {
+TEST("Returns 401 when token is not valid.", function(Query) {
     var db = Query.mkdb();
-    Test.query("GET",["db/",db,"/forms"],{token:"012345789a",id:"0123456789a"})
-	.error(401).then(next);
+    return Query.get(["db/",db,"/forms"],{token:"012345789a",id:"0123456789a"})
+	.assertStatus(401);
 });
  
 // # Access restrictions
