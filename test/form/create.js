@@ -175,7 +175,7 @@ TEST("Returns 409 when the form exists.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     
-    Query.post(["db/",db,"/forms"],example,auth).then(function() {
+    return Query.post(["db/",db,"/forms"],example,auth).then(function() {
 	return Query.post(["db/",db,"/forms"],example,auth).assertStatus(409);
     });
 });
