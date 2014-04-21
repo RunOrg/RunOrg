@@ -112,6 +112,9 @@ var Fixture = (function(){
 	// be called whenever a test finishes.
 	run: function(onTestEnd) {	  
 
+	    var stats = this.stats();
+	    if (stats.running > 0) return;
+
 	    var self = this;
 
 	    // Always relod tests from scratch. This ensures server-side changes are
