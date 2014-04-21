@@ -23,28 +23,25 @@
 //   returned as-is.
 // - `count` is the number of form instances available. 
 
-TEST("The response has valid return code and content type.", function(next) {
+var Form = { 
+    "owner": "contact",
+    "audience": {},
+    "fields": [ { 
+	"id": "color",
+	"kind": "text",
+	"label": "Favourite color"
+    } ]
+};
 
-    var form = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": [ { 
-	    "id": "color",
-	    "kind": "text",
-	    "label": "Favourite color"
-	} ]
-    };
+
+TEST("The response has valid return code and content type.", function(Query) {
 
     var db = Query.mkdb();
-    var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,token).result('id');
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/forms"],Form,auth).id();
 
-    var response = Test.query("GET",["db/",db,"/forms/",id,"/filled"],token).response();
-
-    response.map(function(r) {
-	Assert.areEqual(200, r.status).then();
-	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
+    return Query.get(["db/",db,"/forms/",id,"/filled"],auth)
+	.assertStatus(200).assertIsJson();
 
 });
 
@@ -66,7 +63,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //       } ],
 //       "count": 215 }
 
-TEST("Returns correct items and count.", function(next) {
+TEST("Returns correct items and count.", function(Query) {
 
     var form = {
 	"owner": "contact",	
@@ -85,29 +82,36 @@ TEST("Returns correct items and count.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
-    var peon = Query.auth(db,false,"peon@runorg.com");
 
-    Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],data1,auth).result().then(function() {
-	Test.query("PUT",["db/",db,"/forms/",id,"/filled/",peon.id],data2,auth).result().then(function() {
+    return Query.post(["db/",db,"/forms"],form,auth).id().then(function(id) {
 	
-	    var item1 = { "owner" : auth.id, "data" : data1.data };
-	    var item2 = { "owner" : peon.id, "data" : data2.data };
-	    
-	    var expected1 = { "list" : [ item2, item1 ], "count" : 2 };
-	    var expected2 = { "list" : [ item2 ], "count" : 2 };
-	    var expected3 = { "list" : [ item1 ], "count" : 2 };
-					 
-	    var list1 = Test.query("GET",["db/",db,"/forms/",id,"/filled"],auth).result();
-	    var list2 = Test.query("GET",["db/",db,"/forms/",id,"/filled?limit=1"],auth).result();
-	    var list3 = Test.query("GET",["db/",db,"/forms/",id,"/filled?offset=1"],auth).result();
+	var peon = Query.auth(db,false,"peon@runorg.com");
 
-	    [
-		Assert.areEqual(expected1, list1),
-		Assert.areEqual(expected2, list2),
-		Assert.areEqual(expected3, list3)
-	    ].then(next);
+	return Query.put(["db/",db,"/forms/",id,"/filled/",auth.id],data1,auth).then(function() {
+	    return Query.put(["db/",db,"/forms/",id,"/filled/",peon.id],data2,auth).then(function() {
 
+		var item1 = { "owner" : auth.id, "data" : data1.data };
+		var item2 = { "owner" : peon.id, "data" : data2.data };
+		
+		var expected1 = { "list" : [ item1, item2 ], "count" : 2 };
+		var expected2 = { "list" : [ item2 ], "count" : 2 };
+		var expected3 = { "list" : [ item1 ], "count" : 2 };
+		
+		var list1 = Query.get(["db/",db,"/forms/",id,"/filled"],auth)
+		    .then(function(d) { return d; });
+		
+		var list2 = Query.get(["db/",db,"/forms/",id,"/filled?offset=1"],auth)
+		    .then(function(d) { return d; });
+		
+		var list3 = Query.get(["db/",db,"/forms/",id,"/filled?limit=1"],auth)
+		    .then(function(d) { return d; });
+		
+		return $.when(
+		    Assert.areEqual(expected1, list1),
+		    Assert.areEqual(expected2, list2),
+		    Assert.areEqual(expected3, list3)
+		);
+	    });
 	});
     });
 
@@ -118,72 +122,56 @@ TEST("Returns correct items and count.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
-    Test.query("GET",["db/00000000000/forms/00000000001/filled"]).error(404).then(next);
+TEST("Returns 404 when database does not exist.", function(Query) {
+    return Query.get(["db/00000000000/forms/00000000001/filled"]).assertStatus(404);
 });
 
 // - ... if form `{id}` does not exist in database `{db}` 
 
-TEST("Returns 404 when form does not exist.", function(next) {
+TEST("Returns 404 when form does not exist.", function(Query) {
     var db = Query.mkdb();
-    Test.query("GET",["db/",db,"/forms/00000000001/filled"]).error(404).then(next);
+    return Query.get(["db/",db,"/forms/00000000001/filled"]).assertStatus(404);
 });
 
 // - ... if contact `{as}` cannot view form `{id}`
 
-TEST("Returns 404 when form cannot be viewed.", function(next) {
-
-    var form = {
-	"owner": "contact",	
-	"audience": {},
-	"fields": []
-    };
+TEST("Returns 404 when form cannot be viewed.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],Form,auth).id();
     
-    Test.query("GET",["db/",db,"/forms/",id,"/filled"]).error(404).then(next);
+    return Query.get(["db/",db,"/forms/",id,"/filled"]).assertStatus(404);
 
 });
 
 // ## Returns `403 Forbidden`
 // - ... if contact `as` does not have **admin** access to the form.
 
-TEST("Returns 404 when form cannot be viewed.", function(next) {
+TEST("Returns 403 when form cannot be viewed.", function(Query) {
 
-    var form = {
-	"owner": "contact",	
-	"audience": { "fill": "anyone" },
-	"fields": []
-    };
+    var form = $.extend({},Form,{"audience":{"fill":"anyone"}});
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],form,auth).id();
     var peon = Query.auth(db,false,"peon@runorg.com");
 
-    Test.query("GET",["db/",db,"/forms/",id,"/filled"],peon).error(403).then(next);
+    return Query.get(["db/",db,"/forms/",id,"/filled"],peon).assertStatus(403);
 
 });
 
 // ## Returns `401 Unauthorized` 
 // - ... if the provided token does not grant mathch contact `{as}`.
 
-TEST("Returns 401 when token is not valid.", function(next) {
-
-    var form = {
-	"owner": "contact",	
-	"audience": {},
-	"fields": []
-    };
+TEST("Returns 401 when token is not valid.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],Form,auth).id();
  
-    Test.query("GET",["db/",db,"/forms/",id,"/filled"],{token:"012345789a",id:"0123456789a"})
-	.error(401).then(next);
+    return Query.get(["db/",db,"/forms/",id,"/filled"],{token:"012345789a",id:"0123456789a"})
+	.assertStatus(401);
 });
  
 // # Access restrictions
