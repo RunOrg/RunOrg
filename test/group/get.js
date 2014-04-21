@@ -17,7 +17,7 @@
 //   [short format](/docs/#/contact/short-contact.js)
 // - `count` is the total number of contacts in the group.
 
-TEST("The response has valid return code and content type.", function(next) {
+TODO("The response has valid return code and content type.", function(next) {
     Assert.fail();
 });
 
@@ -41,11 +41,11 @@ TEST("The response has valid return code and content type.", function(next) {
 //         "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060"} ],
 //       "count" : 215 }
 
-TEST("Returns correct number of contacts in count.", function(next) {
+TODO("Returns correct number of contacts in count.", function(next) {
     Assert.fail();
 });
 
-TEST("Returns data for all contacts.", function(next) {
+TODO("Returns data for all contacts.", function(next) {
     Assert.fail();
 });
 
@@ -54,13 +54,13 @@ TEST("Returns data for all contacts.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TODO("Returns 404 when database does not exist.", function(next) {
     Assert.fail();
 });
 
 // - ... if group `{id}` does not exist in database `{db}`
 
-TEST("Returns 404 when group does not exist.", function(next) {
+TODO("Returns 404 when group does not exist.", function(next) {
     Assert.fail();
 });
 
@@ -68,7 +68,7 @@ TEST("Returns 404 when group does not exist.", function(next) {
 // - ... if the provided token does not grant access to all contacts,
 //   or no token was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
+TODO("Returns 401 when token is not valid.", function(next) {
     Assert.fail();
 });
  

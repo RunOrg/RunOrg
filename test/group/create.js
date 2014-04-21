@@ -19,7 +19,7 @@
 //     { "id" : <id>,
 //       "at" : <clock> }
 
-TEST("The response has valid return code and content type.", function(next) {
+TODO("The response has valid return code and content type.", function(next) {
 
     var example = { "label" : "Board members" };
 
@@ -58,7 +58,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //     { "id" : "board",
 //       "at" : [[2,218]] }
 
-TEST("Group with forced id appears.", function(next) {
+TODO("Group with forced id appears.", function(next) {
 
     var id = "board";
     var example = { "id" : id, "label" : "Board members" };
@@ -78,7 +78,7 @@ TEST("Group with forced id appears.", function(next) {
 
 });
 
-TEST("New group with forced id created after deletion.", function(next) {
+TODO("New group with forced id created after deletion.", function(next) {
 
     var id = "board";
     var example = { "id" : id, "label" : "Broad members" };
@@ -122,7 +122,7 @@ TEST("New group with forced id created after deletion.", function(next) {
 //     { "id" : "0SNQe0032JZ",
 //       "at" : [[2,219]] }
 
-TEST("Multiple creations create multiple groups.", function(next) {
+TODO("Multiple creations create multiple groups.", function(next) {
 
     var example = { "label" : "Sample group" };
 
@@ -150,7 +150,7 @@ TEST("Multiple creations create multiple groups.", function(next) {
 // - ... if the provided identifier is not a valid [custom 
 //   identifier](/docs/#/types/custom-id.js)
 
-TEST("Returns 400 when custom id is invalid.", function(next) {
+TODO("Returns 400 when custom id is invalid.", function(next) {
 
     var ex1 = { "id": "a-b", "label" : "Invalid character" };
     var ex2 = { "id": "0123456789a", "label" : "Too long" };
@@ -170,7 +170,7 @@ TEST("Returns 400 when custom id is invalid.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TODO("Returns 404 when database does not exist.", function(next) {
     var response = Test.query("POST",["db/01234567890/groups"],{},"00000000000").response();
     Assert.areEqual(404, response.map('status')).then(next);
 });
@@ -178,7 +178,7 @@ TEST("Returns 404 when database does not exist.", function(next) {
 // ## Returns `400 Conflict`
 // - ... if a group already exists with the provided identifier.
 
-TEST("Returns 409 when the group exists.", function(next) {
+TODO("Returns 409 when the group exists.", function(next) {
 
     var id = "board";
     var example = { "id" : id, "label" : "Board members" };
@@ -192,7 +192,7 @@ TEST("Returns 409 when the group exists.", function(next) {
     });
 });
 
-TEST("Returns 409 when re-creating the admin group.", function(next) {
+TODO("Returns 409 when re-creating the admin group.", function(next) {
 
     var id = "admin";
     var example = { "id" : id, "label" : "Board members" };
@@ -207,7 +207,7 @@ TEST("Returns 409 when re-creating the admin group.", function(next) {
 // ## Returns `401 Unauthorized` 
 // - ... if the provided token does not match the `as` contact.
 
-TEST("Returns 401 when token is not valid.", function(next) {
+TODO("Returns 401 when token is not valid.", function(next) {
     var db = Query.mkdb();
     Test.query("POST",["db/",db,"/groups"],{},{tok:"0123456789a",id:"0123456789a"})
 	.error(401).then(next);    

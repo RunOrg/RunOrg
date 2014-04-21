@@ -17,7 +17,7 @@
 //   [short format](/docs/#/contact/short-contact.js)
 // - `count` is the total number of contacts in the database.
 
-TEST("The response has valid return code and content type.", function(next) {
+TODO("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb(),
         token = Query.auth(db),
@@ -50,7 +50,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //         "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060"} ],
 //       "count" : 215 }
 
-TEST("Returns correct number of contacts in count.", function(next) {
+TODO("Returns correct number of contacts in count.", function(next) {
 
     var example = { "email" : "vnicollet@runorg.com",
 		    "fullname" : "Victor Nicollet",
@@ -67,7 +67,7 @@ TEST("Returns correct number of contacts in count.", function(next) {
 
 });
 
-TEST("Returns data for all contacts.", function(next) {
+TODO("Returns data for all contacts.", function(next) {
 
     var example = [ { "email": "test@runorg.com" },
 		    { "email" : "vnicollet@runorg.com",
@@ -99,7 +99,7 @@ TEST("Returns data for all contacts.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TODO("Returns 404 when database does not exist.", function(next) {
     Test.query("GET","/db/00000000001/contacts/00000000002/").error(404).then(next);
 });
 
@@ -107,7 +107,7 @@ TEST("Returns 404 when database does not exist.", function(next) {
 // - ... if the provided token does not grant access to all contacts,
 //   or no token was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
+TODO("Returns 401 when token is not valid.", function(next) {
     var db = Query.mkdb();
     Test.query("GET",["db/",db,"/contacts"]).error(401).then(function() {
 	Test.query("GET",["db/",db,"/contacts"],{},"0123456789a").error(401).then(next);

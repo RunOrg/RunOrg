@@ -17,7 +17,7 @@
 // - `label` is an optional [human-readable name](/docs/#/types/label.js) for the group.
 // - `count` is the number of contacts in the group.
 
-TEST("The response has valid return code and content type.", function(next) {
+TODO("The response has valid return code and content type.", function(next) {
     Assert.fail();
 });
 
@@ -34,11 +34,11 @@ TEST("The response has valid return code and content type.", function(next) {
 //       "label": "Team members",
 //       "count" : 215 }
 
-TEST("Returns correct number of contacts in count.", function(next) {
+TODO("Returns correct number of contacts in count.", function(next) {
     Assert.fail();
 });
 
-TEST("Returns correct group label.", function(next) {
+TODO("Returns correct group label.", function(next) {
     Assert.fail();
 });
 
@@ -47,13 +47,13 @@ TEST("Returns correct group label.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TODO("Returns 404 when database does not exist.", function(next) {
     Assert.fail();
 });
 
 // - ... if group `{id}` does not exist in database `{db}`
 
-TEST("Returns 404 when group does not exist.", function(next) {
+TODO("Returns 404 when group does not exist.", function(next) {
     Assert.fail();
 });
 
@@ -61,7 +61,7 @@ TEST("Returns 404 when group does not exist.", function(next) {
 // - ... if the provided token does not grant access to group information,
 //   or no token was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
+TODO("Returns 401 when token is not valid.", function(next) {
     Assert.fail();
 });
  

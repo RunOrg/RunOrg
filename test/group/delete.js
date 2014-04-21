@@ -14,7 +14,7 @@
 //     { "at": <clock> }
 // 
 
-TEST("The response has valid return code and content type.", function(next) {
+TODO("The response has valid return code and content type.", function(next) {
     Assert.fail();
 });
 
@@ -29,7 +29,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //     
 //     { "at": [[1, 334]] }
 
-TEST("Deleted group disappears.", function(next) {
+TODO("Deleted group disappears.", function(next) {
     Assert.fail();
 });
 
@@ -38,13 +38,13 @@ TEST("Deleted group disappears.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TODO("Returns 404 when database does not exist.", function(next) {
     Assert.fail();
 });
 
 // - ... if group `{id}` does not exist in database `{db}`
 
-TEST("Returns 404 when group does not exist.", function(next) {
+TODO("Returns 404 when group does not exist.", function(next) {
     Assert.fail();
 });
 
@@ -52,14 +52,14 @@ TEST("Returns 404 when group does not exist.", function(next) {
 // - ... if the provided token does not grant access to all contacts,
 //   or no token was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
+TODO("Returns 401 when token is not valid.", function(next) {
     Assert.fail();
 });
 
 // ## Returns `403 Forbidden` 
 // - ... when attempting to delete group [`admin`](/docs/#/group/admin.md).
 
-TEST("Returns 403 when deleting admin group.", function(next) {
+TODO("Returns 403 when deleting admin group.", function(next) {
     Assert.fail();
 });
  

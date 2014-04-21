@@ -47,7 +47,7 @@
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TODO("Returns 404 when database does not exist.", function(next) {
     Test.query("POST","/db/00000000001/contacts/auth/persona",{assertion:'x'}).error(404).then(next);
 });
 
@@ -55,7 +55,7 @@ TEST("Returns 404 when database does not exist.", function(next) {
 // ## Returns `400 Bad Request` 
 // - ... if the assertion is not valid.
 
-TEST("Returns 400 when assertion is invalid.", function(next) {
+TODO("Returns 400 when assertion is invalid.", function(next) {
     var db = Query.mkdb();    
     Test.query("GET",["/db/",db,"/contacts/auth/persona"],{assertion:'x'}).error(400).then(next);
 });

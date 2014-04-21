@@ -7,7 +7,7 @@
 // [Delayed](/docs/#/concept/delayed.md), 
 // [Sync Idempotent](/docs/#/concept/sync-idempotent.md).
 
-TEST("The response has valid return code and content type.", function(next) {
+TODO("The response has valid return code and content type.", function(next) {
 
     var example = { "email" : "vnicollet@runorg.com" };
 
@@ -75,7 +75,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //     { "created": [ "0Et9j0026rO", "0SMXP00G0ON" ],
 //       "at": [[2,87]] }
 
-TEST("Single import works.", function(next) {
+TODO("Single import works.", function(next) {
 
     var example = { "email" : "vnicollet@runorg.com",
 		    "fullname" : "Victor Nicollet",
@@ -118,7 +118,7 @@ TEST("Single import works.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TODO("Returns 404 when database does not exist.", function(next) {
     Test.query("POST","/db/00000000001/contacts/import",{}).error(404).then(next);
 });
 
@@ -127,7 +127,7 @@ TEST("Returns 404 when database does not exist.", function(next) {
 // - ... if the provided token does not allow importing new contacts, or no token
 //   was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
+TODO("Returns 401 when token is not valid.", function(next) {
     var db = Query.mkdb();
     Test.query("POST",["db/",db,"/contacts/import"],[]).error(401).then(function() {
 	Test.query("POST",["db/",db,"/contacts/import"],[],"0123456789a").error(401).then(next);

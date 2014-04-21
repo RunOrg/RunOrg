@@ -19,7 +19,7 @@
 //    for all groups present in the chatroom.
 //  - `info` is a [chatroom information object](/docs/#/chat/chat-info.js).
 
-TEST("The response has valid return code and content type.", function(next) {
+TODO("The response has valid return code and content type.", function(next) {
     Assert.fail();
 });
 
@@ -53,19 +53,19 @@ TEST("The response has valid return code and content type.", function(next) {
 //         "public": false,
 //         "count": 118 }}
 
-TEST("Returns correct list of contacts.", function(next) {
+TODO("Returns correct list of contacts.", function(next) {
     Assert.fail();
 });
 
-TEST("Returns correct list of groups.", function(next) {
+TODO("Returns correct list of groups.", function(next) {
     Assert.fail();
 });
 
-TEST("Returns correct message count.", function(next) {
+TODO("Returns correct message count.", function(next) {
     Assert.fail();
 });
 
-TEST("Returns correct subject.", function(next) {
+TODO("Returns correct subject.", function(next) {
     Assert.fail();
 });
 
@@ -75,13 +75,13 @@ TEST("Returns correct subject.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TODO("Returns 404 when database does not exist.", function(next) {
     Assert.fail();
 });
 
 // - ... if chatroom `{id}` does not exist in database `{db}`
 
-TEST("Returns 404 when chatroom does not exist.", function(next) {
+TODO("Returns 404 when chatroom does not exist.", function(next) {
     Assert.fail();
 });
 
@@ -89,7 +89,7 @@ TEST("Returns 404 when chatroom does not exist.", function(next) {
 // - ... if the provided token does not grant access to the chatroom,
 //   or no token was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
+TODO("Returns 401 when token is not valid.", function(next) {
     Assert.fail();
 });
  

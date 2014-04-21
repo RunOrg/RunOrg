@@ -15,7 +15,7 @@
 // - `id` is the [unique 11-character identifier](/docs/#/types/id.js) for this 
 //   contact
 
-TEST("The groups's identifier is returned.", function(next) {
+TODO("The groups's identifier is returned.", function(next) {
 
     var example = {};
 
@@ -31,7 +31,7 @@ TEST("The groups's identifier is returned.", function(next) {
 
 // - `label` is a [human-readable name](/docs/#/types/label.js). Not all groups
 //   have one, because it is not a mandatory property when creating a group.
-TEST("The groups's label is returned if available.", function(next) {
+TODO("The groups's label is returned if available.", function(next) {
 
     var example = { "label" : "Associates" };
 
@@ -47,7 +47,7 @@ TEST("The groups's label is returned if available.", function(next) {
 
 // - `count` is the number of group members (contacts currently in the group).
 
-TEST("The group's member count is returned.", function(next) {
+TODO("The group's member count is returned.", function(next) {
 
     var example = { "label" : "Associates" };
 

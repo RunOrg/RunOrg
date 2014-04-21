@@ -18,7 +18,7 @@
 //   [short format](/docs/#/group/group-info.js)
 // - `count` is the total number of public groups in the database.
 
-TEST("The response has valid return code and content type.", function(next) {
+TODO("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb(),
         token = Query.auth(db),
@@ -49,14 +49,14 @@ TEST("The response has valid return code and content type.", function(next) {
 //         "count": 8 } ],
 //       "count" : 18 }
 
-TEST("Returns correct number of groups in count.", function(next) {
+TODO("Returns correct number of groups in count.", function(next) {
 });
 
-TEST("Returns data for all public groups.", function(next) {
+TODO("Returns data for all public groups.", function(next) {
     Assert.fail();
 });
 
-TEST("Do not return non-public groups.", function(next) {
+TODO("Do not return non-public groups.", function(next) {
     Assert.fail();
 });
 
@@ -65,7 +65,7 @@ TEST("Do not return non-public groups.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TODO("Returns 404 when database does not exist.", function(next) {
     Test.query("GET","/db/00000000001/groups/public").error(404).then(next);
 });
  

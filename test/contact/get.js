@@ -6,7 +6,7 @@
 // `200 OK`, [Read-only](/docs/#/concept/read-only.md).
 //
 
-TEST("The response has valid return code and content type.", function(next) {
+TODO("The response has valid return code and content type.", function(next) {
 
     var example = { "email" : "vnicollet@runorg.com" };
 
@@ -37,7 +37,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //       "gender" : "M", 
 //       "pic" : "https://www.gravatar.com/avatar/648e25e4372728b2d3e0c0b2b6e26f4e" }
 
-TEST("The example was properly returned.", function(next) {
+TODO("The example was properly returned.", function(next) {
 
     var example = { "email" : "vnicollet@runorg.com",
 		    "fullname" : "Victor Nicollet",
@@ -63,13 +63,13 @@ TEST("The example was properly returned.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TODO("Returns 404 when database does not exist.", function(next) {
     Test.query("GET","/db/00000000001/contacts/00000000002/").error(404).then(next);
 });
 
 // - ... if contact `{id}` does not exist in database `{db}`
 
-TEST("Returns 404 when contact does not exist in database.", function(next) {
+TODO("Returns 404 when contact does not exist in database.", function(next) {
     var db = Query.mkdb(),
         token = Query.auth(db);
 
@@ -81,7 +81,7 @@ TEST("Returns 404 when contact does not exist in database.", function(next) {
 // - ... if the provided token does not provide access to the contact,
 //   or no token was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
+TODO("Returns 401 when token is not valid.", function(next) {
     var db = Query.mkdb();
     Test.query("GET",["db/",db,"/contacts/00000000002/"]).error(401).then(function() {
 	Test.query("GET",["db/",db,"/contacts/00000000002/"],{},"0123456789a").error(401).then(next);
