@@ -74,6 +74,69 @@ TEST("The response has valid return code and content type.", function(Query) {
 
 });
 
+TEST("The 'view'-level data is present.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+
+    var example = Example(auth.id);
+    example.audience = {"view": "anyone"};
+
+    var id = Query.post(["db/",db,"/mail"],example,auth).id();
+
+    return id.then(function(id) {
+
+	var expected = example;
+	expected.id = id;
+	expected.from = { 
+	    "id": auth.id, 
+	    "name": "test@runorg.com",
+	    "gender": null,
+	    "pic": "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70?d=identicon" };
+	expected.audience = null; // No server-side support for missing fields
+	expected.access = [ "view" ];
+	expected.self = "https://example.com/view/" + id;
+
+	var peon = Query.auth(db, false, "peon@runorg.com");
+
+	return Query.get(["db/",db,"/mail/",id],peon).then(function(d,s,r) {
+	    return Assert.areEqual(expected,d);
+	});
+    });
+
+});
+
+
+TEST("The 'admin'-level data is present.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+
+    var example = Example(auth.id);
+    example.audience = {"view": "anyone"};
+
+    var id = Query.post(["db/",db,"/mail"],example,auth).id();
+
+    return id.then(function(id) {
+
+	var expected = example;
+	expected.id = id;
+	expected.from = { 
+	    "id": auth.id, 
+	    "name": "test@runorg.com",
+	    "gender": null,
+	    "pic": "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70?d=identicon" };
+	expected.access = [ "view", "admin" ];
+	expected.self = "https://example.com/view/" + id;
+
+	return Query.get(["db/",db,"/mail/",id],auth).then(function(d,s,r) {
+	    return Assert.areEqual(expected,d);
+	});
+    });
+
+});
+
+
 // 
 //
 // ### Example request

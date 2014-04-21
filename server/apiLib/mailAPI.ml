@@ -64,6 +64,7 @@ module Get = Endpoint.Get(struct
     access : Mail.Access.Set.t ;
     urls : String.Url.t list ;
     self : String.Url.t option ;
+    custom : Json.t ;
   > 
 
   let path = "mail/{id}"
@@ -81,6 +82,7 @@ module Get = Endpoint.Get(struct
 	let! from = Contact.get (mail # from) in
 	return (`OK (Out.make ~id:(arg # id) ~from ~subject:(mail # subject)
 		       ~text:(mail # text) ~html:(mail # html) ~audience
-		       ~access ~urls:(mail # urls) ~self:(mail # self)))
+		       ~access ~urls:(mail # urls) ~self:(mail # self)
+		       ~custom:(mail # custom)))
 
 end)
