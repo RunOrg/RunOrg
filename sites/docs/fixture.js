@@ -10,9 +10,9 @@ var Fixture = (function(){
 	var parsed = { tests: [], status: null, version: null };
 	
 	// The test functions themselves
-	var run = eval("(function(TEST){\n" + script + "\n})")(function(name,func){
+	var run = eval("(function(TEST,TODO){\n" + script + "\n})")(function(name,func){
 	    parsed.tests.push({name : name, func: func});
-	});
+	},function(){});
 	
 	// The lines that are commented (the test fixture test)
 	var lines = script.split("\n");
