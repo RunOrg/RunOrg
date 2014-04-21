@@ -70,91 +70,23 @@ type failure =
   | `Exception       of string 
   ]
 
-exception PrepareFailure of failure 
-
 let prepare_mail : Mail.I.t -> CId.t -> (Cqrs.ctx, (mail,failure) Std.result) Run.t = fun mid cid -> 
 
-  let handle_failure = function 
-    | PrepareFailure reason -> return (Bad reason)
-    | exn -> return (Bad (`Exception (Printexc.to_string exn)))
-  in
+  let! data = Compose.scheduled mid cid in
+  match data with Bad fail -> return (Bad fail) | Ok (wid, root, data) -> 
 
-  Run.on_failure handle_failure begin 
-
-    (* The error conditions below should not happen in a normal database situation, BUT... 
-       We never know how the system requirements will evolve. Maybe we'll allow deleting
-       contacts or forget checking for contact existence before adding to a group. Better
-       safe than sorry. *)
-
-    (* Needed for getting the wave id and the position of the contact in the wave. *)
-    let! sendinfo = Cqrs.MapView.get View.info (mid, cid) in
-    let  sendinfo = match sendinfo with None -> raise (PrepareFailure `NoInfoAvailable) | Some s -> s in  
-    let  nth      = sendinfo # pos in   
-
-    (* Needed for getting all the saved information to build the mail. *)
-    let  wid  = sendinfo # wid in 
-    let! wave = Cqrs.MapView.get View.wave wid in
-    let  wave = match wave with None -> raise (PrepareFailure `NoInfoAvailable) | Some w -> w in
-
-    (* Needed for filling the 'contact' side of the template. *)
-    let! contact = Contact.full cid in 
-    let  contact = match contact with None -> raise (PrepareFailure `NoSuchContact) | Some c -> c in 
-
-    (* Needed for filling the 'sender' side of the template. *)
-    let  scid   = wave # from in 
-    let! sender = Contact.full scid in
-    let  sender = match sender with None -> raise (PrepareFailure (`NoSuchSender scid)) | Some s -> s in 
-
-    let! ctx    = Run.context in 
-    let  db     = ctx # db in 
-
-    let  from   = email_address sender in 
-    let  to_    = email_address contact in 
-
-    let  root   = Link.Root.make wid nth in 
-
-    let  input  = Map.of_list [
-      "to",     contact_json contact ;
-      "from",   contact_json sender  ; 
-      "custom", wave # custom ; 
-      "track",  Link.url db (Link.track root) ; 
-      "self",   (if wave # self = None then Json.Null else Link.url db (Link.self root)) ;
-      "urls",   Json.Array (List.mapi (fun i _ -> Link.url db (Link.view root i)) (wave # urls)) ;
-      "auth",   Json.Array (List.mapi (fun i _ -> Link.url db (Link.auth root i)) (wave # urls)) ;  
-    ] in 
-
-    let subject = 
-      match Unturing.compile (wave # subject # script) (wave # subject # inline) with 
-      | `SyntaxError (w,l,c) -> raise (PrepareFailure (`SubjectError (w,l,c)))
-      | `OK script -> Unturing.template ~html:false script input 
-    in
-
-    let text =
-      match wave # text with None -> None | Some text -> 
-	match Unturing.compile (text # script) (text # inline) with 
-	| `SyntaxError (w,l,c) -> raise (PrepareFailure (`SubjectError (w,l,c)))
-	| `OK script -> Some (Unturing.template ~html:false script input)
-    in 
-
-    let html =
-      match wave # html with None -> None | Some html -> 
-	match Unturing.compile (html # script) (html # inline) with 
-	| `SyntaxError (w,l,c) -> raise (PrepareFailure (`SubjectError (w,l,c)))
-	| `OK script -> Some (Unturing.template ~html:false script input)
-    in 
+    let rendered = Compose.render data in
     
     return (Ok (object
-      method from    = from
-      method to_     = to_
-      method input   = input
-      method subject = subject
-      method text    = text
-      method html    = html 
+      method from    = rendered # from
+      method to_     = rendered # to_
+      method input   = data # input
+      method subject = rendered # subject
+      method text    = rendered # text
+      method html    = rendered # html 
       method link    = root
       method wid     = wid
     end))
-    		    
-  end
 
 (* Send e-mail by actually performing the MIME and SMTP magic dance. *)
 
