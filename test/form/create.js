@@ -186,7 +186,7 @@ TEST("Returns 409 when the form exists.", function(Query) {
 TEST("Returns 401 when token is not valid.", function(Query) {
 
     var db = Query.mkdb();
-    return Query.post(["db/",db,"/forms"],example,{token:"0123456789a",id:"0123456789a"})
+    return Query.post(["db/",db,"/forms"],Example,{token:"0123456789a",id:"0123456789a"})
 	.assertStatus(401);
 
 });

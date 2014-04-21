@@ -35,19 +35,26 @@ var Test = (function() {
 	    this._failed  = false;
 	    this._failure = null;
 
-	    return this.func.call(null,Query.create())
-		.then(function() {  
-		          self._ran = true; 
-		          self._running = false;
-		          onTestEnd();
-		      },
-		      function(reason) {
-			  self._ran = true;
-			  self._running = false;
-			  self._failed = true;
-			  self._failure = reason; 
-			  onTestEnd();
-		      });
+	    var result = this.func.call(null,Query.create());
+
+	    function success() {
+		self._ran = true; 
+                self._running = false;
+		onTestEnd();
+	    }
+
+	    function failure(reason) {
+		self._ran = true;
+		self._running = false;
+		self._failed = true;
+		self._failure = reason; 
+		onTestEnd();
+	    }
+
+	    if (!(typeof result == 'object' && result && 'then' in result)) 
+		result = $.Deferred().reject("Test did not return promise.");
+
+	    return result.then(success,failure);
 	},
 
 	// Is this test running ? 
