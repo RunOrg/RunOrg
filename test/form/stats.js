@@ -43,23 +43,22 @@
 // - `top10` is used for `"contact"` fields, and contains the top 10 contacts
 //   by number of occurrences, along with those numbers. 
 
-TEST("The response has valid return code and content type.", function(next) {
 
-    var example = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
+var Form = { 
+    "owner": "contact",
+    "audience": {},
+    "fields": []
+};
+
+
+TEST("The response has valid return code and content type.", function(Query) {
 
     var db = Query.mkdb();
     var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,token).result('id');
-    var response = Test.query("GET",["db/",db,"/forms/",id,"/stats"],token).response();
+    var id = Query.post(["db/",db,"/forms"],Form,token).id();
 
-    response.map(function(r) {
-	Assert.areEqual(200, r.status).then();
-	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
+    return Query.get(["db/",db,"/forms/",id,"/stats"],token)
+	.assertStatus(200).assertIsJson();
 
 });
 
@@ -100,7 +99,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //             [ "0LAmp0091PZ", 3 ],
 //             [ "0CnDl013anT", 3 ] ] }
 
-TEST("Returns correct stats.", function(next) {
+TEST("Returns correct stats.", function(Query) {
 
     var example = { 
 	"owner": "contact",
@@ -174,12 +173,14 @@ TEST("Returns correct stats.", function(next) {
 	"contact": peon1.id
     }}; 
     
-    var id = Test.query("POST",["db/",db,"/forms"],example,token).result('id');
+    var id = Query.post(["db/",db,"/forms"],example,token).id();
 
-    Test.query("PUT",["db/",db,"/forms/",id,"/filled/",token.id],data1,token).result().then(function(){
-	Test.query("PUT",["db/",db,"/forms/",id,"/filled/",peon1.id],data2,token).result().then(function(){
+    return Query.put(["db/",db,"/forms/",id,"/filled/",token.id],data1,token).then(function(){
+	return Query.put(["db/",db,"/forms/",id,"/filled/",peon1.id],data2,token).then(function(){
 
-	    var stats = Test.query("GET",["db/",db,"/forms/",id,"/stats"],token).result();
+	    var stats = Query.get(["db/",db,"/forms/",id,"/stats"],token)
+		.then(function(d,s,r) { return d; });
+
 	    var expected = {
 		"count": 2,
 		"fields": {
@@ -193,31 +194,31 @@ TEST("Returns correct stats.", function(next) {
 		}
 	    };
 	  
-	    Assert.areEqual(expected, stats).then(function(){
+	    return Assert.areEqual(expected, stats).then(function(){
 
-		Test.query("PUT",["db/",db,"/forms/",id,"/filled/",peon2.id],data3,token).result()
-		    .then(function(){
+		return Query.put(["db/",db,"/forms/",id,"/filled/",peon2.id],data3,token).then(function(){
 
-			var stats = Test.query("GET",["db/",db,"/forms/",id,"/stats"],token).result();
-			var expected = {
-			    "count": 3,
-			    "fields": {
-				"text": { "filled": 1, "missing": 2 },
-				"rich": { "filled": 1, "missing": 2 },
-				"json": { "filled": 1, "missing": 2 },
-				"time": { "filled": 2, "missing": 1, 
-					  "first": "2014-04-07", "last": "2014-04-09T13:37:00Z" },
-				"single": { "filled": 2, "missing": 1, "items": [ 1, 1, 0, 0 ] },
-				"multiple": { "filled": 2, "missing": 1, "items": [ 2, 1, 1, 0 ] },
-				"contact": { "filled": 3, "missing": 0, "contacts": 2, 
-					     "top10": [[ token.id, 2 ],[ peon1.id, 1 ]] }
-			    }
-			};
+		    var stats = Query.get(["db/",db,"/forms/",id,"/stats"],token)
+			.then(function(d,s,r) { return d; });
 
-			Assert.areEqual(expected, stats).then(next);
-
-
-		    });
+		    var expected = {
+			"count": 3,
+			"fields": {
+			    "text": { "filled": 1, "missing": 2 },
+			    "rich": { "filled": 1, "missing": 2 },
+			    "json": { "filled": 1, "missing": 2 },
+			    "time": { "filled": 2, "missing": 1, 
+				      "first": "2014-04-07", "last": "2014-04-09T13:37:00Z" },
+			    "single": { "filled": 2, "missing": 1, "items": [ 1, 1, 0, 0 ] },
+			    "multiple": { "filled": 2, "missing": 1, "items": [ 2, 1, 1, 0 ] },
+			    "contact": { "filled": 3, "missing": 0, "contacts": 2, 
+					 "top10": [[ token.id, 2 ],[ peon1.id, 1 ]] }
+			}
+		    };
+		    
+		    return Assert.areEqual(expected, stats);
+		    
+		});
 	    });
 	});
     });
@@ -229,21 +230,21 @@ TEST("Returns correct stats.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TEST("Returns 404 when database does not exist.", function(Query) {
 
-    Test.query("GET",["db/00000000000/forms/00000000001/stats"])
-	.error(404).then(next);
+    return Query.get(["db/00000000000/forms/00000000001/stats"])
+	.assertStatus(404);
 
 });
 
 // - ... if form `{id}` does not exist in database `{db}`
 
-TEST("Returns 404 when form does not exist.", function(next) {
+TEST("Returns 404 when form does not exist.", function(Query) {
 
     var db = Query.mkdb();
 
-    Test.query("GET",["db/",db,"/forms/00000000001/stats"])
-	.error(404).then(next);
+    return Query.get(["db/",db,"/forms/00000000001/stats"])
+	.assertStatus(404);
 
 });
 
@@ -251,21 +252,15 @@ TEST("Returns 404 when form does not exist.", function(next) {
 //   access to view form `{id}`, to ensure [absence 
 //   equivalence](/docs/#/concept/absence-equivalence.md). 
 
-TEST("Returns 404 when form not viewable.", function(next) {
-
-    var example = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
+TEST("Returns 404 when form not viewable.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],Form,auth).id();
 
     var peon = Query.auth(db,false,"peon@runorg.com");
-    Test.query("GET",["db/",db,"/forms/",id,"/stats"],peon)
-	.error(404).then(next);
+    return Query.get(["db/",db,"/forms/",id,"/stats"],peon)
+	.assertStatus(404);
 
 });
 
@@ -273,21 +268,17 @@ TEST("Returns 404 when form not viewable.", function(next) {
 // - ... if contact `{as}` does not have **admin** access to
 //   form `{id}`.
 
-TEST("Returns 403 when not form admin.", function(next) {
+TEST("Returns 403 when not form admin.", function(Query) {
 
-    var example = { 
-	"owner": "contact",
-	"audience": { "fill": "anyone"},
-	"fields": []
-    };
+    var form = $.extend({},Form,{"audience":{"fill":"anyone"}});
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],form,auth).id();
 
     var peon = Query.auth(db,false,"peon@runorg.com");
-    Test.query("GET",["db/",db,"/forms/",id,"/stats"],peon)
-	.error(403).then(next);
+    return Query.get(["db/",db,"/forms/",id,"/stats"],peon)
+	.assertStatus(403);
 
 });
 
@@ -295,20 +286,14 @@ TEST("Returns 403 when not form admin.", function(next) {
 // - ... if the provided token does not grant access as the named 
 //   contact, or no token was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
-
-    var example = {
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
+TEST("Returns 401 when token is not valid.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],Form,auth).id();
 
-    Test.query("GET",["db/",db,"/forms/",id,"/stats"],{tok:"0123456789a",id:"0123456789a"})
-	.error(401).then(next);    
+    return Query.get(["db/",db,"/forms/",id,"/stats"],{tok:"0123456789a",id:"0123456789a"})
+	.assertStatus(401);    
 
 });
 
