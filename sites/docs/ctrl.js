@@ -5,8 +5,11 @@ function renderFixture(R,fixture) {
     var inner = fixture.children()
 	.filter(function(f) { return f.verb != null; });
     
+    var failed = fixture.failed()
+	.map(function(t) { return { name: t.name, reason: t.failure() }; });
+
     fixture.parsed().then(function(parsed) {
-	R.body($.extend({inner:inner},parsed));
+	R.body($.extend({inner: inner, failed: failed},parsed));
 	R.show();
     });
 }

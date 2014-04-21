@@ -154,3 +154,17 @@
     text-decoration: none;
   }
 }
+
+dl.failed {
+
+  margin: 12px 0;
+  border: 1px solid #C44;
+  color: #A22;
+  background: #FDD;
+  font-size: 13px;
+  padding: 8px;
+
+  dt { color: #C44; }
+  dd + dt { margin-top: 8px; }
+  dd { margin-left: 20px; }
+}

@@ -3,9 +3,18 @@
   {< if query}<code>{{query}}{< if status }<span class="status-{{status}}">{{status}} since {{version}}</span>{>}</code>{>}
 </h1>
 
+{< if failed.length }
+   <dl class="failed">
+      {< each failed }
+	 <dt>{{ name }}</dt>
+         <dd>{{ reason }}</dd>
+      {>}
+   </dl>
+{>}
+
 <div class="text">
   {< raw body >}
-  {< if inner}
+  {< if inner }
     <table class="inner">
       {< each inner }
 	 <tr>
