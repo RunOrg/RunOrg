@@ -64,3 +64,75 @@ TEST("The response has valid return code and content type.", function(Query) {
 	.assertStatus(202).assertIsJson();
 
 });
+
+// 
+// After creating e-mail, the next step is to [send it](/docs/#/send.js).
+//
+// ### Example request
+//     POST /db/0vJlA00726W/mail 
+//     Content-Type: application/json 
+// 
+//     { "from": "0vJlA00826W",
+//       "subject": "Hello, world",
+//       "text": null,
+//       "html": { "script": "$0;to.firstname;$1;self;$2",
+//                 "inline": ["Hello, ", ". Please <a href='", "'>click here</a>"] },
+//       "audience": {},
+//       "urls": [],
+//       "self": "https://example.com/view/{id}",
+//       "custom": null }
+//
+// ### Example response
+//     202 Accepted
+//     Content-Type: application/json
+//  
+//     {"id":"0vJlA00A26W","at":[[7,3]]}
+//
+// # Errors
+// 
+// ## Returns `404 Not Found`
+// - ... if database `{db}` does not exist
+
+TEST("Returns 404 when database does not exist.", function(Query) {
+
+    return Query.post("db/00000000000/mail",Example('00000000000')).assertStatus(404);
+
+});
+
+// - ... if contact `from` does not exist
+
+TEST("Returns 404 when sender does not exist.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+
+    return Query.post(["db/",db,",/mail"],Example('00000000000'),auth).assertStatus(404);
+
+});
+
+// ## Returns `403 Forbidden`
+// - ... if contact `{as}` cannot create a form.
+
+TEST("Returns 403 when contact cannot create a form.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db,false);
+    
+    return Query.post(["db/",db,"/mail"],Example(auth.id),auth).assertStatus(403);
+    
+});
+
+// ## Returns `401 Unauthorized` 
+// - ... if the provided token does not match contact `{as}`.
+
+TEST("Returns 401 when token is not valid.", function(Query) {
+
+    var db = Query.mkdb();
+    return Query.post(["db/",db,"/mail"],Example('00000000000'),{token:"0123456789a",id:"0123456789a"})
+	.assertStatus(401);
+
+});
+
+// # Access restrictions
+//
+// Contact `{as}` must be a [database administrator](/docs/#/group/admin.md). 
