@@ -69,18 +69,19 @@ var Query = (function(){
 		result.resolve(data, status, xhr);
 	    });
 
-	    return result.promise();
+	    return $.extend(result.promise(),Assert.extensions);
 	},
 
 	// Like 'query', but applies Async.wait to all parameters (except the verb).
 	// If the URL is an array (or has a join function), uses url.join(''). 
 	queryAsync: function(verb,url,data,auth) {
 	    var self = this;
-	    return $.when(Async.wait(url),Async.wait(data),Async.wait(auth))
+	    var promise = $.when(Async.wait(url),Async.wait(data),Async.wait(auth))
 		.then(function(url,data,auth) { 
 		    if (typeof url === "object" && url && 'join' in url) url = url.join('');
 		    return self.query(verb,url,data,auth); 
 		});
+	    return $.extend(promise,Assert.extensions);
 	},
 
 	// Performs a GET request

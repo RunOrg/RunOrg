@@ -25,7 +25,37 @@ var Assert = (function(){
 	return $.Deferred().reject(reason).promise();
     }
 
+    // Extension functions added to promises returned by the query.
+    var extensions = {
+
+	// Ensures that the result status is 'n' and returns the original promise.
+	assertStatus: function(n) { 
+	    var promise = this;
+	    var result  = promise
+		.then(function(d,s,r) { return Assert.areEqual(n, r.status); })
+	    	.then(function() { return promise; }); 
+	    return $.extend(result,extensions);
+	},
+
+	// Returns the "id" feld of the data
+	id: function() {
+	    return this.then(function(d,s,r) { return d.id; });
+	},
+
+	// Ensures that the response type is JSON
+	assertIsJson: function() {
+	    var promise = this ;
+	    var result  = promise
+		.then(function(d,s,r) { return Assert.isTrue(r.responseJSON, "Response type is JSON") })
+		.then(function() { return promise; });
+	    return $.extend(result,extensions);
+	}
+	
+    };
+
     return {
+
+	extensions: extensions,
 
 	fail: function() { return fail("Assert.fail()"); },
 
