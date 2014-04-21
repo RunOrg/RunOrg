@@ -32,23 +32,21 @@
 // ### Response format
 //     { "at" : <clock> }
 
-TEST("The response has valid return code and content type.", function(next) {
+var Example = { 
+    "owner": "contact",
+    "audience": {},
+    "fields": []
+};
 
-    var example = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
+TEST("The response has valid return code and content type.", function(Query) {
 
-    var db = Query.mkdb(),
-        token = Query.auth(db),
-        id = Test.query("POST",["db/",db,"/forms"],example,token).result('id'),
-        response = Test.query("PUT",["db/",db,"/forms/",id],example,token).response();
+    var db = Query.mkdb();
+    var token = Query.auth(db);
+    var id = Query.post(["db/",db,"/forms"],Example,token).id();
+    
+    return Query.put(["db/",db,"/forms/",id],Example,token)
+	.assertStatus(202).assertIsJson();
 
-    response.map(function(r) {
-	Assert.areEqual(202, r.status).then();
-	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
 });
 
 
@@ -72,54 +70,36 @@ TEST("The response has valid return code and content type.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TEST("Returns 404 when database does not exist.", function(Query) {
 
-    var example = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
-
-    Test.query("PUT",["db/00000000000/forms/00000000001"],example)
-	.error(404).then(next);
+    return Query.put(["db/00000000000/forms/00000000001"],Example)
+	.assertStatus(404);
         
 });
 
 // - ... if form `{id}` does not exist in database `{db}` 
 
-TEST("Returns 404 when form does not exist.", function(next) {
-
-    var example = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
+TEST("Returns 404 when form does not exist.", function(Query) {
 
     var db = Query.mkdb();
 
-    Test.query("PUT",["db/",db,"/forms/00000000001"],example)
-	.error(404).then(next);
+    return Query.put(["db/",db,"/forms/00000000001"],Example)
+	.assertStatus(404);
         
 });
 
 // - ... if contact `{as}` cannot view form `{id}`, to ensure [absence 
 //   equivalence](/docs/#/concept/absence-equivalence.md). 
 
-TEST("Returns 404 when form cannot be viewed.", function(next) {
-
-    var example = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
+TEST("Returns 404 when form cannot be viewed.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],Example,auth).id();
 
     var peon = Query.auth(db,false,"peon@runorg.com");
-    Test.query("PUT",["db/",db,"/forms/",id],example,peon)
-	.error(404).then(next);
+    return Query.put(["db/",db,"/forms/",id],Example,peon)
+	.assertStatus(404);
 
 });
 
@@ -127,49 +107,38 @@ TEST("Returns 404 when form cannot be viewed.", function(next) {
 // - ... if the form has already been filled, and the request attempts
 //   to update the form fields.
 
-TEST("Returns 409 when filled.", function(next) {
-    next();
-});
+TODO("Returns 409 when filled.");
 
 // ## Returns `403 Forbidden` 
 // - ... if contact `{as}` does not have the **admin** access required to 
 //   update the form.
 
-TEST("Returns 403 no admin access.", function(next) {
+TEST("Returns 403 if no admin access.", function(Query) {
 
-    var example = { 
-	"owner": "contact",
-	"audience": { "fill": "anyone" },
-	"fields": []
-    };
+    var example = $.extend({}, Example, { "audience": { "fill": "anyone" } });
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],example,auth).id();
 
     var peon = Query.auth(db,false,"peon@runorg.com");
-    Test.query("PUT",["db/",db,"/forms/",id],example,peon)
-	.error(403).then(next);
+    return Query.put(["db/",db,"/forms/",id],example,peon)
+	.assertStatus(403);
+
 });
 
 // ## Returns `401 Unauthorized` 
 // - ... if the provided token does not match contact `{as}`,
 //   or no token was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
-
-    var example = {
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
+TEST("Returns 401 when token is not valid.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],Example,auth).id();
 
-    Test.query("PUT",["db/",db,"/forms/",id],example,{tok:"0123456789a",id:"0123456789a"})
-	.error(401).then(next);    
+    return Query.put(["db/",db,"/forms/",id],Example,{tok:"0123456789a",id:"0123456789a"})
+	.assertStatus(401);
 
 });
 
