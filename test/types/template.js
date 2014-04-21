@@ -88,7 +88,7 @@
 //       "inline": [ "Hello, world!" ] }
 // 
 
-TEST("Text-based template.", function(next){
+TEST("Text-based template.", function(Query){
 
     var data = {
 	script: "$0;to.firstname;$1",
@@ -97,12 +97,12 @@ TEST("Text-based template.", function(next){
 	html  : false
     };
 
-    var result = Test.query("POST","/test/unturing",data).result("result");
-    Assert.areEqual("Hello, Victor& !", result).then(next);
+    var result = Query.post("/test/unturing",data).then(function(d,s,r) { return d.result; });
+    return Assert.areEqual("Hello, Victor& !", result);
 
 });
 
-TEST("HTML-based template.", function(next){
+TEST("HTML-based template.", function(Query){
 
     var data = {
 	script: "$0;to.firstname;$1",
@@ -111,7 +111,7 @@ TEST("HTML-based template.", function(next){
 	html  : true
     };
 
-    var result = Test.query("POST","/test/unturing",data).result("result");
-    Assert.areEqual("Hello, <b>Victor&amp;</b> !", result).then(next);
+    var result = Query.post("/test/unturing",data).then(function(d,s,r) { return d.result; });
+    return Assert.areEqual("Hello, <b>Victor&amp;</b> !", result);
 
 });
