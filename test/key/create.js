@@ -6,18 +6,15 @@
 // `202 Accepted`,
 // [Delayed](/docs/#/concept/delayed.md).
 
-TEST("The response has valid return code and content type.", function(next) {
+var Example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
 
-    var example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
+TEST("The response has valid return code and content type.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var response = Test.query("POST",["db/",db,"/keys/create"],example,auth).response();
-
-    [
-	Assert.areEqual(202, response.map('status')),
-	Assert.isTrue(response.map('responseJSON'), "Response type is JSON")
-    ].then(next);
+    
+    return Query.post(["db/",db,"/keys/create"],Example,auth)
+	.assertStatus(202).assertIsJson();
 
 });
 
@@ -65,16 +62,15 @@ TEST("The response has valid return code and content type.", function(next) {
 //     { "created": "0Et9j0026rO",
 //       "at": [[2,87]] }
 
-TEST("Creation works.", function(next) {
-
-    var example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
+TEST("Creation works.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var idlen = Test.query("POST",["/db/",db,"/keys/create"],example,auth).result("id","length");
+    var idlen = Query.post(["/db/",db,"/keys/create"],Example,auth)
+	.then(function(d,s,r) { return d.id.length });
 
-    Assert.areEqual(11,idlen).then(next);
-
+    return Assert.areEqual(11,idlen);
+    
 });
 
 // # Errors
@@ -82,11 +78,9 @@ TEST("Creation works.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TEST("Returns 404 when database does not exist.", function(Query) {
 
-    var example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
-
-    Test.query("POST","/db/00000000001/keys/create",example).error(404).then(next);
+    return Query.post("/db/00000000001/keys/create",Example).assertStatus(404);
 
 });
 
@@ -94,14 +88,12 @@ TEST("Returns 404 when database does not exist.", function(next) {
 // ## Returns `403 Forbidden`
 // - ... if the provided `{as}` may not create keys. 
 
-TEST("Returns 401 when token is not valid.", function(next) {
-
-    var example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
+TEST("Returns 401 when token is not valid.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db,false);
 
-    Test.query("POST",["db/",db,"/keys/create"],example,auth).error(403).then(next);
+    return Query.post(["db/",db,"/keys/create"],Example,auth).assertStatus(403);
 
 });
 
@@ -109,13 +101,11 @@ TEST("Returns 401 when token is not valid.", function(next) {
 // ## Returns `401 Unauthorized`
 // - ... if the provided token does not match the `{as}` contact. 
 
-TEST("Returns 401 when token is not valid.", function(next) {
-
-    var example = { "hash": "SHA-1", "key": "74e6f7298a9c2d168935f58c001bad88", "encoding": "hex" };
+TEST("Returns 401 when token is not valid.", function(Query) {
 
     var db = Query.mkdb();
-    Test.query("POST",["db/",db,"/keys/create"],example,{token:"0123456789a",id:"0123456789a"})
-	.error(401).then(next);
+    return Query.post(["db/",db,"/keys/create"],Example,{token:"0123456789a",id:"0123456789a"})
+	.assertStatus(401);
 });
 
 //
