@@ -2,7 +2,7 @@ var Test = (function() {
 
     // How many parallel tests ? 
     var semaphore = null;
-    var parallel  = 5;
+    var parallel  = 10;
 
     function T(name,func) {
 
