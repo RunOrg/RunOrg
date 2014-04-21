@@ -23,7 +23,7 @@
 // - `access` lists the [access levels](/docs/#/form/audience.js) of the viewer
 //   over this form.  
 
-TEST("The form's data is returned.", function(next) {
+TEST("The form's data is returned.", function(Query) {
 
     var example = {
 	"owner": "contact",	
@@ -51,10 +51,12 @@ TEST("The form's data is returned.", function(next) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    Test.query("POST",["db/",db,"/forms"],example,auth).result("id")(function(id) {
+    return Query.post(["db/",db,"/forms"],example,auth).id().then(function(id) {
 
-	var form = Test.query("GET",["db/",db,"/forms"],auth).result("list",0);
-	
+	var form = Query.get(["db/",db,"/forms"],auth).then(function(d,s,r) {
+	    return d.list[0];
+	});
+
 	var expected = {
 	    "id": id,
 	    "label": example.label,
@@ -63,7 +65,7 @@ TEST("The form's data is returned.", function(next) {
 	    "access": ["admin","fill"]
 	};
 	
-	Assert.areEqual(expected,form).then(next);
+	return Assert.areEqual(expected,form);
 
     });
 
