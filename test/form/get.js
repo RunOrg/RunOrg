@@ -34,23 +34,21 @@
 //   information.
 // - `audience` (**admin**-only) is the [audience](/docs/#/form/audience.js) of the form.
 
-TEST("The response has valid return code and content type.", function(next) {
+var Example = { 
+    "owner": "contact",
+    "audience": {},
+    "fields": []
+};
 
-    var example = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
 
-    var db = Query.mkdb(),
-        token = Query.auth(db),
-        id = Test.query("POST",["db/",db,"/forms"],example,token).result('id'),
-        response = Test.query("GET",["db/",db,"/forms/",id],token).response();
+TEST("The response has valid return code and content type.", function(Query) {
 
-    response.map(function(r) {
-	Assert.areEqual(200, r.status).then();
-	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/forms"],Example,auth).id();
+    
+    return Query.get(["db/",db,"/forms/",id],auth)
+	.assertStatus(200).assertIsJson();
 
 });
 
@@ -87,7 +85,7 @@ TEST("The response has valid return code and content type.", function(next) {
 //         "admin": {},
 //         "fill": { groups: [ "0SNQe0032JZ" ] } } }
 
-TEST("Returns correct data in fill level.", function(next) {
+TEST("Returns correct data in fill level.", function(Query) {
 
     var example = { 
 	"owner": "contact",
@@ -103,33 +101,34 @@ TEST("Returns correct data in fill level.", function(next) {
     };
 
     var db = Query.mkdb();
-    var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,token).result('id');
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/forms"],example,auth).id();
 
-    var form = Test.query("GET",["db/",db,"/forms/",id]).result();
+    return Query.get(["db/",db,"/forms/",id]).then(function(d,s,r) {
 
-    var expect = {
-	"id" : id,
-	"owner": "contact",
-	"label": "Personal information",
-	"access": ["fill"],
-	"audience": null, // No server support for missing fields yet
-	"custom": [1,2,3],
-	"fields": [ {
-	    "id": "1",
-	    "label": "Why did you join our group ?",
-	    "kind": "text",
-	    "required": true,
-	    "custom": null, // No server support for missing fields yet
-	    "choices": [] // No server support for missing fields yet
-	} ]
-    };    
-
-    Assert.areEqual(expect, form).then(next);
+	var expect = {
+	    "id" : id,
+	    "owner": "contact",
+	    "label": "Personal information",
+	    "access": ["fill"],
+	    "audience": null, // No server support for missing fields yet
+	    "custom": [1,2,3],
+	    "fields": [ {
+		"id": "1",
+		"label": "Why did you join our group ?",
+		"kind": "text",
+		"required": true,
+		"custom": null, // No server support for missing fields yet
+		"choices": [] // No server support for missing fields yet
+	    } ]
+	};    
+	
+	return Assert.areEqual(expect, d);
+    });
 
 });
 
-TEST("Returns correct data in admin level.", function(next) {
+TEST("Returns correct data in admin level.", function(Query) {
 
     var example = { 
 	"owner": "contact",
@@ -145,29 +144,30 @@ TEST("Returns correct data in admin level.", function(next) {
     };
 
     var db = Query.mkdb();
-    var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,token).result('id');
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/forms"],example,auth).id();
 
-    var form = Test.query("GET",["db/",db,"/forms/",id],token).result();
+    return Query.get(["db/",db,"/forms/",id],auth).then(function(d,s,r) {
 
-    var expect = {
-	"id" : id,
-	"owner": "contact",
-	"label": "Personal information",
-	"access": ["admin","fill"],
-	"audience": { "fill": "anyone" },
-	"custom": [1,2,3],
-	"fields": [ {
-	    "id": "1",
-	    "label": "Why did you join our group ?",
-	    "kind": "text",
-	    "required": true,
-	    "custom": null, // No server support for missing fields yet
-	    "choices": [] // No server support for missing fields yet
-	} ]
-    };    
+	var expect = {
+	    "id" : id,
+	    "owner": "contact",
+	    "label": "Personal information",
+	    "access": ["admin","fill"],
+	    "audience": { "fill": "anyone" },
+	    "custom": [1,2,3],
+	    "fields": [ {
+		"id": "1",
+		"label": "Why did you join our group ?",
+		"kind": "text",
+		"required": true,
+		"custom": null, // No server support for missing fields yet
+		"choices": [] // No server support for missing fields yet
+	    } ]
+	};    
 
-    Assert.areEqual(expect, form).then(next);
+	return Assert.areEqual(expect, d);
+    });
 
 });
 
@@ -176,21 +176,19 @@ TEST("Returns correct data in admin level.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TEST("Returns 404 when database does not exist.", function(Query) {
 
-    Test.query("GET",["db/00000000000/forms/00000000001"])
-	.error(404).then(next);
+    return Query.get(["db/00000000000/forms/00000000001"]).assertStatus(404);
 
 });
 
 // - ... if form `{id}` does not exist in database `{db}`
 
-TEST("Returns 404 when form does not exist.", function(next) {
+TEST("Returns 404 when form does not exist.", function(Query) {
 
     var db = Query.mkdb();
 
-    Test.query("GET",["db/",db,"/forms/00000000001"])
-	.error(404).then(next);
+    return Query.get(["db/",db,"/forms/00000000001"]).assertStatus(404);
 
 });
 
@@ -198,21 +196,14 @@ TEST("Returns 404 when form does not exist.", function(next) {
 //   access to view form `{id}`, to ensure [absence 
 //   equivalence](/docs/#/concept/absence-equivalence.md). 
 
-TEST("Returns 404 when form not viewable.", function(next) {
-
-    var example = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
+TEST("Returns 404 when form not viewable.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],Example,auth).id();
 
     var peon = Query.auth(db,false,"peon@runorg.com");
-    Test.query("GET",["db/",db,"/forms/",id],peon)
-	.error(404).then(next);
+    return Query.get(["db/",db,"/forms/",id],peon).assertStatus(404);
 
 });
 
@@ -221,20 +212,14 @@ TEST("Returns 404 when form not viewable.", function(next) {
 // - ... if the provided token does not grant access as the named 
 //   contact, or no token was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
-
-    var example = {
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
+TEST("Returns 401 when token is not valid.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],Example,auth).id();
 
-    Test.query("GET",["db/",db,"/forms/",id],{tok:"0123456789a",id:"0123456789a"})
-	.error(401).then(next);    
+    return Query.get(["db/",db,"/forms/",id],{tok:"0123456789a",id:"0123456789a"})
+	.assertStatus(401);
 
 });
 
