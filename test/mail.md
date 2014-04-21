@@ -7,7 +7,7 @@ The mailing module deals with incoming and outgoing e-mail.
 E-mail sent through the Runorg API goes through several stages, 
 represented by separate resources: 
 
-The author creates the **original e-mail** object, a resource intended
+The author creates the **draft** object, a resource intended
 to be viewed and edited by the people responsible for sending
 e-mail.
 
