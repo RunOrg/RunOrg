@@ -22,31 +22,27 @@
 //   performed will be effective. 
 // 
 
-TEST("The response has valid return code and content type.", function(next) {
+var Form = { 
+    "owner": "contact",
+    "audience": {},
+    "fields": [ { 
+	"id": "color",
+	"kind": "text",
+	"label": "Favourite color"
+    } ]
+};
 
-    var form = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": [ { 
-	    "id": "color",
-	    "kind": "text",
-	    "label": "Favourite color"
-	} ]
-    };
+var Data = { "data": { "color" : "Red" } };
 
-    var data = { "data": { "color" : "Red" } };
+TEST("The response has valid return code and content type.", function(Query) {
 
     var db = Query.mkdb();
-    var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,token).result('id');
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/forms"],Form,auth).id();
 
-    var response = Test.query("PUT",["db/",db,"/forms/",id,"/filled/",token.id],data,token).response();
+    return Query.put(["db/",db,"/forms/",id,"/filled/",auth.id],Data,auth)
+	.assertStatus(202).assertIsJson();
 
-    response.map(function(r) {
-	Assert.areEqual(202, r.status).then();
-	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
-    
 });
 
 // # Examples
@@ -65,35 +61,24 @@ TEST("The response has valid return code and content type.", function(next) {
 // 
 //     { "at" : [[5,218]] }
 
-TEST("Correct data is available.", function(next) {
-
-    var form = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": [ { 
-	    "id": "color",
-	    "kind": "text",
-	    "label": "Favourite color"
-	} ]
-    };
-
-    var data = { "color" : "Red" };
+TEST("Correct data is available.", function(Query) {
 
     var db = Query.mkdb();
-    var token = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,token).result('id');
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/forms"],Form,auth).id();
 
-    Test.query("PUT",["db/",db,"/forms/",id,"/filled/",token.id],{"data":data},token).response().then(function(){
+    return Query.put(["db/",db,"/forms/",id,"/filled/",auth.id],Data,auth).then(function() {
 
-	var result = Test.query("GET",["db/",db,"/forms/",id,"/filled/",token.id],token).result();
+	var result = Query.get(["db/",db,"/forms/",id,"/filled/",auth.id],auth)
+	    .then(function(d,s,r) { return d; });
 
 	var expected = {
-	    "owner" : token.id,
-	    "data" : data
+	    "owner" : auth.id,
+	    "data" : Data.data
 	};
-
-	Assert.areEqual(expected, result).then(next);
-
+	
+	return Assert.areEqual(expected, result);
+	
     });
 
 });
@@ -104,21 +89,21 @@ TEST("Correct data is available.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TEST("Returns 404 when database does not exist.", function(next) {
+TEST("Returns 404 when database does not exist.", function(Query) {
 
-    Test.query("PUT",["db/00000000000/forms/00000000001/filled/00000000002"],{"data":{}})
-	.error(404).then(next);
+    return Query.put(["db/00000000000/forms/00000000001/filled/00000000002"],Data)
+	.assertStatus(404);
 
 });
 
 // - ... if form `{id}` does not exist in database `{db}`
 
-TEST("Returns 404 when form does not exist.", function(next) {
+TEST("Returns 404 when form does not exist.", function(Query) {
 
     var db = Query.mkdb();
 
-    Test.query("PUT",["db/",db,"/forms/00000000001/filled/00000000002"],{"data":{}})
-	.error(404).then(next);
+    return Query.put(["db/",db,"/forms/00000000001/filled/00000000002"],Data)
+	.assertStatus(404);
 
 });
 
@@ -126,27 +111,15 @@ TEST("Returns 404 when form does not exist.", function(next) {
 // - ... if contact `{as}` is not allowed to view form `{id}`, to ensure 
 // [absence equivalence](/docs/#/concept/absence-equivalence.md). 
 
-TEST("Returns 404 when form not viewable.", function(next) {
-
-    var form = { 
-	"owner": "contact",
-	"audience": {},
-	"fields": [ { 
-	    "id": "color",
-	    "kind": "text",
-	    "label": "Favourite color"
-	} ]
-    };
-
-    var data = { "data": { "color" : "Red" } };
+TEST("Returns 404 when form not viewable.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],Form,auth).id();
 
     var peon = Query.auth(db,false,"peon@runorg.com");
-    Test.query("PUT",["db/",db,"/forms/",id,"/filled/",peon.id],data,peon)
-	.error(404).then(next);
+    return Query.put(["db/",db,"/forms/",id,"/filled/",peon.id],Data,peon)
+	.assertStatus(404);
 });
 
 
@@ -154,20 +127,14 @@ TEST("Returns 404 when form not viewable.", function(next) {
 // - ... if the provided token does not grant access as the named 
 //   contact, or no token was provided
 
-TEST("Returns 401 when token is not valid.", function(next) {
-
-    var example = {
-	"owner": "contact",
-	"audience": {},
-	"fields": []
-    };
+TEST("Returns 401 when token is not valid.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],example,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],Form,auth).id();
 
-    Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],{"data":{}},{tok:"0123456789a",id:"0123456789a"})
-	.error(401).then(next);    
+    return Query.put(["db/",db,"/forms/",id,"/filled/",auth.id],Data,{tok:"0123456789a",id:"0123456789a"})
+	.assertStatus(401);    
 
 });
 
@@ -179,56 +146,36 @@ TEST("Returns 401 when token is not valid.", function(next) {
 //   other contacts. Access restrictions are defined for each type of 
 //   owner.
 
-TEST("Returns 403 when form instance not viewable.", function(next) {
+TEST("Returns 403 when form instance not viewable.", function(Query) {
 
-    var form = { 
-	"owner": "contact",
-	"audience": { "fill" : "anyone" },
-	"fields": [ { 
-	    "id": "color",
-	    "kind": "text",
-	    "label": "Favourite color"
-	} ]
-    };
-
-    var data = { "data": { "color" : "Red" } };
+    var form = $.extend({},Form,{"audience":{"fill":"anyone"}});
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],form,auth).id();
 
     var peon = Query.auth(db,false,"peon@runorg.com");
-    Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],data,peon)
-	    .error(403).then(next);
+    return Query.put(["db/",db,"/forms/",id,"/filled/",auth.id],Data,peon)
+	    .assertStatus(403);
 });
 
-TEST("Allow cross-filling when admin", function(next) {
+TEST("Allow cross-filling when admin", function(Query) {
 
-    var form = { 
-	"owner": "contact",
-	"audience": { "fill" : "anyone" },
-	"fields": [ { 
-	    "id": "color",
-	    "kind": "text",
-	    "label": "Favourite color"
-	} ]
-    };
-
-    var data = { "data": { "color" : "Red" } };
+    var form = $.extend({},Form,{"audience":{"fill":"anyone"}});
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],form,auth).id();
 
     var peon = Query.auth(db,false,"peon@runorg.com");
-    Test.query("PUT",["db/",db,"/forms/",id,"/filled/",peon.id],data,auth)
-	.success(202).then(next);
+    return Query.put(["db/",db,"/forms/",id,"/filled/",peon.id],Data,auth)
+	.assertStatus(202);
 });
 
 // ## Returns `400 Bad Request`
 // - ... if a required field was not provided or is `null`, `""`, `[]` or `{}`. 
 
-TEST("Missing required field.", function(next) {
+TEST("Missing required field.", function(Query) {
 
     var form = { 
 	"owner": "contact",
@@ -251,19 +198,19 @@ TEST("Missing required field.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],form,auth).id();
 
     var tests = [];
     for (var i = 0; i < data.length; ++i) 
-	tests.push(Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],data[i],auth)
-		   .error(400));
+	tests.push(Query.put(["db/",db,"/forms/",id,"/filled/",auth.id],data[i],auth)
+		   .assertStatus(400));
 
-    tests.then(next);
+    return Async.wait(tests);
 });
 
 // - ... if a provided field does not exist in the form. 
 
-TEST("Unknown provided field.", function(next) {
+TEST("Unknown provided field.", function(Query) {
 
     var form = { 
 	"owner": "contact",
@@ -279,17 +226,16 @@ TEST("Unknown provided field.", function(next) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],form,auth).id();
 
-    var tests = [];
-    Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],data,auth)
-	.error(400).then(next);
+    return Query.put(["db/",db,"/forms/",id,"/filled/",auth.id],data,auth)
+	.assertStatus(400);
 
 });
 
 // - ... A provided field was not in the expected data format. 
 
-TEST("Missing required field.", function(next) {
+TEST("Missing required field.", function(Query) {
 
     var form = { 
 	"owner": "contact",
@@ -347,20 +293,19 @@ TEST("Missing required field.", function(next) {
 	{ "contact": null }
     ]; 
 
-    var id = Test.query("POST",["db/",db,"/forms"],form,auth).result("id");
+    var id = Query.post(["db/",db,"/forms"],form,auth).id();
 
     var tests = [];
     for (var i = 0; i < fail.length; ++i) 
-	tests.push(Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],{"data":fail[i]},auth)
-		   .error(400));
+	tests.push(Query.put(["db/",db,"/forms/",id,"/filled/",auth.id],{"data":fail[i]},auth)
+		   .assertStatus(400));
 
     for (var i = 0; i < success.length; ++i) 
-	tests.push(Test.query("PUT",["db/",db,"/forms/",id,"/filled/",auth.id],{"data":success[i]},auth)
-		   .success(202));
+	tests.push(Query.put(["db/",db,"/forms/",id,"/filled/",auth.id],{"data":success[i]},auth)
+		   .assertStatus(202));
 
-    tests.then(next);
+    return Async.wait(tests);
 });
-
 
 // # Access restrictions
 //
