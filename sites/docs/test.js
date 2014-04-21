@@ -1,5 +1,9 @@
 var Test = (function() {
 
+    // How many parallel tests ? 
+    var semaphore = null;
+    var parallel  = 5;
+
     function T(name,func) {
 
 	// The name/description of this test
@@ -35,26 +39,32 @@ var Test = (function() {
 	    this._failed  = false;
 	    this._failure = null;
 
-	    var result = this.func.call(null,Query.create());
+	    semaphore = semaphore || new Semaphore(parallel);
 
-	    function success() {
-		self._ran = true; 
-                self._running = false;
-		onTestEnd();
-	    }
+	    return semaphore.lock(function() {
 
-	    function failure(reason) {
-		self._ran = true;
-		self._running = false;
-		self._failed = true;
-		self._failure = reason; 
-		onTestEnd();
-	    }
+		var result = self.func.call(null,Query.create());
+		
+		function success() {
+		    self._ran = true; 
+                    self._running = false;
+		    onTestEnd();		    
+		}
+		
+		function failure(reason) {
+		    self._ran = true;
+		    self._running = false;
+		    self._failed = true;
+		    self._failure = reason; 
+		    onTestEnd();
+		}
+		
+		if (!(typeof result == 'object' && result && 'then' in result)) 
+		    result = $.Deferred().reject("Test did not return promise.");
+		
+		return result.then(success,failure);
 
-	    if (!(typeof result == 'object' && result && 'then' in result)) 
-		result = $.Deferred().reject("Test did not return promise.");
-
-	    return result.then(success,failure);
+	    });
 	},
 
 	// Is this test running ? 
