@@ -6,13 +6,13 @@
 // `202 Accepted`, [Delayed](/docs/#/concept/delayed.md), 
 //  sometimes [Idempotent](/docs/#/concept/idempotent.md).
 //
-// Contact [`{as}`](/docs/#/concept/as.md) creates a new form, initially unfilled.
+// Person [`{as}`](/docs/#/concept/as.md) creates a new form, initially unfilled.
 //
 // ### Request format
 //     { "id" : <customid> | null,
 //       "label" : <label> | null,
 //       "custom": <json>,
-//       "owner": "contact",
+//       "owner": "person",
 //       "fields": [ <field>, ... ],
 //       "audience": <audience> }
 // - `id` is an optional [custom identifier](/docs/#/types/custom-id.js).
@@ -20,8 +20,8 @@
 // - `custom` is an arbitrary block of JSON that will be stored as-is by 
 //   RunOrg and returned as such by the API.
 // - `owner` is the nature of the owners associated with each filled instance
-//   of the form. In the current version of the API, this is always `"contact"`
-//   (each instance is owned by a contact). 
+//   of the form. In the current version of the API, this is always `"person"`
+//   (each instance is owned by a person). 
 // - `fields` is an ordered list of [fields](/docs/#/form/field.js) to be 
 //   filled.
 // - `audience` is the [audience](/docs/#/form/audience.js) of the form.
@@ -31,7 +31,7 @@
 //       "at" : <clock> }
 
 var Example = { 
-    "owner": "contact",
+    "owner": "person",
     "audience": {},
     "fields": []
 };
@@ -94,7 +94,7 @@ TEST("Multiple creations create multiple forms.", function(Query) {
 //     Content-Type: application/json
 // 
 //     { "label" : "Personal information", 
-//       "owner" : "contact",
+//       "owner" : "person",
 //       "audience" : {
 //         "admin": {},
 //         "fill": { groups: [ "0SNQe0032JZ" ] } },
@@ -134,9 +134,9 @@ TEST("Returns 404 when database does not exist.", function(Query) {
 });
 
 // ## Returns `403 Forbidden`
-// - ... if contact `{as}` cannot create a form.
+// - ... if person `{as}` cannot create a form.
 
-TEST("Returns 403 when contact cannot create a form.", function(Query) {
+TEST("Returns 403 when person cannot create a form.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db,false);
@@ -181,7 +181,7 @@ TEST("Returns 409 when the form exists.", function(Query) {
 });
 
 // ## Returns `401 Unauthorized` 
-// - ... if the provided token does not match contact `{as}`.
+// - ... if the provided token does not match person `{as}`.
 
 TEST("Returns 401 when token is not valid.", function(Query) {
 
@@ -193,4 +193,4 @@ TEST("Returns 401 when token is not valid.", function(Query) {
 
 // # Access restrictions
 //
-// Contact `{as}` must be a [database administrator](/docs/#/group/admin.md). 
+// Person `{as}` must be a [database administrator](/docs/#/group/admin.md). 

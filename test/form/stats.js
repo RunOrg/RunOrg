@@ -38,14 +38,14 @@
 // - `items` is used for `"single"` and `"multi"` fields. It is an array
 //   with as many elements as there are choices in the field, each cell 
 //   containing the number of times that choice was picked. 
-// - `contacts` is used for `"contact"` fields, and contains the number of 
+// - `contacts` is used for `"person"` fields, and contains the number of 
 //   different contacts that were picked. 
-// - `top10` is used for `"contact"` fields, and contains the top 10 contacts
+// - `top10` is used for `"person"` fields, and contains the top 10 contacts
 //   by number of occurrences, along with those numbers. 
 
 
 var Form = { 
-    "owner": "contact",
+    "owner": "person",
     "audience": {},
     "fields": []
 };
@@ -102,7 +102,7 @@ TEST("The response has valid return code and content type.", function(Query) {
 TEST("Returns correct stats.", function(Query) {
 
     var example = { 
-	"owner": "contact",
+	"owner": "person",
 	"audience": {},
 	"fields": [ {
 	    "id": "text",
@@ -131,9 +131,9 @@ TEST("Returns correct stats.", function(Query) {
 	    "kind": "multiple",
 	    "choices": [ "Laptop", "Desktop computer", "Tablet", "Smartphone" ]
 	}, {
-	    "id": "contact",
+	    "id": "person",
 	    "label": "Who told you about RunOrg ?",
-	    "kind": "contact"
+	    "kind": "person"
 	} ]
     };
 
@@ -149,7 +149,7 @@ TEST("Returns correct stats.", function(Query) {
 	"json": {},
 	"single": 1,
 	"multiple": [0,2],
-	"contact": token.id
+	"person": token.id
     }}; 
 
     var data2 = { "data": {
@@ -160,7 +160,7 @@ TEST("Returns correct stats.", function(Query) {
 		  "lon": ["W",112,6.269531] },
 	"single": 0,
 	"multiple": [0,1],
-	"contact": token.id
+	"person": token.id
     }}; 
 
     var data3 = { "data": {
@@ -170,7 +170,7 @@ TEST("Returns correct stats.", function(Query) {
 	"json": [],
 	"single": null,
 	"multiple": [],
-	"contact": peon1.id
+	"person": peon1.id
     }}; 
     
     var id = Query.post(["db/",db,"/forms"],example,token).id();
@@ -190,7 +190,7 @@ TEST("Returns correct stats.", function(Query) {
 		    "time": { "filled": 1, "missing": 1, "first": "2014-04-07", "last": "2014-04-07" },
 		    "single": { "filled": 2, "missing": 0, "items": [ 1, 1, 0, 0 ] },
 		    "multiple": { "filled": 2, "missing": 0, "items": [ 2, 1, 1, 0 ] },
-		    "contact": { "filled": 2, "missing": 0, "contacts": 1, "top10": [[ token.id, 2 ]] }
+		    "person": { "filled": 2, "missing": 0, "contacts": 1, "top10": [[ token.id, 2 ]] }
 		}
 	    };
 	  
@@ -211,7 +211,7 @@ TEST("Returns correct stats.", function(Query) {
 				      "first": "2014-04-07", "last": "2014-04-09T13:37:00Z" },
 			    "single": { "filled": 2, "missing": 1, "items": [ 1, 1, 0, 0 ] },
 			    "multiple": { "filled": 2, "missing": 1, "items": [ 2, 1, 1, 0 ] },
-			    "contact": { "filled": 3, "missing": 0, "contacts": 2, 
+			    "person": { "filled": 3, "missing": 0, "contacts": 2, 
 					 "top10": [[ token.id, 2 ],[ peon1.id, 1 ]] }
 			}
 		    };
@@ -248,7 +248,7 @@ TEST("Returns 404 when form does not exist.", function(Query) {
 
 });
 
-// - ... if contact `{as}` does not have at least **fill** 
+// - ... if person `{as}` does not have at least **fill** 
 //   access to view form `{id}`, to ensure [absence 
 //   equivalence](/docs/#/concept/absence-equivalence.md). 
 
@@ -265,7 +265,7 @@ TEST("Returns 404 when form not viewable.", function(Query) {
 });
 
 // ## Returns `403 Forbidden`
-// - ... if contact `{as}` does not have **admin** access to
+// - ... if person `{as}` does not have **admin** access to
 //   form `{id}`.
 
 TEST("Returns 403 when not form admin.", function(Query) {
@@ -284,7 +284,7 @@ TEST("Returns 403 when not form admin.", function(Query) {
 
 // ## Returns `401 Unauthorized` 
 // - ... if the provided token does not grant access as the named 
-//   contact, or no token was provided
+//   person, or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(Query) {
 

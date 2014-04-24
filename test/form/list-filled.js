@@ -18,13 +18,13 @@
 //       "count": <int> }
 // - `list` is a list of form instances on the requested page.
 // - `list[].owner` is the identifier of the entity that owns the filled
-//   form instance, such as a contact.
+//   form instance, such as a person.
 // - `list[].data` is the data used to [fill the form](/docs/#/form/fill.js),
 //   returned as-is.
 // - `count` is the number of form instances available. 
 
 var Form = { 
-    "owner": "contact",
+    "owner": "person",
     "audience": {},
     "fields": [ { 
 	"id": "color",
@@ -66,7 +66,7 @@ TEST("The response has valid return code and content type.", function(Query) {
 TEST("Returns correct items and count.", function(Query) {
 
     var form = {
-	"owner": "contact",	
+	"owner": "person",	
 	"audience": { "fill": "anyone" },
 	"label": "Join form",
 	"fields": [ {
@@ -133,7 +133,7 @@ TEST("Returns 404 when form does not exist.", function(Query) {
     return Query.get(["db/",db,"/forms/00000000001/filled"]).assertStatus(404);
 });
 
-// - ... if contact `{as}` cannot view form `{id}`
+// - ... if person `{as}` cannot view form `{id}`
 
 TEST("Returns 404 when form cannot be viewed.", function(Query) {
 
@@ -146,7 +146,7 @@ TEST("Returns 404 when form cannot be viewed.", function(Query) {
 });
 
 // ## Returns `403 Forbidden`
-// - ... if contact `as` does not have **admin** access to the form.
+// - ... if person `as` does not have **admin** access to the form.
 
 TEST("Returns 403 when form cannot be viewed.", function(Query) {
 
@@ -162,7 +162,7 @@ TEST("Returns 403 when form cannot be viewed.", function(Query) {
 });
 
 // ## Returns `401 Unauthorized` 
-// - ... if the provided token does not grant mathch contact `{as}`.
+// - ... if the provided token does not grant match person `{as}`.
 
 TEST("Returns 401 when token is not valid.", function(Query) {
 

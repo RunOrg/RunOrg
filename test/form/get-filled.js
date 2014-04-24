@@ -6,7 +6,7 @@
 // `200 OK`, 
 // [Read-only](/docs/#/concept/read-only.md).
 //
-// Contact [`{as}`](/docs/#/concept/as.md) retrieves returns the data entered into
+// Person [`{as}`](/docs/#/concept/as.md) retrieves returns the data entered into
 // an instance of form `{id}` bound to entity `{owner}`. 
 //
 // ### Response format
@@ -20,7 +20,7 @@
 //
 
 var Form = { 
-    "owner": "contact",
+    "owner": "person",
     "audience": {},
     "fields": [ { 
 	"id": "color",
@@ -115,7 +115,7 @@ TEST("Returns 404 when form is not filled.", function(Query) {
 });
 
 
-// - ... if contact `{as}` is not allowed to view form `{id}, to ensure 
+// - ... if person `{as}` is not allowed to view form `{id}, to ensure 
 // [absence equivalence](/docs/#/concept/absence-equivalence.md). 
 
 TEST("Returns 404 when form not viewable.", function(Query) {
@@ -136,7 +136,7 @@ TEST("Returns 404 when form not viewable.", function(Query) {
 
 // ## Returns `401 Unauthorized` 
 // - ... if the provided auth does not grant access as the named 
-//   contact, or no auth was provided
+//   person, or no auth was provided
 
 TEST("Returns 401 when auth is not valid.", function(Query) {
 
@@ -151,10 +151,10 @@ TEST("Returns 401 when auth is not valid.", function(Query) {
 
 
 // ## Returns `403 Forbidden`
-// - ... if contact `{as}` is can view the form, but not the requested 
-//   instance. For instance, without **admin** access, a contact may only
+// - ... if person `{as}` is can view the form, but not the requested 
+//   instance. For instance, without **admin** access, a person may only
 //   view the instance bound to himself (`{owner} == {as}`), and not to 
-//   other contacts. Access restrictions are defined for each type of 
+//   other persons. Access restrictions are defined for each type of 
 //   owner.
 
 TEST("Returns 403 when form instance not viewable.", function(Query) {
@@ -177,5 +177,5 @@ TEST("Returns 403 when form instance not viewable.", function(Query) {
 
 // # Access restrictions
 //
-// Contact must have `fill` [audience](/docs/#/form/audience.md) access to 
+// Person must have `fill` [audience](/docs/#/form/audience.md) access to 
 // the form, and be able to view the instance.

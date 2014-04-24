@@ -1,5 +1,5 @@
 // POST /db/{db}/contacts/import
-// Contacts / Import contacts by e-mail
+// People / Import people by e-mail
 //
 // Alpha @ 0.1.22
 //
@@ -13,7 +13,7 @@ TODO("The response has valid return code and content type.", function(next) {
 
     var db = Query.mkdb(),
         token = Query.auth(db),
-        response = Test.query("POST",["db/",db,"/contacts/import"],[example],token).response();
+        response = Test.query("POST",["db/",db,"/people/import"],[example],token).response();
 
     response.map(function(r) {
 	Assert.areEqual(202, r.status).then();
@@ -23,46 +23,45 @@ TODO("The response has valid return code and content type.", function(next) {
 });
 
 //
-// Post a list of contacts to be imported, and receive the identifiers assigned to 
-// every one of them. The format for the imported contacts is: 
+// Post a list of people to be imported, and receive the identifiers assigned to 
+// every one of them. The format for the imported people is: 
 // 
 // ### Contact import format
-//     [ { "email": <label>,
-//         "fullname": <label>,
-//         "firstname": <label>,
-//         "lastname": <label>,
-//         "gender": "M" | "F" 
+//     [ { "email"      : <label>,
+//         "name"       : <label>,
+//         "givenName"  : <label>,
+//         "familyName" : <label>,
+//         "gender"     : "M" | "F" 
 //     }, ... ]
 // - `email` is the only **mandatory** field, and should contain a valid e-mail 
 //   address for the contact being created. 
-// - `fullname` is optional, but filling it is recommended nonetheless, 
+// - `name` is optional, but filling it is recommended nonetheless, 
 //   as it will be used as the display name of the contact (that is, it will 
-//   become field `name` of the [<shortcontact>](/docs/#/contact/short-contact.js) 
+//   become field `label` of the [<short>](/docs/#/contact/short.js) 
 //   values returned by the API).
-// - `firstname` is optional.
-// - `lastname` is optional.
+// - `givenName` is optional.
+// - `familyName` is optional.
 // - `gender` is optional.
 //
-// You may skip the `firstname` and `lastname` fields safely. This will be the
-// case for contacts which are not humans (such as corporations or organizations),
-// humans in a culture that does not have such naming conventions, or simply 
+// You may skip the `givenName` and `familyName` fields safely. This will be the
+// case for people in a culture that does not have such naming conventions, or simply 
 // because the data is unavailable (it may be provided later).
 //
-// There is no limit on the number of contacts to be provided, though the request
+// There is no limit on the number of people to be provided, though the request
 // may bounce due to the [global limit on request body sizes](/docs/#/config/httpd.js). 
 // 
 // ### Response format
 //     { "created": [ <id>, ... ], 
 //       "at": <clock> }
-// - `created` is a list of all identifiers associated to the imported contacts, 
-//   in the same order as the array of contacts in the request. 
+// - `created` is a list of all identifiers associated to the imported people, 
+//   in the same order as the array of people in the request. 
 // - `at` indicates the [clock position](/docs/#/types/clock.js) when all the
-//   imported contacts will be available. 
+//   imported people will be available. 
 //
 // # Example
 // 
 // ### Example request
-//     POST /db/0Et4X0016om/contacts/import
+//     POST /db/0Et4X0016om/people/import
 //     Content-Type: application/json 
 //    
 //     [ {"email":"vnicollet@runorg.com","fullname":"Victor Nicollet","gender":"M"}, 
@@ -83,8 +82,8 @@ TODO("Single import works.", function(next) {
 
     var db = Query.mkdb(),
         token = Query.auth(db),
-        id = Test.query("POST",["db/",db,"/contacts/import"],[example],token).result('created',0),
-        created = Test.query("GET",["db/",db,"/contacts/",id],{},token).result();
+        id = Test.query("POST",["db/",db,"/people/import"],[example],token).result('created',0),
+        created = Test.query("GET",["db/",db,"/people/",id],{},token).result();
 
     var expected = { "id": id, 
 		     "name": "Victor Nicollet",
@@ -103,7 +102,7 @@ TODO("Single import works.", function(next) {
 // old contact will be returned. 
 //
 // Please note that the `email` field is not a strict uniqueness constraint: 
-// there are normal situations under which two or more contacts may share an
+// there are normal situations under which two or more people may share an
 // email address. The import procedure will avoid creating such duplicates for 
 // your convenience, but does not guarantee uniqueness. In particular, if two 
 // imports run in parallel with duplicate data, then duplicate email addresses 
@@ -119,23 +118,23 @@ TODO("Single import works.", function(next) {
 // - ... if database `{db}` does not exist
 
 TODO("Returns 404 when database does not exist.", function(next) {
-    Test.query("POST","/db/00000000001/contacts/import",{}).error(404).then(next);
+    Test.query("POST","/db/00000000001/people/import",{}).error(404).then(next);
 });
 
 //
 // ## Returns `401 Unauthorized`
-// - ... if the provided token does not allow importing new contacts, or no token
+// - ... if the provided token does not allow importing new people, or no token
 //   was provided
 
 TODO("Returns 401 when token is not valid.", function(next) {
     var db = Query.mkdb();
-    Test.query("POST",["db/",db,"/contacts/import"],[]).error(401).then(function() {
-	Test.query("POST",["db/",db,"/contacts/import"],[],"0123456789a").error(401).then(next);
+    Test.query("POST",["db/",db,"/people/import"],[]).error(401).then(function() {
+	Test.query("POST",["db/",db,"/people/import"],[],"0123456789a").error(401).then(next);
     });
 });
 
 //
 // # Access restrictions
 //
-// Currently, anyone can import contacts with a token for the corresponding 
+// Currently, anyone can import people with a token for the corresponding 
 // database. This is subject to change in future versions.

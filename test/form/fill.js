@@ -6,7 +6,7 @@
 // `202 Accepted`, 
 // [Idempotent](/docs/#/concept/idempotent.md).
 //
-// Contact [`{as}`](/docs/#/concept/as.md) fills in an instance of 
+// Person [`{as}`](/docs/#/concept/as.md) fills in an instance of 
 // form `{id}` bound to entity `{owner}`. 
 //
 // ### Request format
@@ -23,7 +23,7 @@
 // 
 
 var Form = { 
-    "owner": "contact",
+    "owner": "person",
     "audience": {},
     "fields": [ { 
 	"id": "color",
@@ -108,7 +108,7 @@ TEST("Returns 404 when form does not exist.", function(Query) {
 });
 
 
-// - ... if contact `{as}` is not allowed to view form `{id}`, to ensure 
+// - ... if person `{as}` is not allowed to view form `{id}`, to ensure 
 // [absence equivalence](/docs/#/concept/absence-equivalence.md). 
 
 TEST("Returns 404 when form not viewable.", function(Query) {
@@ -125,7 +125,7 @@ TEST("Returns 404 when form not viewable.", function(Query) {
 
 // ## Returns `401 Unauthorized` 
 // - ... if the provided token does not grant access as the named 
-//   contact, or no token was provided
+//   person, or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(Query) {
 
@@ -140,10 +140,10 @@ TEST("Returns 401 when token is not valid.", function(Query) {
 
 
 // ## Returns `403 Forbidden`
-// - ... if contact `{as}` is can view the form, but not fill the requested 
-//   instance. For instance, without **admin** access, a contact may only
+// - ... if person `{as}` is can view the form, but not fill the requested 
+//   instance. For instance, without **admin** access, a person may only
 //   fill the instance bound to himself (`{owner} == {as}`), and not to 
-//   other contacts. Access restrictions are defined for each type of 
+//   other persons. Access restrictions are defined for each type of 
 //   owner.
 
 TEST("Returns 403 when form instance not viewable.", function(Query) {
@@ -178,7 +178,7 @@ TEST("Allow cross-filling when admin", function(Query) {
 TEST("Missing required field.", function(Query) {
 
     var form = { 
-	"owner": "contact",
+	"owner": "person",
 	"audience": { "fill" : "anyone" },
 	"fields": [ { 
 	    "id": "color",
@@ -213,7 +213,7 @@ TEST("Missing required field.", function(Query) {
 TEST("Unknown provided field.", function(Query) {
 
     var form = { 
-	"owner": "contact",
+	"owner": "person",
 	"audience": { "fill" : "anyone" },
 	"fields": [ { 
 	    "id": "color",
@@ -238,7 +238,7 @@ TEST("Unknown provided field.", function(Query) {
 TEST("Missing required field.", function(Query) {
 
     var form = { 
-	"owner": "contact",
+	"owner": "person",
 	"audience": { "fill" : "anyone" },
 	"fields": [ { 
 	    "id": "text",
@@ -259,9 +259,9 @@ TEST("Missing required field.", function(Query) {
 	    "kind": "time",
 	    "label": "Time"
 	}, { 
-	    "id": "contact",
-	    "kind": "contact",
-	    "label": "Contact"
+	    "id": "person",
+	    "kind": "person",
+	    "label": "Person"
 	} ]
     };
 
@@ -275,8 +275,8 @@ TEST("Missing required field.", function(Query) {
         { "multiple": {} },
         { "time": 0 },
         { "time": "2014/01/01" },
-        { "contact": "00000000000" },
-        { "contact": 123 }
+        { "person": "00000000000" },
+        { "person": 123 }
     ]; 
 
     var db = Query.mkdb();
@@ -289,8 +289,8 @@ TEST("Missing required field.", function(Query) {
         { "multiple": [] },
         { "time": "2014-01-01" },
         { "time": "2014-01-01T23:59:59Z" },
-        { "contact": auth.id },
-	{ "contact": null }
+        { "person": auth.id },
+	{ "person": null }
     ]; 
 
     var id = Query.post(["db/",db,"/forms"],form,auth).id();
@@ -309,5 +309,5 @@ TEST("Missing required field.", function(Query) {
 
 // # Access restrictions
 //
-// Contact must have `fill` [audience](/docs/#/form/audience.md) access to 
+// Person must have `fill` [audience](/docs/#/form/audience.md) access to 
 // the form, and be able to fill the instance.

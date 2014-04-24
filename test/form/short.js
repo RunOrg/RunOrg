@@ -6,7 +6,7 @@
 // 
 // Typical examples [listing all forms](/docs/#/forms/list.js).
 //
-// ### `ShortContact` JSON format
+// ### `ShortPerson` JSON format
 //     { id : <id>, 
 //       label : <label> | null, 
 //       fields : <int>,
@@ -18,7 +18,7 @@
 // - `label` is a [human-readable name](/docs/#/types/label.js). Not all forms
 //   have one, because it is not a mandatory property when creating a forms.
 // - `fields` is the number of fields in the form.
-// - `owner` is the owner of filled form instances, currently only `"contact"` 
+// - `owner` is the owner of filled form instances, currently only `"person"` 
 //   is supported.
 // - `access` lists the [access levels](/docs/#/form/audience.js) of the viewer
 //   over this form.  
@@ -26,7 +26,7 @@
 TEST("The form's data is returned.", function(Query) {
 
     var example = {
-	"owner": "contact",	
+	"owner": "person",	
 	"audience": { "fill": "anyone" },
 	"label": "Personal information",
 	"custom": [1,2,3],
@@ -75,7 +75,7 @@ TEST("The form's data is returned.", function(Query) {
 // ### Example value
 //     { "id" : "0Et9j0026rO",
 //       "label" : "Personal information",
-//       "owner" : "contact",
+//       "owner" : "person",
 //       "fields" : 4,
 //       "access" : ["fill"] }
 //

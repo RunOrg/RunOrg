@@ -7,7 +7,7 @@
 // [Read-only](/docs/#/concept/read-only.md),
 // [Paginated](/docs/#/concept/paginated.md).
 //
-// Returns all the forms that can be seen by contact `{as}`, in arbitrary order.
+// Returns all the forms that can be seen by person `{as}`, in arbitrary order.
 // Supports `limit` and `offset` pagination. 
 //
 // ### Response format
@@ -33,20 +33,20 @@ TEST("The response has valid return code and content type.", function(Query) {
 //     
 //     { "list" : [ 
 //       { "id" : "0SNQe00311H",
-//         "owner" : "contact",
+//         "owner" : "person",
 //         "label" : "Why did you join our group ?", 
 //         "fields" : 2,
 //         "access" : ["fill"] },
 //       { "id" : "0SNQg00511H",
 //         "label" : null,
-//         "owner" : "contact", 
+//         "owner" : "person", 
 //         "fields" : 1,
 //         "pic" : ["admin","fill"] }
 
 TEST("Returns data for all forms.", function(Query) {
 
     var exampleA = {
-	"owner": "contact",	
+	"owner": "person",	
 	"audience": { "fill": "anyone" },
 	"label": "Join form",
 	"custom": [1,2,3],
@@ -69,7 +69,7 @@ TEST("Returns data for all forms.", function(Query) {
     };
 
     var exampleB = {
-	"owner": "contact",	
+	"owner": "person",	
 	"audience": { "admin": "anyone" },
 	"label": "Personal information",
 	"fields": [ {
@@ -81,7 +81,7 @@ TEST("Returns data for all forms.", function(Query) {
     };
 
     var exampleC = {
-	"owner": "contact",	
+	"owner": "person",	
 	"audience": {},
 	"label": "Private information",
 	"fields": [ {
@@ -103,13 +103,13 @@ TEST("Returns data for all forms.", function(Query) {
 		var expected = {
 		    "list" : [ {
 			"id": idA,
-			"owner": "contact",
+			"owner": "person",
 			"access": ["fill"],
 			"fields": 2,
 			"label": exampleA.label
 		    }, { 
 			"id": idB,
-			"owner": "contact",
+			"owner": "person",
 			"access": ["admin","fill"],
 			"fields": 1,
 			"label": exampleB.label
@@ -136,7 +136,7 @@ TEST("Returns 404 when database does not exist.", function(Query) {
 
 
 // ## Returns `401 Unauthorized` 
-// - ... if the provided token does not grant mathch contact `{as}`.
+// - ... if the provided token does not grant match person `{as}`.
 
 TEST("Returns 401 when token is not valid.", function(Query) {
     var db = Query.mkdb();

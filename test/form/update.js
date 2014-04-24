@@ -5,22 +5,22 @@
 //
 // `202 Accepted`, [Delayed](/docs/#/concept/delayed.md), [Idempotent](/docs/#/concept/idempotent.md).
 //
-// Contact [`{as}`](/docs/#/concept/as.md) updates the properties of a form. Note 
+// Person [`{as}`](/docs/#/concept/as.md) updates the properties of a form. Note 
 // that once a form has been filled (even if only
 // once), the list of fields may not be updated (though other properties can). 
 // 
 // ### Request format
 //     { "label" : <label> | null,
 //       "custom": <json>,
-//       "owner": "contact",
+//       "owner": "person",
 //       "fields": [ <field>, ... ],
 //       "audience": <audience> }
 // - `label` is an optional [human-readable name](/docs/#/types/label.js).
 // - `custom` is an arbitrary block of JSON that will be stored as-is by 
 //   RunOrg and returned as such by the API.
 // - `owner` is the nature of the owners associated with each filled instance
-//   of the form. In the current version of the API, this is always `"contact"`
-//   (each instance is owned by a contact). 
+//   of the form. In the current version of the API, this is always `"person"`
+//   (each instance is owned by a person). 
 // - `fields` is an ordered list of [fields](/docs/#/form/field.js) to be 
 //   filled.
 // - `audience` is the [audience](/docs/#/form/audience.js) of the form.
@@ -33,7 +33,7 @@
 //     { "at" : <clock> }
 
 var Example = { 
-    "owner": "contact",
+    "owner": "person",
     "audience": {},
     "fields": []
 };
@@ -88,7 +88,7 @@ TEST("Returns 404 when form does not exist.", function(Query) {
         
 });
 
-// - ... if contact `{as}` cannot view form `{id}`, to ensure [absence 
+// - ... if person `{as}` cannot view form `{id}`, to ensure [absence 
 //   equivalence](/docs/#/concept/absence-equivalence.md). 
 
 TEST("Returns 404 when form cannot be viewed.", function(Query) {
@@ -110,7 +110,7 @@ TEST("Returns 404 when form cannot be viewed.", function(Query) {
 TODO("Returns 409 when filled.");
 
 // ## Returns `403 Forbidden` 
-// - ... if contact `{as}` does not have the **admin** access required to 
+// - ... if person `{as}` does not have the **admin** access required to 
 //   update the form.
 
 TEST("Returns 403 if no admin access.", function(Query) {
@@ -128,7 +128,7 @@ TEST("Returns 403 if no admin access.", function(Query) {
 });
 
 // ## Returns `401 Unauthorized` 
-// - ... if the provided token does not match contact `{as}`,
+// - ... if the provided token does not match person `{as}`,
 //   or no token was provided
 
 TEST("Returns 401 when token is not valid.", function(Query) {
