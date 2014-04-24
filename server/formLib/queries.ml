@@ -43,8 +43,8 @@ type filled = <
   data    : (Field.I.t, Json.t) Map.t ;
 >
 
-let belongs_to fid cid = match fid with
-  | `Contact cid' -> cid = Some cid'
+let belongs_to fid pid = match fid with
+  | `Person pid' -> pid = Some pid'
 
 let get_filled cid id fid = 
 

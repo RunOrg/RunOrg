@@ -4,23 +4,23 @@ open Std
 
 include type module 
     [ `Created of < 
-        id : GId.t ; 
-        cid : CId.t option ; 
-	label : String.Label.t option ;
+        id       : GId.t ; 
+        pid      : PId.t option ; 
+	label    : String.Label.t option ;
 	audience : GroupAccess.Audience.t ; 
       > 
     | `Deleted of < 
-	id : GId.t ;
-	cid : CId.t option ;
+	id  : GId.t ;
+	pid : PId.t option ;
       >
     | `Added   of < 
-	cid : CId.t option ;
-	contacts : CId.t list ; 
+	pid    : PId.t option ;
+	people : PId.t list ; 
         groups : GId.t list ;
       >
     | `Removed of < 
-	cid : CId.t option ;
-	contacts : CId.t list ; 
+	pid    : PId.t option ;
+	people : PId.t list ; 
         groups : GId.t list ;
       >
     ]

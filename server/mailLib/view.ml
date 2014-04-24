@@ -8,7 +8,7 @@ let projection = Cqrs.Projection.make "mail" O.config
    =============================== *)
 
 module Info = type module <
-  from     : CId.t ;
+  from     : PId.t ;
   subject  : Unturing.t ;
   text     : Unturing.t option ;
   html     : Unturing.t option ; 

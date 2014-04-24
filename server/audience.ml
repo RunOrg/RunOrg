@@ -5,30 +5,30 @@ open Std
 (* Serialization and deserialization 
    ================================= *)
 
-module GroupsAndContacts = Fmt.Map(struct
+module GroupsAndPeople = Fmt.Map(struct
 
   module Inner = type module <
     ?groups : GId.t list = [] ;
-    ?contacts : CId.t list = [] ;
+    ?people : PId.t list = [] ;
   >
 
   type t = <
     groups : GId.t Set.t ;
-    contacts : CId.t Set.t ;
+    people : PId.t Set.t ;
   >
 
   let from_inner i = object
     val groups = Set.of_list (i # groups)
     method groups = groups
-    val contacts = Set.of_list (i # contacts)
-    method contacts = contacts
+    val people = Set.of_list (i # people)
+    method people = people
   end
 
   let to_inner t = object
     val groups = Set.to_list (t # groups)
     method groups = groups
-    val contacts = Set.to_list (t # contacts)
-    method contacts = contacts
+    val people = Set.to_list (t # people)
+    method people = people
   end
 
 end)
@@ -37,20 +37,20 @@ let max_item_count = 20
 
 include Fmt.Make(struct
 
-  include type module [ `Anyone | `List of GroupsAndContacts.t ]
+  include type module [ `Anyone | `List of GroupsAndPeople.t ]
 
   let json_of_t = function 
     | `Anyone -> Json.String "anyone"
-    | `List l -> GroupsAndContacts.to_json l 
+    | `List l -> GroupsAndPeople.to_json l 
 
   let t_of_json = function
     | Json.String "anyone" -> `Anyone
-    | (Json.Object _ as obj) -> let l = GroupsAndContacts.of_json obj in
-				let lc = Set.cardinal (l # contacts) in
+    | (Json.Object _ as obj) -> let l = GroupsAndPeople.of_json obj in
+				let lc = Set.cardinal (l # people) in
 				let lg = Set.cardinal (l # groups) in
 				if lc > max_item_count then
 				  Json.parse_error 
-				    (!! "Audience has %d contacts, maximum is %d" lc max_item_count)
+				    (!! "Audience has %d people, maximum is %d" lc max_item_count)
 				    obj
 				else if lg > max_item_count then
 				  Json.parse_error 
@@ -64,42 +64,42 @@ end)
 
 let empty = `List (object 
   method groups = Set.empty 
-  method contacts = Set.empty
+  method people = Set.empty
 end)
 
 let admin = `List (object 
   method groups = Set.singleton GId.admin
-  method contacts = Set.empty
+  method people = Set.empty
 end)
 
 (* Testing membership 
    ================== *)
 
-let ref_of_contact : (CId.t -> (Cqrs.ctx, GId.t Set.t) Run.t) ref = 
+let ref_of_person : (PId.t -> (Cqrs.ctx, GId.t Set.t) Run.t) ref = 
   ref (fun _ -> assert false)
 
-let of_contact cid =
-  Run.edit_context (fun ctx -> (ctx :> Cqrs.ctx)) ((!ref_of_contact) cid)
+let of_person cid =
+  Run.edit_context (fun ctx -> (ctx :> Cqrs.ctx)) ((!ref_of_person) cid)
 
-let register_groups_of_contact f = 
-  ref_of_contact := f
+let register_groups_of_person f = 
+  ref_of_person := f
 
 let is_member = function 
   | None -> (fun x -> return (x = `Anyone)) 
   | Some cid -> 
-    let get_groups = Run.memo (of_contact cid) in 
+    let get_groups = Run.memo (of_person cid) in 
     function 
     | `Anyone -> return true
     | `List l -> 
-      if Set.mem cid (l # contacts) then return true else
+      if Set.mem cid (l # people) then return true else
 	let! groups = get_groups in 
 	return (not (Set.is_empty (Set.intersect (l # groups) groups)))
 
 let gac_union a b = object
   val groups = Set.union (a # groups) (b # groups)
   method groups = groups
-  val contacts = Set.union (a # contacts) (b # contacts)
-  method contacts = contacts
+  val people = Set.union (a # people) (b # people)
+  method people = people
 end
 
 let union a b = match a, b with 

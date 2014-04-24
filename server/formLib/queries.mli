@@ -14,7 +14,7 @@ type info =  <
 
 val get : I.t -> (#O.ctx, info option) Run.t
 
-val list : CId.t option -> limit:int -> offset:int -> (#O.ctx, info list) Run.t
+val list : PId.t option -> limit:int -> offset:int -> (#O.ctx, info list) Run.t
 
 type filled = <
   updated : Time.t ;
@@ -23,7 +23,7 @@ type filled = <
 >
 
 val get_filled : 
-  CId.t option -> 
+  PId.t option -> 
   I.t ->
   FilledI.t ->
   (#O.ctx, [ `NoSuchForm of I.t
@@ -33,7 +33,7 @@ val get_filled :
 	   ]) Run.t
 
 val list_filled :
-  CId.t option ->
+  PId.t option ->
   ?limit:int ->
   ?offset:int ->
   I.t -> 
@@ -43,7 +43,7 @@ val list_filled :
 	   ]) Run.t
 
 val stats : 
-  CId.t option ->
+  PId.t option ->
   I.t ->
   (#O.ctx, [ `NoSuchForm of I.t
 	   | `NeedAdmin of I.t

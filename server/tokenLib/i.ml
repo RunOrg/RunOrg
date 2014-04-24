@@ -6,7 +6,7 @@ include Id.Phantom
 
 module Assert = struct
   let server_admin id = id
-  let contact id = id 
+  let person id = id 
 end
 
 (* We cannot use the standard generation function here, because its output is 

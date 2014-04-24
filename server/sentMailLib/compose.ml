@@ -4,18 +4,18 @@ open Std
 
 (* A few data formatting utilities *)
 
-let email_address contact = 
-  let email = String.Label.to_string (contact # email) in 
-  match contact # fullname with None -> email | Some name ->
+let email_address person = 
+  let email = String.Label.to_string (person # email) in 
+  match person # name with None -> email | Some name ->
     !! "%S <%s>" (String.Label.to_string name) email
 
-let contact_json contact = 
+let person_json person = 
   Json.Object [ 
-    "name",      String.Label.to_json (contact # name) ; 
-    "fullname",  Json.of_opt String.Label.to_json (contact # fullname) ;
-    "firstname", Json.of_opt String.Label.to_json (contact # firstname) ;
-    "lastname",  Json.of_opt String.Label.to_json (contact # lastname) ;
-    "email",     String.Label.to_json (contact # email) ; 
+    "label",      String.Label.to_json (person # label) ; 
+    "name",       Json.of_opt String.Label.to_json (person # name) ;
+    "givenName",  Json.of_opt String.Label.to_json (person # givenName) ;
+    "familyName", Json.of_opt String.Label.to_json (person # familyName) ;
+    "email",      String.Label.to_json (person # email) ; 
   ]
 
 (* Raw data 
@@ -32,8 +32,8 @@ type data = <
 
 type failure = 
   [ `NoInfoAvailable 
-  | `NoSuchContact 
-  | `NoSuchSender    of CId.t 
+  | `NoSuchRecipient 
+  | `NoSuchSender    of PId.t 
   | `SubjectError    of string * int * int 
   | `TextError       of string * int * int 
   | `HtmlError       of string * int * int 
@@ -45,14 +45,14 @@ exception PrepareFailure of failure
 (* Generic function, does not query the database, returns [data]. 
    If no link root is provided (as is the case for previews), uses the
    actual URLs. *)
-let prepare ~sender ~self ~contact ?root ~db ~urls ~custom ~subject ~text ~html = 
+let prepare ~sender ~self ~person ?root ~db ~urls ~custom ~subject ~text ~html = 
   
     let  from   = email_address sender in 
-    let  to_    = email_address contact in 
+    let  to_    = email_address person in 
 
     let  input  = Map.of_list [
-      "to",     contact_json contact ;
-      "from",   contact_json sender  ; 
+      "to",     person_json person ;
+      "from",   person_json sender  ; 
       "custom", custom ; 
       "track",  (match root with 
       | None      -> Json.String "void(0)" 
@@ -107,19 +107,19 @@ let preview (mail:Mail.info) cid =
 
   Run.on_failure handle_failure begin 
 
-    (* Needed for filling the 'contact' side of the template. *)
-    let! contact = Contact.full cid in 
-    let  contact = match contact with None -> raise (PrepareFailure `NoSuchContact) | Some c -> c in 
+    (* Needed for filling the 'person' side of the template. *)
+    let! person = Person.full cid in 
+    let  person = match person with None -> raise (PrepareFailure `NoSuchRecipient) | Some c -> c in 
 
     (* Needed for filling the 'sender' side of the template. *)
     let  scid   = mail # from in 
-    let! sender = Contact.full scid in
+    let! sender = Person.full scid in
     let  sender = match sender with None -> raise (PrepareFailure (`NoSuchSender scid)) | Some s -> s in 
 
     let! ctx    = Run.context in 
     let  db     = ctx # db in 
     
-    return (prepare ~contact ~sender ~db ?root:None ~self:(mail # self)
+    return (prepare ~person ~sender ~db ?root:None ~self:(mail # self)
 	      ~custom:(mail # custom) ~urls:(mail # urls) ~subject:(mail # subject)  
 	      ~html:(mail # html) ~text:(mail # text))
 
@@ -137,10 +137,10 @@ let scheduled mid cid =
 
     (* The error conditions below should not happen in a normal database situation, BUT... 
        We never know how the system requirements will evolve. Maybe we'll allow deleting
-       contacts or forget checking for contact existence before adding to a group. Better
+       persons or forget checking for person existence before adding to a group. Better
        safe than sorry. *)
 
-    (* Needed for getting the wave id and the position of the contact in the wave. *)
+    (* Needed for getting the wave id and the position of the person in the wave. *)
     let! sendinfo = Cqrs.MapView.get View.info (mid, cid) in
     let  sendinfo = match sendinfo with None -> raise (PrepareFailure `NoInfoAvailable) | Some s -> s in  
     let  nth      = sendinfo # pos in   
@@ -150,13 +150,13 @@ let scheduled mid cid =
     let! wave = Cqrs.MapView.get View.wave wid in
     let  wave = match wave with None -> raise (PrepareFailure `NoInfoAvailable) | Some w -> w in
 
-    (* Needed for filling the 'contact' side of the template. *)
-    let! contact = Contact.full cid in 
-    let  contact = match contact with None -> raise (PrepareFailure `NoSuchContact) | Some c -> c in 
+    (* Needed for filling the 'person' side of the template. *)
+    let! person = Person.full cid in 
+    let  person = match person with None -> raise (PrepareFailure `NoSuchRecipient) | Some c -> c in 
 
     (* Needed for filling the 'sender' side of the template. *)
     let  scid   = wave # from in 
-    let! sender = Contact.full scid in
+    let! sender = Person.full scid in
     let  sender = match sender with None -> raise (PrepareFailure (`NoSuchSender scid)) | Some s -> s in 
 
     let! ctx    = Run.context in 
@@ -165,7 +165,7 @@ let scheduled mid cid =
     let  root   = Link.Root.make wid nth in 
 
     match
-      prepare ~contact ~sender ~db ~root ~self:(wave # self)
+      prepare ~person ~sender ~db ~root ~self:(wave # self)
 	~custom:(wave # custom) ~urls:(wave # urls) ~subject:(wave # subject)  
 	~html:(wave # html) ~text:(wave # text) 
     with

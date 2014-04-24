@@ -8,7 +8,7 @@ open Std
 (* Who is allowed to create new forms ? *)
 let create_audience = Audience.admin 
 
-let create cid ?label ?id ~owner ~audience ~custom fields =   
+let create pid ?label ?id ~owner ~audience ~custom fields =   
 
   (* If a custom id is used, make sure it is not already in use. *)
   let! newId = match id with 
@@ -21,26 +21,26 @@ let create cid ?label ?id ~owner ~audience ~custom fields =
 
   match newId with Bad id -> return (`AlreadyExists id) | Ok id -> 
 
-    let! allowed = Audience.is_member cid create_audience in 
+    let! allowed = Audience.is_member pid create_audience in 
 
     if not allowed then 
       let! ctx = Run.context in 
       return (`NeedAccess (ctx # db))
     else
       
-      let! clock = Store.append [ Events.created ~id ~cid ~label ~owner ~audience ~fields ~custom ] in 
+      let! clock = Store.append [ Events.created ~id ~pid ~label ~owner ~audience ~fields ~custom ] in 
       return (`OK (id, clock)) 
       
 (* Updating a form 
    =============== *)
 
-let update ?label ?owner ?audience ?custom ?fields cid id = 
+let update ?label ?owner ?audience ?custom ?fields pid id = 
   
   let! form = Cqrs.MapView.get View.info id in 
 
   match form with None -> return (`NoSuchForm id) | Some form -> 
 
-    let! access = FormAccess.compute cid (form # audience) in
+    let! access = FormAccess.compute pid (form # audience) in
     if not (Set.mem `Fill access) then return (`NoSuchForm id) else
       if not (Set.mem `Admin access) then return (`NeedAdmin id) else
 
@@ -50,19 +50,19 @@ let update ?label ?owner ?audience ?custom ?fields cid id =
 	  
 	  if fields <> None && not (form # empty) then return (`FormFilled id) else
 	    
-	    let! clock = Store.append [ Events.updated ~id ~cid ~label ~owner ~audience ~fields ~custom ] in
+	    let! clock = Store.append [ Events.updated ~id ~pid ~label ~owner ~audience ~fields ~custom ] in
 	    return (`OK clock) 
 
 (* Filling the form
    ================ *)
 
-let check_fid cid form id fid = 
-  let! access = FormAccess.compute cid (form # audience) in 
+let check_fid pid form id fid = 
+  let! access = FormAccess.compute pid (form # audience) in 
   if not (Set.mem `Fill access) then return (Some (`NoSuchForm id)) else    
     match form # owner, fid with 
-    | `Contact, `Contact cid' -> 
-      if Set.mem `Admin access || Set.mem `Fill access && cid = Some cid' then      
-	let! info = Contact.get cid' in 
+    | `Person, `Person pid' -> 
+      if Set.mem `Admin access || Set.mem `Fill access && pid = Some pid' then      
+	let! info = Person.get pid' in 
 	return (if info = None then Some (`NoSuchOwner (id,fid)) else None)
       else
 	return (Some (`NeedAdmin (id,fid))) 
@@ -101,17 +101,17 @@ let check_fill form id data =
       match invalid with None -> return None | Some field -> 
 	return (Some (`InvalidFieldFormat (id, field # id, field # kind)))
 
-let fill cid id fid data = 
+let fill pid id fid data = 
 
   (* Does the form exist ? *)
   let! form  = Cqrs.MapView.get View.info id in
   match form with None -> return (`NoSuchForm id) | Some form -> 
 
-    let! fid_error = check_fid cid form id fid in
+    let! fid_error = check_fid pid form id fid in
     match fid_error with Some e -> return e | None -> 
       let! fill_error = check_fill form id data in
       match fill_error with Some e -> return e | None -> 
 
 	(* Save the data. *)
-	let! clock = Store.append [ Events.filled ~id ~cid ~fid ~data ] in
+	let! clock = Store.append [ Events.filled ~id ~pid ~fid ~data ] in
 	return (`OK clock) 

@@ -16,7 +16,7 @@ module Hash = type module
 module Events = type module 
     [ `Created of < 
       id   : I.t ; 
-      cid  : CId.t option ; 
+      pid  : PId.t option ; 
       ip   : IpAddress.t ; 
       hash : Hash.t ; 
       key  : string >
@@ -36,7 +36,7 @@ module Value = type module <
   hash : Hash.t ; 
   key : string ; 
   ip : IpAddress.t ;
-  cid : CId.t option ; 
+  pid : PId.t option ; 
   time : Time.t ;
   enabled : bool 
 >
@@ -55,7 +55,7 @@ let value =
       Cqrs.MapView.update value (ev # id)
 	(function 
 	| None   -> `Put (Value.make ~hash:(ev # hash) ~key:(ev # key) ~ip:(ev # ip)
-			    ~time:(ctx # time) ~cid:(ev # cid) ~enabled:true)
+			    ~time:(ctx # time) ~pid:(ev # pid) ~enabled:true)
 	| Some _ -> `Keep)
 
   end in
@@ -68,9 +68,9 @@ let value =
 (* Who is allowed to create new forms ? *)
 let create_audience = Audience.admin 
 
-let create cid ip hash key = 
+let create pid ip hash key = 
   
-  let! allowed = Audience.is_member cid create_audience in 
+  let! allowed = Audience.is_member pid create_audience in 
   
   if not allowed then 
     let! ctx = Run.context in 
@@ -78,7 +78,7 @@ let create cid ip hash key =
   else
 
     let  id = I.gen () in
-    let! clock = Store.append [ Events.created ~id ~cid ~hash ~key ~ip ] in
+    let! clock = Store.append [ Events.created ~id ~pid ~hash ~key ~ip ] in
     return (`OK (id, clock))
  
 (* Queries 

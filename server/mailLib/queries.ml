@@ -4,7 +4,7 @@ open Std
 
 type info = <
   id : I.t ;
-  from : CId.t ;
+  from : PId.t ;
   subject  : Unturing.t ;
   text     : Unturing.t option ;
   html     : Unturing.t option ; 

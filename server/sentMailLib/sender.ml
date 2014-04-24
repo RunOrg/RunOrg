@@ -22,29 +22,13 @@ let batch_size = 10
    In other words: scheduled mail returned by this function has NOT been sent yet.
 *)
 
-let next_batch_sync : unit -> (#Cqrs.ctx, (Id.t * Mail.I.t * CId.t) list) Run.t = fun () -> 
+let next_batch_sync : unit -> (#Cqrs.ctx, (Id.t * Mail.I.t * PId.t) list) Run.t = fun () -> 
 
   let! clock = Store.clock () in 
   Run.edit_context (fun ctx -> ctx # with_after clock) begin 
     let! list = Cqrs.StatusView.global_by_status ~limit:batch_size View.status `Scheduled in
-    return (List.map (fun (db,(mid,cid)) -> db, mid, cid) list) 
+    return (List.map (fun (db,(mid,pid)) -> db, mid, pid) list) 
   end 
-
-(* A few data formatting utilities *)
-
-let email_address contact = 
-  let email = String.Label.to_string (contact # email) in 
-  match contact # fullname with None -> email | Some name ->
-    !! "%S <%s>" (String.Label.to_string name) email
-
-let contact_json contact = 
-  Json.Object [ 
-    "name",      String.Label.to_json (contact # name) ; 
-    "fullname",  Json.of_opt String.Label.to_json (contact # fullname) ;
-    "firstname", Json.of_opt String.Label.to_json (contact # firstname) ;
-    "lastname",  Json.of_opt String.Label.to_json (contact # lastname) ;
-    "email",     String.Label.to_json (contact # email) ; 
-  ]
 
 (* This function constructs the subject and bodies of a mail by fetching the 
    appropriate corresponding data. Assumes to be run in the appropriate database. *)
@@ -62,17 +46,17 @@ type mail = <
 
 type failure = 
   [ `NoInfoAvailable 
-  | `NoSuchContact 
-  | `NoSuchSender    of CId.t 
+  | `NoSuchRecipient
+  | `NoSuchSender    of PId.t 
   | `SubjectError    of string * int * int 
   | `TextError       of string * int * int 
   | `HtmlError       of string * int * int 
   | `Exception       of string 
   ]
 
-let prepare_mail : Mail.I.t -> CId.t -> (Cqrs.ctx, (mail,failure) Std.result) Run.t = fun mid cid -> 
+let prepare_mail : Mail.I.t -> PId.t -> (Cqrs.ctx, (mail,failure) Std.result) Run.t = fun mid pid -> 
 
-  let! data = Compose.scheduled mid cid in
+  let! data = Compose.scheduled mid pid in
   match data with Bad fail -> return (Bad fail) | Ok (wid, root, data) -> 
 
     let rendered = Compose.render data in
@@ -103,23 +87,23 @@ let send : mail -> (#Cqrs.ctx, (unit,failure) Std.result) Run.t = fun mail ->
    This cannot happen because only one process should run the mail service at 
    a given time. *)
 
-let process (id,mid,cid) = 
+let process (id,mid,pid) = 
 
   Run.edit_context (fun ctx -> ctx # with_db id) begin 
 
     let fail why = 
-      let! _ = Store.append [ Events.sendingFailed ~mid ~cid ~why ] in
+      let! _ = Store.append [ Events.sendingFailed ~mid ~pid ~why ] in
       return () 
     in
 
-    let! prepare = prepare_mail mid cid in
+    let! prepare = prepare_mail mid pid in
     match prepare with Bad why -> fail why | Ok mail ->
       
       let! sent = send mail in
       match sent with Bad why -> fail why | Ok () ->
 	
 	let! _ = Store.append [ 
-	  Events.sent ~id:(mail # wid) ~mid ~cid ~from:(mail # from) ~to_:(mail # to_) ~link:(mail # link)
+	  Events.sent ~id:(mail # wid) ~mid ~pid ~from:(mail # from) ~to_:(mail # to_) ~link:(mail # link)
 	    ~input:(Json.Object (Map.to_list (mail # input))) 
 	] in 
 

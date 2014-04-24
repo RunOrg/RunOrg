@@ -27,7 +27,7 @@ let exists =
    ================== *)
 
 module Item = type module <
-  author : CId.t ;
+  author : PId.t ;
   body   : String.Rich.t ;
 >
 
@@ -66,12 +66,12 @@ let items =
    ================ *)
 
 module Info = type module <
-  count : int ;
-  last : Time.t ; 
+  count   : int ;
+  last    : Time.t ; 
   subject : String.Label.t option ; 
-  contacts : CId.t list ;
-  groups : GId.t list ;
-  public : bool ; 
+  people  : PId.t list ;
+  groups  : GId.t list ;
+  public  : bool ; 
 >
 
 let info = 
@@ -93,7 +93,7 @@ let info =
 	(Info.make 
 	   ~subject:(info#subject) 
 	   ~count:(stats#count) 
-	   ~contacts:(info#contacts) 
+	   ~people:(info#people) 
 	   ~groups:(info#groups)
 	   ~public:(info#public)
 	   ~last:(max (info#last) time)))
@@ -105,21 +105,21 @@ let info =
       let ida, idb = ev # who in
       let! time = time () in 
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:None ~count:0 ~contacts:[ida;idb] ~groups:[] ~public:false
+        | None -> `Put (Info.make ~subject:None ~count:0 ~people:[ida;idb] ~groups:[] ~public:false
 			  ~last:time)
 	| Some _ -> `Keep)
 
     | `ChatCreated ev ->
       let! time = time () in 
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~contacts:(ev#contacts) ~groups:(ev#groups) 
+        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~people:(ev#people) ~groups:(ev#groups) 
 			  ~public:false ~last:time)
 	| Some _ -> `Keep)
 
     | `PublicChatCreated ev -> 
       let! time = time () in
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~contacts:[] ~groups:[] ~public:true
+        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~people:[] ~groups:[] ~public:true
 			  ~last:time)
 	| Some _ -> `Keep)
 
@@ -138,7 +138,7 @@ let info =
 
 module Accessor = type module 
   | Group of GId.t 
-  | Contact of CId.t
+  | Person of PId.t
   | Public
 
 let access = 
@@ -152,12 +152,12 @@ let access =
     | `PrivateMessageCreated ev ->
 
       let ida, idb = ev # who in 
-      Cqrs.ManyToManyView.add access Accessor.([ Contact ida ; Contact idb ]) [ev # id]
+      Cqrs.ManyToManyView.add access Accessor.([ Person ida ; Person idb ]) [ev # id]
 
     | `ChatCreated ev ->
 
       let accessors = 
-	List.map (fun cid -> Accessor.Contact cid) (ev # contacts)
+	List.map (fun cid -> Accessor.Person cid) (ev # people)
 	@ List.map (fun gid -> Accessor.Group gid) (ev # groups) in
       Cqrs.ManyToManyView.add access accessors [ev # id]
 

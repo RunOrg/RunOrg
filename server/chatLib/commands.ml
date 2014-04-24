@@ -2,9 +2,9 @@
 
 open Std
 
-let create ?subject contacts groups = 
+let create ?subject people groups = 
   let  id = I.gen () in 
-  let! clock = Store.append [ Events.chatCreated ~id ~contacts ~groups ~subject ] in
+  let! clock = Store.append [ Events.chatCreated ~id ~people ~groups ~subject ] in
   return (id, clock) 
 
 let createPM c1 c2 = 

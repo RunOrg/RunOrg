@@ -37,8 +37,8 @@ type request = <
   (** The at parameter value, if any. *)
   at : Cqrs.Clock.t option ; 
 
-  (** The as parameter, parsed as a [CId.t], if any. *)
-  as_ : CId.t option ; 
+  (** The as parameter, parsed as a [PId.t], if any. *)
+  as_ : PId.t option ; 
 
   (** The limit parameter value, if any. *)
   limit : int option ;

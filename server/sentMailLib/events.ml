@@ -9,10 +9,10 @@ include type module
        is edited afterwards. *)
   [ `GroupWaveCreated of <
       id : I.t ;
-      cid : CId.t option ;
+      pid : PId.t option ;
       mid : Mail.I.t ;
       gid : GId.t ;
-      from : CId.t ;
+      from : PId.t ;
       subject : Unturing.t ;
       text : Unturing.t option ;
       html : Unturing.t option ;
@@ -29,14 +29,14 @@ include type module
       id   : I.t ;
       mid  : Mail.I.t ; 
       pos  : int ;
-      list : CId.t list ; 
+      list : PId.t list ; 
     >
 
     (* The e-mail has actually been sent to the specified contact. *)
   | `Sent of <
       id      : I.t ;
       mid     : Mail.I.t ;
-      cid     : CId.t ;
+      pid     : PId.t ;
       from    : string ; 
       to_     : string ; 
       input   : Json.t ; 
@@ -48,7 +48,7 @@ include type module
   | `LinkFollowed of <
       id   : I.t ;
       mid  : Mail.I.t ;
-      cid  : CId.t ;
+      pid  : PId.t ;
       link : [ `Self | `Tracker | `Url of int ] ;
       auto : bool ;
       ip   : IpAddress.t ; 
@@ -58,10 +58,10 @@ include type module
        up permanently. *)
   | `SendingFailed of <
       mid  : Mail.I.t ;
-      cid  : CId.t ;
+      pid  : PId.t ;
       why  : [ `NoInfoAvailable 
-	     | `NoSuchContact 
-	     | `NoSuchSender    of CId.t 
+	     | `NoSuchRecipient 
+	     | `NoSuchSender    of PId.t 
 	     | `SubjectError    of string * int * int 
 	     | `TextError       of string * int * int 
 	     | `HtmlError       of string * int * int 

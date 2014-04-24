@@ -29,7 +29,7 @@ module type T = sig
 
   (** Based on an audience set, find the access levels granted to a specific
       user. *)
-  val compute : CId.t option -> Audience.t -> (# Cqrs.ctx, Set.t) Run.t
+  val compute : PId.t option -> Audience.t -> (# Cqrs.ctx, Set.t) Run.t
 
   (** A log-friendly representation of a set. *)
   val set_to_string : Set.t -> string
@@ -57,12 +57,12 @@ module type T = sig
     val remove : 'id accessor -> 'id -> # Cqrs.ctx Run.effect
 
     (** Lists all the identifiers that are available at the specified access 
-	level for the provided contact. *)
+	level for the provided person. *)
     val list : 
       ?limit:int -> 
       ?offset:int -> 
       'id accessor -> 
-      CId.t option -> 
+      PId.t option -> 
       t -> 
       (# Cqrs.ctx, 'id list) Run.t
 

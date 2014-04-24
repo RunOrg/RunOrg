@@ -34,11 +34,11 @@ module SMulti = type module <
   items   : int array ;
 >
 
-module SContact = type module <
+module SPerson = type module <
   missing : int ;
   filled : int ;
   contacts : int ;
-  top10 : (CId.t * int) list ;
+  top10 : (PId.t * int) list ;
 >
 
 (* JSON output does not include variant information : just an object
@@ -51,7 +51,7 @@ module FieldStat = Fmt.Make(struct
       | `Json of SJson.t 
       | `Single of SSingle.t 
       | `Multi of SMulti.t 
-      | `Contact of SContact.t ]
+      | `Person of SPerson.t ]
 
   let t_of_json json = 
     failwith "JSON unserialization not supported"
@@ -62,7 +62,7 @@ module FieldStat = Fmt.Make(struct
     | `Json t -> SJson.to_json t
     | `Single t -> SSingle.to_json t
     | `Multi t -> SMulti.to_json t
-    | `Contact t -> SContact.to_json t
+    | `Person t -> SPerson.to_json t
     
 end)
 
@@ -202,17 +202,17 @@ class multi n = object (self)
 
 end
 
-class contact = object (self)
+class person = object (self)
 
   val mutable missing = 0
   val mutable filled  = 0
   val mutable counts  = Map.empty
     
   method add json = 
-    match CId.of_json_safe json with None -> missing <- missing + 1 | Some cid -> 
+    match PId.of_json_safe json with None -> missing <- missing + 1 | Some pid -> 
       filled <- filled + 1 ;
-      let n = try Map.find cid counts with Not_found -> 0 in
-      counts <- Map.add cid (1 + n) counts 
+      let n = try Map.find pid counts with Not_found -> 0 in
+      counts <- Map.add pid (1 + n) counts 
 
   method missing  = missing
   method filled   = filled
@@ -222,7 +222,7 @@ class contact = object (self)
     |> List.sort (fun (_,a) (_,b) -> compare b a)
     |> List.take 10 
 
-  method compile = ( `Contact (self :> SContact.t) : FieldStat.t )
+  method compile = ( `Person (self :> SPerson.t) : FieldStat.t )
 
 end
 
@@ -233,7 +233,7 @@ let aggregator_of_kind = function
   | `SingleChoice l -> (new single (List.length l) :> aggregator)
   | `MultipleChoice l -> (new multi (List.length l) :> aggregator)
   | `Json -> (new json :> aggregator) 
-  | `Contact -> (new contact :> aggregator) 
+  | `Person -> (new person :> aggregator) 
 
 let aggregators fields = 
   fields

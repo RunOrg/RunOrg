@@ -7,7 +7,7 @@ module Create = Endpoint.Post(struct
   module Arg = type module unit
   module Post = type module <
     ?subject  : String.Label.t option ; 
-    ?contacts : CId.t list     = [] ;
+    ?people   : PId.t list     = [] ;
     ?groups   : GId.t list     = [] ;
     ?public   : bool           = false ; 
     ?pm       : bool           = false ;
@@ -18,7 +18,7 @@ module Create = Endpoint.Post(struct
     at : Cqrs.Clock.t ;
   >
 
-  let path = "chat/create"
+  let path = "chat"
 
   let create_pm post = 
     if post # subject <> None then 
@@ -28,7 +28,7 @@ module Create = Endpoint.Post(struct
     else if post # groups <> [] then
       return (`BadRequest "A pm chatroom may not involve groups")
     else      
-      match post # contacts with 
+      match post # people with 
       | [ a ; b ] when a <> b -> 
 	let! id, at = Chat.createPM a b in
 	return (`Accepted (Out.make ~id ~at))
@@ -37,17 +37,17 @@ module Create = Endpoint.Post(struct
   let create_public post = 
     if post # groups <> [] then
       return (`BadRequest "A public chatroom may not involve groups")
-    else if post # contacts <> [] then
-      return (`BadRequest "A private chatroom may not involve contacts")
+    else if post # people <> [] then
+      return (`BadRequest "A private chatroom may not involve people")
     else 
       let! id, at = Chat.createPublic (post # subject) in
       return (`Accepted (Out.make ~id ~at))
 
   let create post = 
-    if post # contacts = [] && post # groups = [] then
-      return (`BadRequest "Please provide at least one contact or group")
+    if post # people = [] && post # groups = [] then
+      return (`BadRequest "Please provide at least one person or group")
     else
-      let! id, at = Chat.create ?subject:(post # subject) (post # contacts) (post # groups) in 
+      let! id, at = Chat.create ?subject:(post # subject) (post # people) (post # groups) in 
       return (`Accepted (Out.make ~id ~at))
 
   let response req () post =
@@ -74,7 +74,7 @@ module Post = Endpoint.Post(struct
 
   module Arg  = type module < id : Chat.I.t >
   module Post = type module <
-    author : CId.t ;
+    author : PId.t ;
     body : String.Rich.t ;
   >
 
@@ -111,22 +111,22 @@ let not_found id =
   `NotFound (!! "Chat '%s' does not exist" (Chat.I.to_string id))
 
 module ChatInfo = type module <
-  id : Chat.I.t ;
+  id      : Chat.I.t ;
   subject : String.Label.t option ;
-  contacts : CId.t list ;
-  groups : GId.t list ;
-  count : int ;
-  last : Time.t ; 
-  public : bool ; 
+  people  : PId.t list ;
+  groups  : GId.t list ;
+  count   : int ;
+  last    : Time.t ; 
+  public  : bool ; 
 >
 
 module Get = Endpoint.Get(struct
 
   module Arg = type module < id : Chat.I.t >
   module Out = type module <
-    contacts : ContactAPI.Short.t list ;
-    groups   : GroupAPI.Info.t list ;
-    info     : ChatInfo.t ;
+    people : PersonAPI.Short.t list ;
+    groups : GroupAPI.Info.t list ;
+    info   : ChatInfo.t ;
   >
 
   let path = "chat/{id}"
@@ -134,32 +134,32 @@ module Get = Endpoint.Get(struct
   let response req arg = 
     let! info = Chat.get (arg # id) in 
     match info with None -> return (not_found (arg # id)) | Some info -> 
-      let! contacts = List.M.filter_map Contact.get (info # contacts) in 
-      let! groups   = List.M.filter_map Group.get (info # groups) in 
-      return (`OK (Out.make ~contacts ~groups ~info))
+      let! people = List.M.filter_map Person.get (info # people) in 
+      let! groups = List.M.filter_map Group.get (info # groups) in 
+      return (`OK (Out.make ~people ~groups ~info))
 
 end)
 
 module GetAllAs = Endpoint.Get(struct
 
-  module Arg = type module < cid : CId.t >
+  module Arg = type module unit
   module Out = type module <
-    contacts : ContactAPI.Short.t list ;
-    groups   : GroupAPI.Info.t list ;
-    list     : ChatInfo.t list ;
+    people : PersonAPI.Short.t list ;
+    groups : GroupAPI.Info.t list ;
+    list   : ChatInfo.t list ;
   >
 
-  let path = "chat/as/{cid}"
+  let path = "chat"
 
-  let response req arg = 
+  let response req _ = 
     let  limit  = Option.default 100 (req # limit) in
     let  offset = Option.default 0 (req # offset) in
-    let! list = Chat.all_as ~limit ~offset (arg # cid) in
+    let! list = Chat.all_as ~limit ~offset (req # as_) in
     let! groups = List.(M.filter_map Group.get 
 			  (unique (flatten (map (#groups) list)))) in
-    let! contacts = List.(M.filter_map Contact.get
-			    (unique (flatten (map (#contacts) list)))) in
-    return (`OK (Out.make ~contacts ~groups ~list))
+    let! people = List.(M.filter_map Person.get
+			    (unique (flatten (map (#people) list)))) in
+    return (`OK (Out.make ~people ~groups ~list))
 
 end)
 
@@ -168,7 +168,7 @@ end)
 
 module Item = type module <
   id     : Chat.MI.t ;
-  author : CId.t ;
+  author : PId.t ;
   time   : Time.t ; 
   body   : String.Rich.t ;
 >
@@ -177,9 +177,9 @@ module Items = Endpoint.Get(struct
 
   module Arg = type module < id : Chat.I.t >
   module Out = type module <
-    items    : Item.t list ;
-    contacts : ContactAPI.Short.t list ;
-    count    : int 
+    items  : Item.t list ;
+    people : PersonAPI.Short.t list ;
+    count  : int 
   >
 
   let path = "chat/{id}/items"
@@ -190,7 +190,7 @@ module Items = Endpoint.Get(struct
       let  count = info # count in 
       let! items = Chat.list ?limit:(req # limit) ?offset:(req # offset) (arg # id) in
       let  cids  = List.unique (List.map (#author) items) in
-      let! contacts = List.M.filter_map Contact.get cids in
-      return (`OK (Out.make ~items ~contacts ~count))
+      let! people = List.M.filter_map Person.get cids in
+      return (`OK (Out.make ~items ~people ~count))
 
 end)

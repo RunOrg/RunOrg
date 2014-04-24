@@ -42,13 +42,13 @@ end)
 module Add = Endpoint.Post(struct
 
   module Arg = type module < id : GId.t >
-  module Post = type module (CId.t list)
+  module Post = type module (PId.t list)
   module Out = type module < at : Cqrs.Clock.t >
 
   let path = "groups/{id}/add"
 
   let needModerator gid = 
-    `Forbidden (!! "You need 'moderate' access to add contacts to group %S." (GId.to_string gid))
+    `Forbidden (!! "You need 'moderate' access to add people to group %S." (GId.to_string gid))
 
   let response req args post = 
     let! result = Group.add (req # as_) post [ args # id ] in
@@ -62,13 +62,13 @@ end)
 module Remove = Endpoint.Post(struct
 
   module Arg = type module < id : GId.t >
-  module Post = type module (CId.t list) 
+  module Post = type module (PId.t list) 
   module Out = type module < at : Cqrs.Clock.t >
 
   let path = "groups/{id}/remove"
 
   let needModerator gid = 
-    `Forbidden (!! "You need 'moderate' access to remove contacts from group %S." (GId.to_string gid))
+    `Forbidden (!! "You need 'moderate' access to remove people from group %S." (GId.to_string gid))
 
   let response req args post = 
     let! result = Group.remove (req # as_) post [ args # id ] in
@@ -83,7 +83,7 @@ module Get = Endpoint.Get(struct
 
   module Arg = type module < id : GId.t >
   module Out = type module <
-    list  : ContactAPI.Short.t list ; 
+    list  : PersonAPI.Short.t list ; 
     count : int ;
   >
 
@@ -93,7 +93,7 @@ module Get = Endpoint.Get(struct
     let limit = Option.default 1000 (req # limit) in
     let offset = Option.default 0 (req # offset) in
     let! cids, count = Group.list ~limit ~offset (args # id) in
-    let! list = List.M.filter_map Contact.get cids in 
+    let! list = List.M.filter_map Person.get cids in 
     return (`OK (Out.make ~list ~count))
 
 end)

@@ -13,8 +13,8 @@ module Access : Access.T with type t =
 
 (** Create an e-mail. The sender is NOT optional. *)
 val create : 
-  CId.t option -> 
-  from:CId.t -> 
+  PId.t option -> 
+  from:PId.t -> 
   subject:Unturing.t ->
   ?text:Unturing.t ->
   ?html:Unturing.t ->
@@ -27,7 +27,7 @@ val create :
 (** Information about an e-mail. *)
 type info = <
   id : I.t ;
-  from : CId.t ;
+  from : PId.t ;
   subject : Unturing.t ;
   text : Unturing.t option ;
   html : Unturing.t option ;

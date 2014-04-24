@@ -9,7 +9,7 @@ module Create = Endpoint.Post(struct
 
   module Arg = type module unit
   module Post = type module <
-    from : CId.t ;
+    from : PId.t ;
     subject : Unturing.t ;
    ?text : Unturing.t option ;
    ?html : Unturing.t option ;
@@ -56,7 +56,7 @@ module Get = Endpoint.Get(struct
   module Arg = type module < id : Mail.I.t >
   module Out = type module <
     id : Mail.I.t ;
-    from : ContactAPI.Short.t option ;
+    from : PersonAPI.Short.t option ;
     subject : Unturing.t ;
     text : Unturing.t option ;
     html : Unturing.t option ;
@@ -79,7 +79,7 @@ module Get = Endpoint.Get(struct
       
 	let audience = if Set.mem `Admin access then Some (mail # audience) else None in 
 
-	let! from = Contact.get (mail # from) in
+	let! from = Person.get (mail # from) in
 	return (`OK (Out.make ~id:(arg # id) ~from ~subject:(mail # subject)
 		       ~text:(mail # text) ~html:(mail # html) ~audience
 		       ~access ~urls:(mail # urls) ~self:(mail # self)

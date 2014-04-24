@@ -221,13 +221,13 @@ let run_checked req path ctx action =
   Run.with_context ctx begin
 
     let! auth_error = 
-      match req # as_ with None -> return None | Some cid -> 
+      match req # as_ with None -> return None | Some pid -> 
 	match req # token with 
-	| None -> return (Some (!! "Token needed to act as %S." (CId.to_string cid)))
-	| Some token -> let! ok = Token.can_be token cid in
+	| None -> return (Some (!! "Token needed to act as %S." (PId.to_string pid)))
+	| Some token -> let! ok = Token.can_be token pid in
 			if ok then return None else
 			  return (Some (!! "Token %S does not allow acting as %S." 
-					   (Token.I.to_string token) (CId.to_string cid)))
+					   (Token.I.to_string token) (PId.to_string pid)))
     in
     
     match auth_error with

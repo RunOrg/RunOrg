@@ -12,7 +12,7 @@ module Hash : Fmt.FMT with type t = [ `SHA1 ]
 
 (** Create a new key in the current database, using the provided hash and bytes. *)
 val create : 
-  CId.t option -> 
+  PId.t option -> 
   IpAddress.t -> 
   Hash.t -> string -> ( #O.ctx, [ `OK of I.t * Cqrs.Clock.t 
 				| `NeedAccess of Id.t ]) Run.t

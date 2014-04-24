@@ -3,8 +3,8 @@
 open Std
 
 val create : 
-  CId.t option ->
-  from:CId.t -> 
+  PId.t option ->
+  from:PId.t -> 
   subject:Unturing.t ->
   ?text:Unturing.t ->
   ?html:Unturing.t ->

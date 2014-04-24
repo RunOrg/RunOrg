@@ -27,11 +27,11 @@ module FieldStat : Fmt.FMT with type t =
       filled  : int ;
       items   : int array ;
     >
-  | `Contact of <
+  | `Person of <
       missing : int ;
       filled : int ;
       contacts : int ;
-      top10 : (CId.t * int) list ;
+      top10 : (PId.t * int) list ;
     >
   ]
 

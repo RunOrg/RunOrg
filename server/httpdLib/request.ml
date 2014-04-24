@@ -31,7 +31,7 @@ type t = <
 
   token : Token.I.t option ;
   at : Cqrs.Clock.t option ;
-  as_ : CId.t option ;  
+  as_ : PId.t option ;  
   limit : int option ;
   offset : int option ; 
 
@@ -308,9 +308,9 @@ let parse config ssl_socket =
   let as_ = 
     try 
       let cid = Map.find "as" params in
-      match CId.of_string_checked cid with 
+      match PId.of_string_checked cid with 
       | Some id -> Some id 
-      | None -> raise (SyntaxError (!! "'as' parameter is not a contact id: '%s'" cid)) 
+      | None -> raise (SyntaxError (!! "'as' parameter is not a person id: '%s'" cid)) 
     with Not_found -> None in   
 
   let at = 

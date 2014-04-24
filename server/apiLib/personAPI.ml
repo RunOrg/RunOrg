@@ -3,8 +3,8 @@
 open Std
 
 module Short = type module <
-  id     : CId.t ;
-  name   : String.Label.t ; 
+  id     : PId.t ;
+  label  : String.Label.t ; 
   gender : [`F|`M] option ;
   pic    : string ; 
 >
@@ -21,10 +21,10 @@ module Auth_Persona = Endpoint.Post(struct
     at    : Cqrs.Clock.t ;
   >
 
-  let path = "contacts/auth/persona"
+  let path = "people/auth/persona"
 
   let response req () p = 
-    let! result = Contact.auth_persona (p # assertion) in 
+    let! result = Person.auth_persona (p # assertion) in 
     match result with None -> return bad_auth | Some (token, self, at) -> 
       let token = Token.I.decay token in 
       return (`Accepted (Out.make ~token ~self ~at))
@@ -35,7 +35,7 @@ module Auth_Hmac = Endpoint.Post(struct
 
   module Arg = type module unit 
   module Post = type module <
-    id      : CId.t ;
+    id      : PId.t ;
     expires : Time.t ;
     key     : Key.I.t ;
     proof   : string ;
@@ -52,7 +52,7 @@ module Auth_Hmac = Endpoint.Post(struct
     hash      : Key.Hash.t ;
   >
 
-  let path = "contacts/auth/hmac"
+  let path = "people/auth/hmac"
 
   let response req () p = 
     match try Some (String.hex_decode (p # proof)) with _ -> None with 
@@ -64,7 +64,7 @@ module Auth_Hmac = Endpoint.Post(struct
 	  return (`BadRequest (!! "Current time (%s) is past expiration date" (Time.to_iso8601 (ctx # time))))
 	else
 	  
-	  let  assertion = "auth:" ^ CId.to_string (p # id) ^ ":until:" ^ Time.to_iso8601 (p # expires) in
+	  let  assertion = "auth:" ^ PId.to_string (p # id) ^ ":until:" ^ Time.to_iso8601 (p # expires) in
 	  let! hmac = Key.hmac (p # key) assertion in 
 	  
 	  match hmac with 
@@ -78,13 +78,13 @@ module Auth_Hmac = Endpoint.Post(struct
 	    return (`WithJSON (json, `Forbidden "Invalid proof"))
 	      
 	  | Some _ -> 
-	    let! contact_opt = Contact.get (p # id) in 
-	    match contact_opt with 
+	    let! person_opt = Person.get (p # id) in 
+	    match person_opt with 
 	    | None -> 
-	      return (`NotFound (!! "Contact '%s' does not exist" (CId.to_string (p # id))))
+	      return (`NotFound (!! "Person '%s' does not exist" (PId.to_string (p # id))))
 		
 	    | Some self -> 
-	      let! token = Token.create (`Contact (ctx # db, p # id)) in
+	      let! token = Token.create (`Person (ctx # db, p # id)) in
 	      return (`OK (Out.make ~self ~token))
 
 end)
@@ -94,28 +94,28 @@ module Import = Endpoint.Post(struct
   module Arg = type module unit
 
   module Post = type module <
-    email     : String.Label.t ;
-   ?fullname  : String.Label.t option ; 
-   ?firstname : String.Label.t option ;
-   ?lastname  : String.Label.t option ; 
-   ?gender    : [`F|`M] option ;
+    email      : String.Label.t ;
+   ?name       : String.Label.t option ; 
+   ?givenName  : String.Label.t option ;
+   ?familyName : String.Label.t option ; 
+   ?gender     : [`F|`M] option ;
   > list
 
   module Out = type module <
-    created   : CId.t list ;
+    created   : PId.t list ;
     at        : Cqrs.Clock.t ;
   >
 
-  let path = "contacts/import"
+  let path = "people/import"
 
   let response req () post = 
 
     let! created = List.M.map begin fun profile ->
-      Contact.create 
-	?fullname:(profile#fullname)
-	?firstname:(profile#firstname)
-	?lastname:(profile#lastname)
-	?gender:(profile#gender)
+      Person.create 
+	?name:(profile # name)
+	?givenName:(profile # givenName)
+	?familyName:(profile # familyName)
+	?gender:(profile # gender)
 	(profile # email) 
     end post in 
 
@@ -130,15 +130,15 @@ end)
 
 module Get = Endpoint.Get(struct
 
-  module Arg = type module < cid : CId.t >
+  module Arg = type module < id : PId.t >
   module Out = Short
 
-  let path = "contacts/{cid}"
+  let path = "people/{id}"
 
   let response req args = 
-    let! contact_opt = Contact.get (args # cid) in 
-    match contact_opt with Some contact -> return (`OK contact) | None ->
-      return (`NotFound (!! "Contact '%s' does not exist" (CId.to_string (args # cid))))
+    let! person_opt = Person.get (args # id) in 
+    match person_opt with Some person -> return (`OK person) | None ->
+      return (`NotFound (!! "Person '%s' does not exist" (PId.to_string (args # id))))
     
 end)
 
@@ -150,12 +150,12 @@ module All = Endpoint.Get(struct
     count : int 
   >
 
-  let path = "contacts"
+  let path = "people"
 
   let response req () = 
     let limit = Option.default 1000 (req # limit) in
     let offset = Option.default 0 (req # offset) in
-    let! list, count = Contact.all ~limit ~offset in
+    let! list, count = Person.all ~limit ~offset in
     return (`OK (Out.make ~list ~count))
 
 end)
@@ -167,12 +167,12 @@ module Search = Endpoint.Get(struct
     list  : Short.t list ; 
   >
 
-  let path = "contacts/search"
+  let path = "people/search"
 
   let response req arg = 
     let limit  = Option.default 10 (req # limit) in
     let prefix = arg # q in 
-    let! list = Contact.search ~limit prefix in
+    let! list = Person.search ~limit prefix in
     return (`OK (Out.make ~list))
 
 end)

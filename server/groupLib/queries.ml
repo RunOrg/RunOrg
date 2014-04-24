@@ -30,17 +30,17 @@ let all ~limit ~offset =
    ==================== *)
 
 let list ?limit ?offset gid = 
-  let! count = Cqrs.ManyToManyView.count View.contacts gid in 
-  let! list  = Cqrs.ManyToManyView.list ?limit ?offset View.contacts gid in
+  let! count = Cqrs.ManyToManyView.count View.people gid in 
+  let! list  = Cqrs.ManyToManyView.list ?limit ?offset View.people gid in
   return (list, count)
 
 (* Groups of a member
    ================== *)
 
-let of_contact cid = 
-  let  groups = Cqrs.ManyToManyView.flip View.contacts in 
+let of_person cid = 
+  let  groups = Cqrs.ManyToManyView.flip View.people in 
   let! list = Cqrs.ManyToManyView.list groups cid in
   return (Set.of_list list) 
 
 let () = 
-  Audience.register_groups_of_contact of_contact
+  Audience.register_groups_of_person of_person

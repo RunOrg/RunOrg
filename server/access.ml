@@ -11,7 +11,7 @@ module type T = sig
   include Fmt.FMT 
   module Audience : Fmt.FMT with type t = ( t, Audience.t ) Map.t
   module Set : Fmt.FMT with type t = t Set.t
-  val compute : CId.t option -> Audience.t -> (#Cqrs.ctx, Set.t) Run.t				   
+  val compute : PId.t option -> Audience.t -> (#Cqrs.ctx, Set.t) Run.t				   
   val set_to_string : Set.t -> string
   type 'id accessor
   module Map : sig
@@ -24,7 +24,7 @@ module type T = sig
       ?limit:int -> 
       ?offset:int -> 
       'id accessor -> 
-      CId.t option -> 
+      PId.t option -> 
       t -> 
       (# Cqrs.ctx, 'id list) Run.t
   end      			
@@ -133,9 +133,9 @@ module Make = functor (Access:ACCESS_LEVEL) -> struct
      ======================= *)
 
   module Who = type module
-    | Contact of Access.t * CId.t 
-    | Group   of Access.t * GId.t
-    | Anon    of Access.t 
+    | Person of Access.t * PId.t 
+    | Group  of Access.t * GId.t
+    | Anon   of Access.t 
 
   type 'id accessor = <
     map  : (Who.t, 'id) Cqrs.ManyToManyView.t ;
@@ -171,7 +171,7 @@ module Make = functor (Access:ACCESS_LEVEL) -> struct
       let! () = remove accessor id in
       
       let who_of_audience access = function `Anyone -> [ Who.Anon access ] | `List l -> 
-	  List.map (fun cid -> Who.Contact (access,cid)) (Set.to_list (l # contacts)) 
+	  List.map (fun pid -> Who.Person (access,pid)) (Set.to_list (l # people)) 
 	  @ List.map (fun gid -> Who.Group (access,gid)) (Set.to_list (l # groups))
       in
       
@@ -191,13 +191,13 @@ module Make = functor (Access:ACCESS_LEVEL) -> struct
     (* Listing elements by accessor 
        ============================ *)
 
-    let list ?limit ?offset accessor cid access = 
+    let list ?limit ?offset accessor pid access = 
 
-      let  of_contact cid = Run.edit_context (fun ctx -> (ctx :> Cqrs.ctx)) (of_contact cid) in
+      let  of_person pid = Run.edit_context (fun ctx -> (ctx :> Cqrs.ctx)) (of_person pid) in
 
-      let! groups = match cid with Some cid -> of_contact cid | None -> return Set.empty in
+      let! groups = match pid with Some pid -> of_person pid | None -> return Set.empty in
       let  list   = List.map (fun gid -> Who.Group (access,gid)) (Set.to_list groups) in 
-      let  list   = match cid with Some cid -> Who.Contact (access,cid) :: list | None -> list in
+      let  list   = match pid with Some pid -> Who.Person (access,pid) :: list | None -> list in
       let  list   = Who.Anon access :: list in 
 
       Cqrs.ManyToManyView.join ?limit ?offset (accessor # map) list 

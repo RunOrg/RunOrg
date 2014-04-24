@@ -2,15 +2,15 @@
 
 open Std
 
-let create ?fullname ?firstname ?lastname ?gender email = 
+let create ?name ?givenName ?familyName ?gender email = 
   let! id = Cqrs.MapView.get View.byEmail email in 
   match id with Some id -> return (id, Cqrs.Clock.empty) | None -> 
 
-    let  id = CId.gen () in 
+    let  id = PId.gen () in 
 
     let  update = 
-      if fullname <> None || lastname <> None || firstname <> None || gender <> None 
-      then [ Events.infoUpdated ~id ~firstname ~lastname ~fullname ~gender ]
+      if name <> None || givenName <> None || familyName <> None || gender <> None 
+      then [ Events.infoUpdated ~id ~familyName ~givenName ~name ~gender ]
       else []
     in
 

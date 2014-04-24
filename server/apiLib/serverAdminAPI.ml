@@ -104,7 +104,7 @@ module Db_Admin_Nominate = Endpoint.Post(struct
     match token with None -> return forbidden | Some _ ->      
 
       (* Create contacts by e-mail *)
-      let! created = List.M.map (fun email -> Contact.create email) post in 
+      let! created = List.M.map (fun email -> Person.create email) post in 
       let  cids = List.map fst created in 
 
       (* Add contacts to group *)

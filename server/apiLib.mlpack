@@ -1,11 +1,11 @@
 ChatAPI
-ContactAPI
 Endpoint
-MailAPI
 FormAPI
 GroupAPI
+KeyAPI
+MailAPI
+PersonAPI
 ServerAdminAPI
+SitesAPI
 TestAPI
 Version
-SitesAPI
-KeyAPI

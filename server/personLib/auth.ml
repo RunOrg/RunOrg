@@ -6,8 +6,8 @@ let auth_persona assertion =
 
   let respond clock info = 
     let! ctx = Run.context in 
-    let! token = Token.create (`Contact (ctx # db, info # id)) in
-    let  token = Token.I.Assert.contact token in 
+    let! token = Token.create (`Person (ctx # db, info # id)) in
+    let  token = Token.I.Assert.person token in 
     return (Some (token, info, clock))
   in
 

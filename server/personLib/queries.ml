@@ -6,22 +6,22 @@ open Std
    ============= *)
 
 type short = <
-  id     : CId.t ;
-  name   : String.Label.t ; 
+  id     : PId.t ;
+  label  : String.Label.t ; 
   pic    : string ; 
   gender : [`F|`M] option ; 
 >
 
-let format_short cid short = object
-  method id     = cid
-  method name   = short # name
+let format_short pid short = object
+  method id     = pid
+  method label  = short # label
   method gender = short # gender
   method pic    = Gravatar.pic_of_email (String.Label.to_string (short # email))
 end
 
-let initial_short cid email = object
-  method id     = cid
-  method name   = email
+let initial_short pid email = object
+  method id     = pid
+  method label  = email
   method gender = None
   method pic    = Gravatar.pic_of_email (String.Label.to_string email)
 end  
@@ -29,14 +29,14 @@ end
 (* Unfiltered access
    ================= *)
 
-let get cid = 
-  let! found = Cqrs.MapView.get View.short cid in 
-  match found with None -> return None | Some short -> return (Some (format_short cid short))
+let get pid = 
+  let! found = Cqrs.MapView.get View.short pid in 
+  match found with None -> return None | Some short -> return (Some (format_short pid short))
 
 let all ~limit ~offset = 
   let! list = Cqrs.MapView.all ~limit ~offset View.short in
   let! count = Cqrs.MapView.count View.short in 
-  return (List.map (fun (cid,short) -> format_short cid short) list, count)
+  return (List.map (fun (pid,short) -> format_short pid short) list, count)
 
 (* Filtered access 
    =============== *)
@@ -67,27 +67,27 @@ let search ?(limit=10) prefix =
    ============ *)
 
 type full = <
-  id        : CId.t ;
-  name      : String.Label.t ;
-  pic       : string ; 
-  gender    : [`F|`M] option ; 
-  email     : String.Label.t ; 
-  fullname  : String.Label.t option ; 
-  firstname : String.Label.t option ;
-  lastname  : String.Label.t option ; 
+  id         : PId.t ;
+  label      : String.Label.t ;
+  pic        : string ; 
+  gender     : [`F|`M] option ; 
+  email      : String.Label.t ; 
+  name       : String.Label.t option ; 
+  givenName  : String.Label.t option ;
+  familyName : String.Label.t option ; 
 >
 
-let format_full cid full = object
-  method id        = cid
-  method name      = full # name
-  method gender    = full # gender
-  method email     = full # email
-  method pic       = Gravatar.pic_of_email (String.Label.to_string (full # email))
-  method fullname  = full # fullname
-  method firstname = full # firstname
-  method lastname  = full # lastname
+let format_full pid full = object
+  method id         = pid
+  method label      = full # label
+  method gender     = full # gender
+  method email      = full # email
+  method pic        = Gravatar.pic_of_email (String.Label.to_string (full # email))
+  method name       = full # name
+  method givenName  = full # givenName
+  method familyName = full # familyName
 end 
 
-let full cid = 
-  let! found = Cqrs.MapView.get View.full cid in 
-  match found with None -> return None | Some full -> return (Some (format_full cid full))
+let full pid = 
+  let! found = Cqrs.MapView.get View.full pid in 
+  match found with None -> return None | Some full -> return (Some (format_full pid full))

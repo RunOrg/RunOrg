@@ -2,7 +2,7 @@
 
 type info = <
   mail : Mail.I.t ;
-  to_  : CId.t ; 
+  to_  : PId.t ; 
   sent : Time.t option ; 
   opened  : Time.t option ; 
   subject : string ;
@@ -10,7 +10,7 @@ type info = <
   text : string option ;
 >
 
-let get cid mid = 
+let get pid mid = 
   assert false
 
 type stats = <

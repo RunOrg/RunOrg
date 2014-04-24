@@ -182,7 +182,7 @@ end)
 
 module Fill = Endpoint.Put(struct
 
-  module Arg = type module < id : Form.I.t ; fid : CId.t >
+  module Arg = type module < id : Form.I.t ; fid : PId.t >
   module Put = type module <
     data : Json.t ;
   >
@@ -208,17 +208,17 @@ module Fill = Endpoint.Put(struct
   let noSuchOwner id fid =
     `NotFound (!! "%s does not exist." 
 		  (match fid with 
-		  | `Contact cid -> !! "Contact %S" (CId.to_string cid)))
+		  | `Person cid -> !! "Person %S" (PId.to_string cid)))
 
   let needAdmin id fid =
     `Forbidden (!! "You need admin access to fill form %S for %s." 
 		   (Form.I.to_string id)
 		   (match fid with 
-		   | `Contact cid -> !! "contact %S" (CId.to_string cid)))
+		   | `Person cid -> !! "person %S" (PId.to_string cid)))
       
   let response req args put = 
     
-    let fid  = `Contact (args # fid) in
+    let fid  = `Person (args # fid) in
     let id   = args # id in
 
     let data = match put # data with 
@@ -240,10 +240,10 @@ end)
 
 module GetFilled = Endpoint.Get(struct
 
-  module Arg = type module < id : Form.I.t ; fid : CId.t >
+  module Arg = type module < id : Form.I.t ; fid : PId.t >
   module Out = type module <
-    owner : CId.t ;
-    data : Json.t ;
+    owner : PId.t ;
+    data  : Json.t ;
   >
 
   let path = "forms/{id}/filled/{fid}"
@@ -252,18 +252,18 @@ module GetFilled = Endpoint.Get(struct
     `NotFound (!! "Form %S is not filled for %s." 
 		  (Form.I.to_string id)
 		  (match fid with 
-		  | `Contact cid -> !! "contact %S" (CId.to_string cid)))
+		  | `Person cid -> !! "person %S" (PId.to_string cid)))
       
   let needAdmin id fid =
     `Forbidden (!! "You need admin access to fill form %S for %s." 
 		   (Form.I.to_string id)
 		   (match fid with 
-		   | `Contact cid -> !! "contact %S" (CId.to_string cid)))
+		   | `Person cid -> !! "person %S" (PId.to_string cid)))
 
   let response req args = 
 
     let owner = args # fid in
-    let fid   = `Contact (args # fid) in
+    let fid   = `Person (args # fid) in
     let id    = args # id in
     
     let! result = Form.get_filled (req # as_) id fid in
@@ -283,12 +283,12 @@ module ListFilled = Endpoint.Get(struct
 
   module Arg = type module < id : Form.I.t >
   module Item = type module <        
-    owner      : CId.t ;
-    data       : Json.t ;
+    owner : PId.t ;
+    data  : Json.t ;
   >
 
   module Out = type module <
-    list : Item.t list ;
+    list  : Item.t list ;
     count : int ;
   >
 
@@ -308,7 +308,7 @@ module ListFilled = Endpoint.Get(struct
     
     let  output o = 
       Out.make ~count:(o # count) ~list:(List.map (fun i -> Item.make
-	~owner:(match i # owner with `Contact cid -> cid)
+	~owner:(match i # owner with `Person cid -> cid)
 	~data:(Json.Object (List.map (fun (k,v) -> Field.I.to_string k, v) (Map.to_list (i # data))))
       ) (o # list)) 
     in

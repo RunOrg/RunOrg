@@ -43,7 +43,7 @@ module KindName = type module
     | `SingleChoice   "single" 
     | `MultipleChoice "multiple" 
     | `Json           "json"
-    | `Contact        "contact"
+    | `Person         "person"
     ]
 
 module Kind = Fmt.Map(struct
@@ -63,7 +63,7 @@ module Kind = Fmt.Map(struct
 	  choices : Choice.t list ;
 	>
       | `Json           of unit list 
-      | `Contact        of unit list 
+      | `Person         of unit list 
       ]
 
   type t = 
@@ -73,7 +73,7 @@ module Kind = Fmt.Map(struct
       | `SingleChoice   of Choice.t list 
       | `MultipleChoice of Choice.t list 
       | `Json           
-      | `Contact        
+      | `Person        
       ]
 
   let from_inner = function 
@@ -83,7 +83,7 @@ module Kind = Fmt.Map(struct
     | `SingleChoice o -> `SingleChoice (o # choices) 
     | `MultipleChoice o -> `MultipleChoice (o # choices) 
     | `Json _ -> `Json
-    | `Contact _ -> `Contact
+    | `Person _ -> `Person
 
   let to_inner = function 
     | `Text -> `Text []
@@ -92,7 +92,7 @@ module Kind = Fmt.Map(struct
     | `SingleChoice choices -> Inner.singleChoice ~choices
     | `MultipleChoice choices -> Inner.multipleChoice ~choices
     | `Json -> `Json []
-    | `Contact -> `Contact []
+    | `Person -> `Person []
 
 end)
 
@@ -103,7 +103,7 @@ let string_of_kind = function
   | `SingleChoice _ -> "single"
   | `MultipleChoice _ -> "multi"
   | `Json -> "json"
-  | `Contact -> "contact"
+  | `Person -> "person"
 
 (* Meta-data 
    ========= *)
@@ -147,7 +147,7 @@ include Fmt.Make(struct
       | `RichText -> `RichText
       | `Json -> `Json
       | `DateTime -> `DateTime
-      | `Contact -> `Contact
+      | `Person -> `Person
       | `MultipleChoice -> `MultipleChoice (o # choices)
       | `SingleChoice -> `SingleChoice (o # choices)
       method custom = o # custom 
@@ -163,7 +163,7 @@ include Fmt.Make(struct
       | `RichText -> `RichText
       | `Json -> `Json
       | `DateTime -> `DateTime
-      | `Contact -> `Contact
+      | `Person -> `Person
       | `MultipleChoice _ -> `MultipleChoice 
       | `SingleChoice _ -> `SingleChoice 
       method custom = t # custom
@@ -173,7 +173,7 @@ include Fmt.Make(struct
       | `RichText 
       | `Json 
       | `DateTime
-      | `Contact -> []
+      | `Person -> []
       | `MultipleChoice list
       | `SingleChoice list -> list
     end)
@@ -206,11 +206,11 @@ let check_singleChoice l = function
   | Json.Null -> return true
   | _ -> return false
 
-let check_contact json = 
+let check_person json = 
   if json = Json.Null then return true else 
-    match CId.of_json_safe json with None -> return false | Some cid ->
-      let! contact = Contact.get cid in 
-      return (contact <> None) 
+    match PId.of_json_safe json with None -> return false | Some cid ->
+      let! person = Person.get cid in 
+      return (person <> None) 
 
 let check = function 
   | `Text     -> check_text
@@ -219,4 +219,4 @@ let check = function
   | `SingleChoice   l -> check_singleChoice l 
   | `MultipleChoice l -> check_multipleChoice l 
   | `Json     -> (fun _ -> return true)
-  | `Contact  -> check_contact
+  | `Person  -> check_person

@@ -6,13 +6,13 @@ open Std
    =========================== *)
 
 type info = <
-   id : I.t ; 
-   count : int ;
-   last : Time.t ;
-   contacts : CId.t list ;
-   groups : GId.t list ;
+   id      : I.t ; 
+   count   : int ;
+   last    : Time.t ;
+   people  : PId.t list ;
+   groups  : GId.t list ;
    subject : String.Label.t option ;
-   public : bool ;
+   public  : bool ;
 >
 
 let get id = 
@@ -21,7 +21,7 @@ let get id =
     method id = id 
     method count = info # count
     method last = info # last 
-    method contacts = info # contacts
+    method people = info # people
     method groups = info # groups
     method subject = info # subject
     method public = info # public
@@ -30,14 +30,17 @@ let get id =
 (* Reading multiple chatrooms 
    ========================== *)
 
-let all_as ?(limit=100) ?(offset=0) cid = 
+let all_as ?(limit=100) ?(offset=0) pid = 
 
-  let! gids = Group.of_contact cid in 
-  let  accessors = View.Accessor.( 
-    Public :: Contact cid :: List.map (fun gid -> Group gid) (Set.to_list gids )) in
+  let! accessors = 
+    match pid with None -> return [View.Accessor.Public] | Some pid -> 
+      let! gids = Group.of_person pid in 
+      return View.Accessor.( 
+	Public :: Person pid :: List.map (fun gid -> Group gid) (Set.to_list gids))
+  in
 
   let rec fetch limit offset = 
-
+    
     let! ids = Cqrs.ManyToManyView.join ~limit ~offset View.access accessors in 
     let  idN = List.length ids in    
     
@@ -47,7 +50,7 @@ let all_as ?(limit=100) ?(offset=0) cid =
     if idN = infoN || idN < limit then return infos else 
       let! more = fetch (limit - infoN) (offset + limit) in
       return (infos @ more)
-
+	
   in
   
   fetch limit offset
@@ -56,10 +59,10 @@ let all_as ?(limit=100) ?(offset=0) cid =
    ============= *)
 
 type item = <
-  id : MI.t ;
-  author : CId.t ;
-  time : Time.t ;
-  body : String.Rich.t ;
+  id     : MI.t ;
+  author : PId.t ;
+  time   : Time.t ;
+  body   : String.Rich.t ;
 >
 
 let list ?(limit=1000) ?(offset=0) id = 

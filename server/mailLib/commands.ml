@@ -8,12 +8,12 @@ open Std
 (* Who is allowed to create new e-mails ? *)
 let create_audience = Audience.admin 
 
-let create cid ~from ~subject ?text ?html ?(custom=Json.Null) ?(urls=[]) ?self audience = 
+let create pid ~from ~subject ?text ?html ?(custom=Json.Null) ?(urls=[]) ?self audience = 
 
   let id = I.gen () in
   let self = match self with None -> None | Some f -> Some (f id) in 
     
-  let! allowed = Audience.is_member cid create_audience in 
+  let! allowed = Audience.is_member pid create_audience in 
   
   if not allowed then     
     let! ctx = Run.context in 
@@ -21,6 +21,6 @@ let create cid ~from ~subject ?text ?html ?(custom=Json.Null) ?(urls=[]) ?self a
   else
 
     let! at = Store.append 
-      [ Events.created ~id ~cid ~from ~subject ~text ~html ~audience ~custom ~urls ~self ] in
+      [ Events.created ~id ~pid ~from ~subject ~text ~html ~audience ~custom ~urls ~self ] in
     
     return (`OK (id, at)) 

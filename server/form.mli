@@ -15,11 +15,11 @@ end
 (** The possible owners of a form - each filled form will be tied to one entity of
     this type. *)
 module Owner : Fmt.FMT with type t = 
-  [ `Contact ]
+  [ `Person ]
 
 (** The identifier of an individual owner. *)
 module FilledI : Fmt.FMT with type t = 
-  [ `Contact of CId.t ]
+  [ `Person of PId.t ]
 
 (** The audience of a form. *)
 module Access : Access.T with type t = 
@@ -45,7 +45,7 @@ type info = <
     @param audience The audience set, specifying all access levels. 
     @param custom An arbitrary JSON value, kept as-is. *)
 val create :
-  CId.t option -> 
+  PId.t option -> 
   ?label:String.Label.t ->
   ?id:CustomId.t -> 
   owner:Owner.t ->
@@ -63,7 +63,7 @@ val update :
   ?audience:Access.Audience.t ->
   ?custom:Json.t ->
   ?fields:Field.t list ->
-  CId.t option -> 
+  PId.t option -> 
   I.t -> (# O.ctx, [ `OK of Cqrs.Clock.t
 		   | `NoSuchForm of I.t 
 		   | `NeedAdmin of I.t
@@ -72,13 +72,13 @@ val update :
 (** Get short information about a form. *)
 val get : I.t -> (#O.ctx, info option) Run.t
 
-(** List all forms that can be seen by the provided contact. *)
-val list : CId.t option -> limit:int -> offset:int -> (#O.ctx, info list) Run.t
+(** List all forms that can be seen by the provided person. *)
+val list : PId.t option -> limit:int -> offset:int -> (#O.ctx, info list) Run.t
 
 (** Fill in a form based on its identifier. Either fails with an explicit error, 
     or returns the clock when the fill-in is done. *)
 val fill : 
-  CId.t option ->
+  PId.t option ->
   I.t ->
   FilledI.t -> 
   (Field.I.t, Json.t) Map.t -> (#O.ctx, [ `OK of Cqrs.Clock.t
@@ -99,7 +99,7 @@ type filled = <
 
 (** Get the filled data for a form. *)
 val get_filled :
-  CId.t option -> 
+  PId.t option -> 
   I.t ->
   FilledI.t ->
   (#O.ctx, [ `NoSuchForm of I.t
@@ -110,7 +110,7 @@ val get_filled :
 
 (** List filled instances for a form. *)
 val list_filled :
-  CId.t option ->
+  PId.t option ->
   ?limit:int ->
   ?offset:int ->
   I.t -> 
@@ -150,11 +150,11 @@ module Stats : sig
         filled  : int ;
 	items   : int array ;
       >
-    | `Contact of <
+    | `Person of <
         missing : int ;
         filled : int ;
 	contacts : int ;
-	top10 : (CId.t * int) list ;
+	top10 : (PId.t * int) list ;
       >
     ]
 
@@ -166,7 +166,7 @@ end
 
 (** Compute and return statistics for a form. *)
 val stats : 
-  CId.t option ->
+  PId.t option ->
   I.t ->
   (#O.ctx, [ `NoSuchForm of I.t
 	   | `NeedAdmin of I.t

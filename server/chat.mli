@@ -13,10 +13,10 @@ module MI : sig
 end
 
 (** Create a new chatroom. *)
-val create : ?subject:String.Label.t -> CId.t list -> GId.t list -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+val create : ?subject:String.Label.t -> PId.t list -> GId.t list -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
-(** Create a new private chatroom between two contacts. *)
-val createPM : CId.t -> CId.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
+(** Create a new private chatroom between two persons. *)
+val createPM : PId.t -> PId.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
 (** Create a new public chatroom with a label. *)
 val createPublic : String.Label.t option -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
@@ -25,7 +25,7 @@ val createPublic : String.Label.t option -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 val delete : I.t -> (#O.ctx, Cqrs.Clock.t) Run.t
 
 (** Post a new item to the chatroom. *)
-val post : I.t -> CId.t -> String.Rich.t -> (#O.ctx, MI.t * Cqrs.Clock.t) Run.t
+val post : I.t -> PId.t -> String.Rich.t -> (#O.ctx, MI.t * Cqrs.Clock.t) Run.t
 
 (** Delete an item in a chatroom. *)
 val deleteItem : I.t -> MI.t -> (#O.ctx, Cqrs.Clock.t) Run.t
@@ -36,7 +36,7 @@ type info = <
   count : int ;
   last : Time.t ; 
   subject : String.Label.t option ; 
-  contacts : CId.t list ;
+  people : PId.t list ;
   groups : GId.t list ;
   public : bool ; 
 >
@@ -44,13 +44,13 @@ type info = <
 (** Get short information about a chatroom. *)
 val get : I.t -> (#O.ctx, info option) Run.t
 
-(** Get all chatrooms that a given user participates in. *)
-val all_as : ?limit:int -> ?offset:int -> CId.t -> (#O.ctx, info list) Run.t
+(** Get all chatrooms that a given person participates in. *)
+val all_as : ?limit:int -> ?offset:int -> PId.t option -> (#O.ctx, info list) Run.t
 
 (** An item. *)
 type item = <
   id : MI.t ;
-  author : CId.t ;
+  author : PId.t ;
   time : Time.t ;
   body : String.Rich.t ;
 >

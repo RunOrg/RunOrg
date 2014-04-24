@@ -1,4 +1,4 @@
 (* © 2014 RunOrg *)
 
 include type module 
-  [ `Contact of CId.t ]
+  [ `Person of PId.t ]

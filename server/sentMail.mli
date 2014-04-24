@@ -13,7 +13,7 @@ module I : Id.PHANTOM
     cause the e-mails to be sent out. Creates a new wave and returns 
     its identifier. *)
 val send :
-  CId.t option -> 
+  PId.t option -> 
   Mail.I.t ->
   GId.t -> (#O.ctx, [ `NeedAccess of Id.t
 		    | `NoSuchMail of Mail.I.t
@@ -24,7 +24,7 @@ val send :
 (** Information about a mail sent to a specific person. *)
 type info = <
   mail : Mail.I.t ;
-  to_  : CId.t ; 
+  to_  : PId.t ; 
   sent : Time.t option ; 
   opened  : Time.t option ; 
   subject : string ;
@@ -32,7 +32,7 @@ type info = <
   text : string option ;
 >
 
-val get : CId.t -> Mail.I.t -> (#O.ctx, info option) Run.t
+val get : PId.t -> Mail.I.t -> (#O.ctx, info option) Run.t
 
 (** High-level aggregate statistics about sending an e-mail. *)
 type stats = <

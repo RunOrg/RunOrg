@@ -8,7 +8,7 @@ open Std
 (* Who is allowed to create new groups ? *)
 let create_audience = Audience.admin 
 
-let create cid ?label ?id audience = 
+let create pid ?label ?id audience = 
 
   let! id = match id with 
     | None -> return (Ok (GId.gen ()))
@@ -19,29 +19,29 @@ let create cid ?label ?id audience =
 
   match id with Bad id -> return (`AlreadyExists id) | Ok id -> 
 
-    let! allowed = Audience.is_member cid create_audience in 
+    let! allowed = Audience.is_member pid create_audience in 
 
     if not allowed then 
       let! ctx = Run.context in 
       return (`NeedAccess (ctx # db))
     else
 
-      let! clock = Store.append [ Events.created ~cid ~id ~label ~audience ] in
+      let! clock = Store.append [ Events.created ~pid ~id ~label ~audience ] in
       return (`OK (id, clock))
 
 (* Adding and removing from the group
    ================================== *)
 
-let add_internal cid contacts groups = 
-  if contacts = [] || groups = [] then return Cqrs.Clock.empty else
-    Store.append [ Events.added ~cid ~contacts ~groups ] 
+let add_internal pid people groups = 
+  if people = [] || groups = [] then return Cqrs.Clock.empty else
+    Store.append [ Events.added ~pid ~people ~groups ] 
 
-let add_forced contacts groups = 
-  add_internal None contacts groups
+let add_forced people groups = 
+  add_internal None people groups
 
-let with_moderator_rights cid groups f = 
+let with_moderator_rights pid groups f = 
 
-  let  compute = GroupAccess.compute cid in 
+  let  compute = GroupAccess.compute pid in 
 
   let! accesses = List.M.map begin fun id -> 
     let! info = Cqrs.MapView.get View.info id in
@@ -61,31 +61,31 @@ let with_moderator_rights cid groups f =
 
       f ()
 
-let add cid contacts groups = 
-  with_moderator_rights cid groups (fun () ->     
-    let! at = add_internal cid contacts groups in 
+let add pid people groups = 
+  with_moderator_rights pid groups (fun () ->     
+    let! at = add_internal pid people groups in 
     return (`OK at)) 
     
-let remove cid contacts groups = 
-  with_moderator_rights cid groups (fun () -> 
+let remove pid people groups = 
+  with_moderator_rights pid groups (fun () -> 
 
       let! at = 
-	if contacts = [] || groups = [] then return Cqrs.Clock.empty else
-	  Store.append [ Events.removed ~cid ~contacts ~groups ] in
+	if people = [] || groups = [] then return Cqrs.Clock.empty else
+	  Store.append [ Events.removed ~pid ~people ~groups ] in
 
       return (`OK at))    
 
 (* Deleting the group 
    ================== *)
   
-let delete cid id = 
+let delete pid id = 
   let! info = Cqrs.MapView.get View.info id in 
   match info with None -> return (`NotFound id) | Some info -> 
 
-    let! access = GroupAccess.compute cid (info # audience) in
+    let! access = GroupAccess.compute pid (info # audience) in
     
     if Set.mem `Admin access then 
-      let! clock = Store.append [ Events.deleted ~cid ~id ] in
+      let! clock = Store.append [ Events.deleted ~pid ~id ] in
       return (`OK clock) 
     else if Set.mem `View access then
       return (`NeedAdmin id) 

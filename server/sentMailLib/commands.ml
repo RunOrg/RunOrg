@@ -10,8 +10,8 @@ let send_audience = Audience.admin
 
 let batch_size = 100
 
-let send cid mid gid = 
-  let! allowed = Audience.is_member cid send_audience in 
+let send pid mid gid = 
+  let! allowed = Audience.is_member pid send_audience in 
   
   if not allowed then     
     let! ctx = Run.context in 
@@ -37,7 +37,7 @@ let send cid mid gid =
 	  
 	  let! batches = batches [] 0 in 
 	  
-	  let groupWaveCreate = Events.groupWaveCreated ~id ~cid ~mid ~gid 
+	  let groupWaveCreate = Events.groupWaveCreated ~id ~pid ~mid ~gid 
 	    ~from:(info # from) 
 	    ~subject:(info # subject) 
 	    ~text:(info # text)

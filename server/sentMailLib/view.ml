@@ -4,16 +4,16 @@ open Std
 
 let projection = Cqrs.Projection.make "sentmail" O.config
 
-(* Individual e-mail status by (mid,cid) pair.
+(* Individual e-mail status by (mid,pid) pair.
    =========================================== *)
 
 module Status = type module [ `Unknown | `Scheduled | `Sent | `Failed ] 
-module MidCid = type module (Mail.I.t * CId.t) 
+module MidPid = type module (Mail.I.t * PId.t) 
 
 let status = 
 
   let statusV, status = Cqrs.StatusView.make projection "status" 1 `Unknown
-    (module MidCid : Fmt.FMT with type t = MidCid.t)
+    (module MidPid : Fmt.FMT with type t = MidPid.t)
     (module Status : Fmt.FMT with type t = Status.t) in
 
   let () = Store.track statusV begin function 
@@ -22,8 +22,8 @@ let status =
     | `BatchScheduled   ev -> 
 
       let mid = ev # mid in 
-      let! () = List.M.iter (fun cid -> 
-	Cqrs.StatusView.update status (mid,cid) (function 
+      let! () = List.M.iter (fun pid -> 
+	Cqrs.StatusView.update status (mid,pid) (function 
 	| `Unknown 
 	| `Scheduled -> `Scheduled
 	| `Sent      -> `Sent
@@ -33,7 +33,7 @@ let status =
 
     | `Sent ev -> 
       
-      Cqrs.StatusView.update status (ev # mid, ev # cid) (function 
+      Cqrs.StatusView.update status (ev # mid, ev # pid) (function 
       | `Unknown 
       | `Scheduled 
       | `Sent      -> `Sent
@@ -42,7 +42,7 @@ let status =
     | `LinkFollowed   _ -> return () 
     | `SendingFailed ev -> 
   
-      Cqrs.StatusView.update status (ev # mid, ev # cid) (function
+      Cqrs.StatusView.update status (ev # mid, ev # pid) (function
       | `Unknown 
       | `Scheduled 
       | `Failed    -> `Failed
@@ -52,7 +52,7 @@ let status =
 
   status
 
-(* Individual e-mail info by (mid,cid) pair.
+(* Individual e-mail info by (mid,pid) pair.
    =========================================== *)
 
 module SentInfo = type module <
@@ -66,8 +66,8 @@ module SentInfo = type module <
 module FailInfo = type module <
   failed : Time.t ;
   reason : [ `NoInfoAvailable 
-	   | `NoSuchContact 
-	   | `NoSuchSender    of CId.t 
+	   | `NoSuchRecipient 
+	   | `NoSuchSender    of PId.t 
 	   | `SubjectError    of string * int * int 
 	   | `TextError       of string * int * int 
 	   | `HtmlError       of string * int * int 
@@ -86,7 +86,7 @@ module Info = type module <
 let info = 
 
   let infoV, info = Cqrs.MapView.make projection "info" 0
-    (module MidCid : Fmt.FMT with type t = MidCid.t)
+    (module MidPid : Fmt.FMT with type t = MidPid.t)
     (module Info : Fmt.FMT with type t = Info.t) in
 
   let () = Store.track infoV begin function 
@@ -96,11 +96,11 @@ let info =
 
       let mid = ev # mid in 
       List.M.iter 
-	(fun (pos,cid) -> 
-	  Cqrs.MapView.update info (mid,cid) (function 
+	(fun (pos,pid) -> 
+	  Cqrs.MapView.update info (mid,pid) (function 
 	  | Some _ -> `Keep 
 	  | None   -> `Put (Info.make ~wid:(ev # id) ~pos ~status:`Scheduled)))
-	(List.mapi (fun i cid -> (i + ev # pos), cid) (ev # list)) 
+	(List.mapi (fun i pid -> (i + ev # pos), pid) (ev # list)) 
 
     | `Sent ev -> 
 
@@ -110,7 +110,7 @@ let info =
 	   ~sent:(ctx # time) ~input:(ev # input) ~link:(ev # link)
 	   ~from:(ev # from) ~to_:(ev # to_)) in
 
-      Cqrs.MapView.update info (ev # mid, ev # cid) (function 
+      Cqrs.MapView.update info (ev # mid, ev # pid) (function 
       | None   -> `Keep 
       | Some i -> match i # status with 
 	| `Sent    _ 
@@ -125,7 +125,7 @@ let info =
 	(FailInfo.make 
 	   ~failed:(ctx # time) ~reason:(ev # why)) in
 
-      Cqrs.MapView.update info (ev # mid, ev # cid) (function 
+      Cqrs.MapView.update info (ev # mid, ev # pid) (function 
       | None   -> `Keep 
       | Some i -> match i # status with 
 	| `Sent    _ 
@@ -140,10 +140,10 @@ let info =
    ================ *)
 
 module Wave = type module <
-  cid : CId.t option ;
+  pid : PId.t option ;
   mid : Mail.I.t ;
   gid : GId.t ;
-  from : CId.t ;
+  from : PId.t ;
   subject : Unturing.t ;
   text : Unturing.t option ;
   html : Unturing.t option ;

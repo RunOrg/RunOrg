@@ -10,7 +10,7 @@ module OpenHack = struct
   open Audience
   open Access
   open Db
-  open Contact
+  open Person
   open Gravatar
   open Group
   open Chat

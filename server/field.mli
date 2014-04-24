@@ -28,7 +28,7 @@ module Kind : Fmt.FMT with type t =
   | `SingleChoice   of Choice.t list
   | `MultipleChoice of Choice.t list 
   | `Json 
-  | `Contact
+  | `Person
   ]
 
 (** Returns a string representation of a kind. *)

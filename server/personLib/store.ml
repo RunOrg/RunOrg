@@ -4,6 +4,6 @@ open Std
 
 include Cqrs.Stream(struct
   include Events
-  let name = "contact"
+  let name = "person"
 end)
 

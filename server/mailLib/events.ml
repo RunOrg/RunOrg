@@ -5,8 +5,8 @@ open Std
 include type module
     [ `Created of < 
 	id : I.t ; 
-        cid : CId.t option ; 
-	from : CId.t ; 
+        pid : PId.t option ; 
+	from : PId.t ; 
         subject : Unturing.t ;
 	audience : MailAccess.Audience.t ; 
 	text : Unturing.t option ;

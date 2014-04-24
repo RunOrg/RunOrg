@@ -2,7 +2,7 @@
 
 open Std
 
-module Owner = type module [ `ServerAdmin | `Contact of (Id.t * CId.t) ]
+module Owner = type module [ `ServerAdmin | `Person of (Id.t * PId.t) ]
 type owner = Owner.t
 
 (* The token store is an event-independent table, because : 
@@ -54,18 +54,18 @@ let is_server_admin id =
   let! owner = load id in 
   return (if (owner = Some `ServerAdmin) then Some (I.Assert.server_admin id) else None)
 
-let is_contact id = 
+let is_person id = 
   let! ctx = Run.context in  
   let! owner = load id in 
   match owner with 
-    | Some (`Contact (db,cid)) when db = ctx # db -> return (Some (CId.Assert.auth cid))
+    | Some (`Person (db,pid)) when db = ctx # db -> return (Some (PId.Assert.auth pid))
     | _ -> return None
   
-let can_be id cid = 
+let can_be id pid = 
   let! ctx = Run.context in  
   let! owner = load id in 
   match owner with 
-    | Some (`Contact (db,cid')) when db = ctx # db && cid = cid' -> return true
+    | Some (`Person (db,pid')) when db = ctx # db && pid = pid' -> return true
     | Some (`ServerAdmin) -> return true
     | _ -> return false
   

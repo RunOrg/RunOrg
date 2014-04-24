@@ -32,7 +32,7 @@ module AuthDb = Endpoint.Post(struct
     ?email : string = "test@runorg.com" ;
     ?admin : bool = true ; 
   >
-  module Out = type module < token : Token.I.t ; at : Cqrs.Clock.t ; id : CId.t >
+  module Out = type module < token : Token.I.t ; at : Cqrs.Clock.t ; id : PId.t >
 
   let path = "test/auth"
 
@@ -40,14 +40,14 @@ module AuthDb = Endpoint.Post(struct
     if not Configuration.test then return bad_auth else
       match String.Label.of_string (post # email) with None -> return bad_email | Some email -> 
 	let! ctx = Run.context in 
-	let! cid, at = Contact.create email in
-	let  owner = `Contact (ctx # db, cid) in
+	let! id, at = Person.create email in
+	let  owner = `Person (ctx # db, id) in
 	let! at = 
-	  if post # admin then let! at' = Group.add_forced [cid] [GId.admin] in
+	  if post # admin then let! at' = Group.add_forced [id] [GId.admin] in
 			       return (Cqrs.Clock.merge at at')
 	  else return at in
 	let! token = Token.create owner in
-	return (`Accepted (Out.make ~id:cid ~token ~at))
+	return (`Accepted (Out.make ~id ~token ~at))
 
 end)
 

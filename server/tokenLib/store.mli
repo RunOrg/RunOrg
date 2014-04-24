@@ -1,8 +1,8 @@
 (* © 2014 RunOrg *)
 
-type owner = [ `ServerAdmin | `Contact of (Id.t * CId.t) ]
+type owner = [ `ServerAdmin | `Person of (Id.t * PId.t) ]
 val create : owner -> (# O.ctx, I.t) Run.t
 val is_server_admin : I.t -> (# O.ctx, [`ServerAdmin] I.id option) Run.t
-val is_contact : I.t -> (# O.ctx, [`Auth] CId.id option) Run.t 
-val can_be : I.t -> CId.t -> (# O.ctx, bool) Run.t
+val is_person : I.t -> (# O.ctx, [`Auth] PId.id option) Run.t 
+val can_be : I.t -> PId.t -> (# O.ctx, bool) Run.t
 

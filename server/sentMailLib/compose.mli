@@ -19,8 +19,8 @@ type data = <
 (** A failure that can occur while extracting raw data. *)
 type failure = 
   [ `NoInfoAvailable 
-  | `NoSuchContact 
-  | `NoSuchSender    of CId.t 
+  | `NoSuchRecipient 
+  | `NoSuchSender    of PId.t 
   | `SubjectError    of string * int * int 
   | `TextError       of string * int * int 
   | `HtmlError       of string * int * int 
@@ -29,16 +29,16 @@ type failure =
 
 (** Preview data for a (mail,contact) pair that has not been scheduled yet. 
     Works without accessing a wave OR a sent-mail. *)
-val preview : Mail.info -> CId.t -> (#Cqrs.ctx, (data,failure) Std.result) Run.t
+val preview : Mail.info -> PId.t -> (#Cqrs.ctx, (data,failure) Std.result) Run.t
 
 (** Data for a (mail,contact) pair that is scheduled but not yet sent. 
     This function is intended to be used by the sender, and therefore returns the 
     link root and wave ID (both must be saved). *)
-val scheduled : Mail.I.t -> CId.t -> (#Cqrs.ctx, (I.t * Link.Root.t * data, failure) Std.result) Run.t
+val scheduled : Mail.I.t -> PId.t -> (#Cqrs.ctx, (I.t * Link.Root.t * data, failure) Std.result) Run.t
 
 (** Data for a (mail,contact) pair that was already sent. Data is extracted from the 
     wave AND sent-mail objects. *)
-val sent : Mail.I.t -> CId.t -> (#Cqrs.ctx, (data,failure) Std.result) Run.t
+val sent : Mail.I.t -> PId.t -> (#Cqrs.ctx, (data,failure) Std.result) Run.t
 
 (** {2 Rendering the e-mail} *)
 
