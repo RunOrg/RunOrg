@@ -74,7 +74,7 @@ TEST("Correctly authenticates user.", function(Query) {
 	.then(function(d,s,r) { return d.created[0]; });
 
     var key = "74e6f7298a9c2d168935f58c001bad88";
-    var kid = Query.post(["db/",db,"/keys/create"],{"hash":"SHA-1","key":key,"encoding":"hex"},auth).id();
+    var kid = Query.post(["db/",db,"/keys"],{"hash":"SHA-1","key":key,"encoding":"hex"},auth).id();
 
     return id.then(function(id) {
 	
