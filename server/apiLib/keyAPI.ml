@@ -19,7 +19,7 @@ module Create = Endpoint.Post(struct
     at : Cqrs.Clock.t ;
   >
 
-  let path = "keys/create"
+  let path = "keys"
 
   let needAccess id = 
     `Forbidden (!! "Not allowed to create keys in database %S." (Id.to_string id))

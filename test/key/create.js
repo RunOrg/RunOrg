@@ -1,4 +1,4 @@
-// POST /db/{db}/keys/create
+// POST /db/{db}/keys
 // Keys / Create new API key
 //
 // Alpha @ 0.1.40
@@ -13,7 +13,7 @@ TEST("The response has valid return code and content type.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     
-    return Query.post(["db/",db,"/keys/create"],Example,auth)
+    return Query.post(["db/",db,"/keys"],Example,auth)
 	.assertStatus(202).assertIsJson();
 
 });
@@ -48,7 +48,7 @@ TEST("The response has valid return code and content type.", function(Query) {
 // # Example
 // 
 // ### Example request
-//     POST /db/0Et4X0016om/keys/create
+//     POST /db/0Et4X0016om/keys
 //     Content-Type: application/json 
 //    
 //     { "hash": "SHA-1",
@@ -66,7 +66,7 @@ TEST("Creation works.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var idlen = Query.post(["/db/",db,"/keys/create"],Example,auth)
+    var idlen = Query.post(["/db/",db,"/keys"],Example,auth)
 	.then(function(d,s,r) { return d.id.length });
 
     return Assert.areEqual(11,idlen);
@@ -80,7 +80,7 @@ TEST("Creation works.", function(Query) {
 
 TEST("Returns 404 when database does not exist.", function(Query) {
 
-    return Query.post("/db/00000000001/keys/create",Example).assertStatus(404);
+    return Query.post("/db/00000000001/keys",Example).assertStatus(404);
 
 });
 
@@ -93,7 +93,7 @@ TEST("Returns 401 when token is not valid.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db,false);
 
-    return Query.post(["db/",db,"/keys/create"],Example,auth).assertStatus(403);
+    return Query.post(["db/",db,"/keys"],Example,auth).assertStatus(403);
 
 });
 
@@ -104,7 +104,7 @@ TEST("Returns 401 when token is not valid.", function(Query) {
 TEST("Returns 401 when token is not valid.", function(Query) {
 
     var db = Query.mkdb();
-    return Query.post(["db/",db,"/keys/create"],Example,{token:"0123456789a",id:"0123456789a"})
+    return Query.post(["db/",db,"/keys"],Example,{token:"0123456789a",id:"0123456789a"})
 	.assertStatus(401);
 });
 
