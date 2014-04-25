@@ -86,3 +86,35 @@ module Get = Endpoint.Get(struct
 		       ~custom:(mail # custom)))
 
 end)
+
+(* Sending e-mail. 
+   =============== *)
+
+module Send = Endpoint.Post(struct
+
+  module Arg  = type module < id : Mail.I.t >
+  module Post = type module < group : GId.t >
+
+  module Out  = type module < 
+    count : int ;
+    at    : Cqrs.Clock.t ;
+  >
+
+  let needAccess id = 
+    `Forbidden (!! "Not allowed to send mail in database %S." (Id.to_string id))
+
+  let groupNotFound id =
+    `NotFound (!! "Group %S does not exist." (GId.to_string id)) 
+
+  let path = "mail/{id}/send"
+
+  let response req arg post = 
+    let! result = SentMail.send (req # as_) (arg # id) (post # group) in
+    match result with 
+    | `NeedAccess       id -> return (needAccess id)
+    | `NoSuchMail      mid -> return (notFound mid) 
+    | `NoSuchGroup     gid -> return (groupNotFound gid) 
+    | `GroupEmpty        _ -> return (`Accepted (Out.make ~count:0 ~at:Cqrs.Clock.empty))
+    | `OK (wid, count, at) -> return (`Accepted (Out.make ~count ~at))
+
+end)
