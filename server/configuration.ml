@@ -98,6 +98,11 @@ module Parse = struct
 	key path (Printexc.to_string exn) ;
       exit (-1)
 
+  let error key what = 
+    Printf.printf "When reading field %s in configuration file %S:\n%s"
+      key path what ;
+    exit (-1)
+
 end
 
 type role = [ `Run | `Reset ]
@@ -112,8 +117,19 @@ let role =
 let to_stdout = 
   BatArray.mem "-stdout" Sys.argv
     
-let log_prefix = Parse.string "log.directory" "/var/log/runorg/"
-let log_prefix = if to_stdout then None else Some log_prefix
+
+module Log = struct
+
+  let prefix = Parse.string "log.directory" "/var/log/runorg/"
+  let prefix = if to_stdout then None else Some prefix
+
+  let httpd = match Parse.string "log.httpd" "none" with
+    | "none"  -> `None
+    | "trace" -> `Trace
+    | "debug" -> `Debug
+    | unknown -> Parse.error "log.httpd" ("Unknown log level: " ^ unknown)
+
+end
 
 module Database = struct
   let host      = Parse.string "db.host" "localhost" 

@@ -13,7 +13,7 @@ let file_name error =
    The file is kept open until the next day. *)
 let file role error = 
 
-  let prefix = match Configuration.log_prefix with 
+  let prefix = match Configuration.Log.prefix with 
     | None -> None 
     | _ when role = `Reset -> None 
     | Some prefix -> Some prefix 

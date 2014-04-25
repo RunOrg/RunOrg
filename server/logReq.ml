@@ -2,7 +2,10 @@
 
 open Run
 
-let enabled = false
+let enabled = match Configuration.Log.httpd with
+  | `None  -> false
+  | `Trace
+  | `Debug -> true
 
 (* Context management 
    ================== *)

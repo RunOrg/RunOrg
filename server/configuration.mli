@@ -16,9 +16,18 @@ val role : role
     test script" API endpoint. *)
 val test : bool
 
-(** If set, write logs to a file in that folder. Otherwise, write logs to 
-    standard output. *)
-val log_prefix : string option
+
+module Log : sig
+
+  (** If set, write logs to a file in that folder. Otherwise, write logs to 
+      standard output. *)
+  val prefix : string option
+
+  (** Is the HTTPD log enabled ? RunOrg will always generate at least one line 
+      per request, in access.log format. *)
+  val httpd : [ `None | `Trace | `Debug ]
+
+end
 
 module Database : sig
 
@@ -27,9 +36,6 @@ module Database : sig
   val database : string
   val user : string
   val password : string
-
-  (** Poll frequency, in milliseconds. *)
-  val poll : float
 
   (** Database pool size. The number of connections kept around
       after being released, to skip the ~25ms connection time. *)
