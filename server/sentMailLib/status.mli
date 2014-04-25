@@ -3,5 +3,4 @@
 include Fmt.FMT with type t = 
   [ `Preview
   | `Scheduled
-  | `Sent
-  | `Failed ]
+  | `Sent ]

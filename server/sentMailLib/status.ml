@@ -3,6 +3,5 @@
 include type module 
     [ `Preview   "preview"
     | `Scheduled "scheduled"
-    | `Sent      "sent"
-    | `Failed    "failed" ]
+    | `Sent      "sent" ]
 

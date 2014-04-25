@@ -25,8 +25,7 @@ val send :
 module Status : Fmt.FMT with type t = 
   [ `Preview 
   | `Scheduled
-  | `Sent
-  | `Failed ]
+  | `Sent ]
 
 (** Failure to sent (or preview) an e-mail. *)
 type failure = 
