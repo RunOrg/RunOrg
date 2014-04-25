@@ -10,6 +10,13 @@ var Async = (function() {
 	return typeof obj == 'object' && obj !== null && 'then' in obj;
     }
 
+    // A promise that returns after the specified time
+    function sleep(time) {
+	var deferred = $.Deferred();
+	setTimeout(function() { deferred.resolve(); }, time);
+	return deferred.promise();
+    }
+
     // Returns a promise that waits for all promises inside the passed object
     // to return with a result. The provided value is also modified in-place
     // so that all promises are replaced with their concrete values.  
@@ -54,7 +61,8 @@ var Async = (function() {
     
     return {
 	isThenable : isThenable,
-	wait       : wait
+	wait       : wait,
+	sleep      : sleep
     };
 
 })();
