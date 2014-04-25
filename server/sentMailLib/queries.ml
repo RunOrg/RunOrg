@@ -8,11 +8,9 @@ open Std
 type info = <
   mail : Mail.I.t ;
   to_  : PId.t ; 
+  preview : Compose.rendered ;
   sent : Time.t option ; 
   opened  : Time.t option ; 
-  subject : string ;
-  html : string option ;
-  text : string option ;
   status : Status.t ; 
 >
 
@@ -23,9 +21,7 @@ let make mid pid status sent data =
     method to_     = pid
     method sent    = sent
     method opened  = None
-    method subject = rendered # subject
-    method text    = rendered # text
-    method html    = rendered # html
+    method preview = rendered
     method status  = status 
   end : info ) 
 
