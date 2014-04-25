@@ -21,6 +21,13 @@ val send :
 		    | `GroupEmpty of GId.t
 		    | `OK of I.t * int * Cqrs.Clock.t ]) Run.t
   
+(** Current status of a sent e-mail. *)
+module Status : Fmt.FMT with type t = 
+  [ `Preview 
+  | `Scheduled
+  | `Sent
+  | `Failed ]
+
 (** Information about a mail sent to a specific person. *)
 type info = <
   mail : Mail.I.t ;
@@ -30,8 +37,12 @@ type info = <
   subject : string ;
   html : string option ;
   text : string option ;
+  status : Status.t ;
 >
 
+(** Returns a representation of a mail sent to a specific person. 
+    This may be a preview (the mail is not sent yet, perhaps not
+    even scheduled) or a view of what was sent. *)
 val get : PId.t -> Mail.I.t -> (#O.ctx, info option) Run.t
 
 (** High-level aggregate statistics about sending an e-mail. *)

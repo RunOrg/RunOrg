@@ -8,6 +8,7 @@ type info = <
   subject : string ;
   html : string option ;
   text : string option ;
+  status : Status.t ; 
 >
 
 val get : PId.t -> Mail.I.t -> (#O.ctx, info option) Run.t

@@ -2,6 +2,7 @@
 
 module I = SentMailLib.I
 module Link = SentMailLib.Link
+module Status = SentMailLib.Status
 
 include SentMailLib.Commands
 include SentMailLib.Queries

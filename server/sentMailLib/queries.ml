@@ -8,6 +8,7 @@ type info = <
   subject : string ;
   html : string option ;
   text : string option ;
+  status : Status.t ; 
 >
 
 let get pid mid = 
