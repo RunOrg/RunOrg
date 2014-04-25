@@ -119,6 +119,34 @@ module Send = Endpoint.Post(struct
 
 end)
 
+(* Sending statistics 
+   ================== *)
+
+module Stats = Endpoint.Get(struct
+
+  module Arg = type module < id : Mail.I.t >
+  module Out = type module <
+    scheduled : int ;
+    sent : int ;
+    failed : int ;
+    opened : int ;
+    clicked : int ;
+  >
+
+  let needAdmin mid = 
+    `Forbidden (!! "You need admin access to view statistics for e-mail %S." (Mail.I.to_string mid))
+
+  let path = "mail/{id}/stats"
+
+  let response req arg = 
+    let! stats = SentMail.stats (req # as_) (arg # id) in
+    match stats with 
+    | `NoSuchMail mid -> return (notFound mid) 
+    | `NeedAdmin  mid -> return (needAdmin mid) 
+    | `OK stats -> return (`OK (stats :> Out.t))
+
+end)
+
 (* Sent e-mail information and preview. 
    ==================================== *)
 
