@@ -40,7 +40,7 @@ let get_scheduled mid pid =
     return (Ok (make mid pid `Scheduled None data))
 
 let get_sent wid mid pid sent = 
-  let! data = Compose.sent wid pid sent in
+  let! data = Compose.sent wid sent in
   match data with Bad f -> return (Bad f) | Ok data -> 
     return (Ok (make mid pid `Sent (Some (sent # sent)) data))
 

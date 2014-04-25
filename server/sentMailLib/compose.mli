@@ -27,6 +27,9 @@ type failure =
   | `Exception       of string 
   ]
 
+(** Remove the links from the input map, as they can be re-created from the link root. *)
+val remove_links : (string, Json.t) Map.t -> (string, Json.t) Map.t
+
 (** Preview data for a (mail,contact) pair that has not been scheduled yet. 
     Works without accessing a wave OR a sent-mail. *)
 val preview : Mail.info -> PId.t -> (#Cqrs.ctx, (data,failure) Std.result) Run.t
@@ -38,7 +41,7 @@ val scheduled : Mail.I.t -> PId.t -> (#Cqrs.ctx, (I.t * Link.Root.t * data, fail
 
 (** Data for a (mail,contact) pair that was already sent. Data is extracted from the 
     wave AND sent-mail objects. *)
-val sent : I.t -> PId.t -> View.SentInfo.t -> (#Cqrs.ctx, (data,failure) Std.result) Run.t
+val sent : I.t -> View.SentInfo.t -> (#Cqrs.ctx, (data,failure) Std.result) Run.t
 
 (** {2 Rendering the e-mail} *)
 

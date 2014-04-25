@@ -42,6 +42,28 @@ type failure =
 
 exception PrepareFailure of failure 
 
+(* There is no need to keep the URLs in the input data, they can be rebuilt from 
+   the wave URLs and the link root. *)
+
+let add_links db root self urls input = 
+  List.fold_left (fun m (k,v) -> Map.add k v m) input [
+    "track",  (match root with 
+    | None      -> Json.String "void(0)" 
+    | Some root -> Link.url db (Link.track root)) ; 
+    "self",   (match root with 
+    | None      -> Json.of_opt String.Url.to_json self 
+    | Some root -> if self = None then Json.Null else Link.url db (Link.self root)) ;
+    "urls",   (match root with 
+    | None      -> Json.Array (List.map String.Url.to_json urls) 
+    | Some root -> Json.Array (List.mapi (fun i _ -> Link.url db (Link.view root i)) urls)) ;
+    "auth",   (match root with 
+    | None      -> Json.Array (List.map String.Url.to_json urls)
+    | Some root -> Json.Array (List.mapi (fun i _ -> Link.url db (Link.auth root i)) urls)) ;
+  ] 
+
+let remove_links input = 
+  List.fold_left (fun m k -> Map.remove k m) input [ "track" ; "self" ; "urls" ; "auth" ]
+
 (* Generic function, does not query the database, returns [data]. 
    If no link root is provided (as is the case for previews), uses the
    actual URLs. *)
@@ -54,19 +76,9 @@ let prepare ~sender ~self ~person ?root ~db ~urls ~custom ~subject ~text ~html =
       "to",     person_json person ;
       "from",   person_json sender  ; 
       "custom", custom ; 
-      "track",  (match root with 
-      | None      -> Json.String "void(0)" 
-      | Some root -> Link.url db (Link.track root)) ; 
-      "self",   (match root with 
-      | None      -> Json.of_opt String.Url.to_json self 
-      | Some root -> if self = None then Json.Null else Link.url db (Link.self root)) ;
-      "urls",   (match root with 
-      | None      -> Json.Array (List.map String.Url.to_json urls) 
-      | Some root -> Json.Array (List.mapi (fun i _ -> Link.url db (Link.view root i)) urls)) ;
-      "auth",   (match root with 
-      | None      -> Json.Array (List.map String.Url.to_json urls)
-      | Some root -> Json.Array (List.mapi (fun i _ -> Link.url db (Link.auth root i)) urls)) ;
-    ] in 
+    ] in
+
+    let input = add_links db root self urls input in 
 
     let subject = 
       match Unturing.compile (subject # script) (subject # inline) with 
@@ -175,8 +187,57 @@ let scheduled mid cid =
   end
 
 (* Implement later. *)
-let sent mid cid = 
-  assert false
+let sent wid sent = 
+
+  let handle_failure = function 
+    | PrepareFailure reason -> return (Bad reason)
+    | exn -> return (Bad (`Exception (Printexc.to_string exn)))
+  in
+
+  Run.on_failure handle_failure begin 
+  
+    (* The wave should ALWAYS exist. *)
+    let! wave = Cqrs.MapView.get View.wave wid in
+    let  wave = match wave with None -> raise (PrepareFailure `NoInfoAvailable) | Some w -> w in
+
+    let input = match sent # input with 
+      | Json.Object list -> Map.of_list list
+      | _ -> Map.empty (* This should not happen. *)
+    in
+
+    let subject = 
+      match Unturing.compile (wave # subject # script) (wave # subject # inline) with 
+      | `SyntaxError (w,l,c) -> raise (PrepareFailure (`SubjectError (w,l,c)))
+      | `OK script -> script
+    in
+
+    let text =
+      match wave # text with None -> None | Some text -> 
+	match Unturing.compile (text # script) (text # inline) with 
+	| `SyntaxError (w,l,c) -> raise (PrepareFailure (`SubjectError (w,l,c)))
+	| `OK script -> Some script
+    in 
+
+    let html =
+      match wave # html with None -> None | Some html -> 
+	match Unturing.compile (html # script) (html # inline) with 
+	| `SyntaxError (w,l,c) -> raise (PrepareFailure (`SubjectError (w,l,c)))
+	| `OK script -> Some script
+    in 
+
+    let! ctx    = Run.context in 
+    let  db     = ctx # db in 
+
+    return (Ok (object
+      method from    = sent # from
+      method to_     = sent # to_
+      method input   = add_links db (Some (sent # link)) (wave # self) (wave # urls) input
+      method subject = subject
+      method text    = text
+      method html    = html 
+    end : data))
+
+  end
 
 (* Rendering 
    ========= *)
