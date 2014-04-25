@@ -49,11 +49,14 @@ let get mail pid =
     | `Failed  f -> return (Bad (f # reason))
     | `Sent sent -> get_sent (info # wid) mid pid sent 
 
+(* Statistics generation 
+   ===================== *)
+
 type stats = <
-  prepared : int ;
+  scheduled : int ;
   sent : int ;
-  bounced : int ; 
-  opened : int ; 
+  failed : int ; 
+  opened : int ;
   clicked : int ; 
 >
 

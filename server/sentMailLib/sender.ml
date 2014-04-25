@@ -25,10 +25,9 @@ let batch_size = 10
 let next_batch_sync : unit -> (#Cqrs.ctx, (Id.t * Mail.I.t * PId.t) list) Run.t = fun () -> 
 
   let! clock = Store.clock () in 
-  Run.edit_context (fun ctx -> ctx # with_after clock) begin 
-    let! list = Cqrs.StatusView.global_by_status ~limit:batch_size View.status `Scheduled in
-    return (List.map (fun (db,(mid,pid)) -> db, mid, pid) list) 
-  end 
+  Run.edit_context 
+    (fun ctx -> ctx # with_after clock) 
+    (Cqrs.StatusView.global_by_status ~limit:batch_size View.status `Scheduled)
 
 (* This function constructs the subject and bodies of a mail by fetching the 
    appropriate corresponding data. Assumes to be run in the appropriate database. *)

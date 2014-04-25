@@ -12,8 +12,9 @@ module MidPid = type module (Mail.I.t * PId.t)
 
 let status = 
 
-  let statusV, status = Cqrs.StatusView.make projection "status" 1 `Unknown
-    (module MidPid : Fmt.FMT with type t = MidPid.t)
+  let statusV, status = Cqrs.StatusView.make projection "status" 2 `Unknown
+    (module Mail.I : Fmt.FMT with type t = Mail.I.t)
+    (module PId : Fmt.FMT with type t = PId.t)
     (module Status : Fmt.FMT with type t = Status.t) in
 
   let () = Store.track statusV begin function 
@@ -23,7 +24,7 @@ let status =
 
       let mid = ev # mid in 
       let! () = List.M.iter (fun pid -> 
-	Cqrs.StatusView.update status (mid,pid) (function 
+	Cqrs.StatusView.update status mid pid (function 
 	| `Unknown 
 	| `Scheduled -> `Scheduled
 	| `Sent      -> `Sent
@@ -33,7 +34,7 @@ let status =
 
     | `Sent ev -> 
       
-      Cqrs.StatusView.update status (ev # mid, ev # pid) (function 
+      Cqrs.StatusView.update status (ev # mid) (ev # pid) (function 
       | `Unknown 
       | `Scheduled 
       | `Sent      -> `Sent
@@ -42,7 +43,7 @@ let status =
     | `LinkFollowed   _ -> return () 
     | `SendingFailed ev -> 
   
-      Cqrs.StatusView.update status (ev # mid, ev # pid) (function
+      Cqrs.StatusView.update status (ev # mid) (ev # pid) (function
       | `Unknown 
       | `Scheduled 
       | `Failed    -> `Failed

@@ -305,26 +305,30 @@ end
 module StatusView : sig
 
   (** A persistent status mapping. *)
-  type ('key, 'status) t 
+  type ('set, 'key, 'status) t 
 
-  (** Create a map from a key type and a status type. Both types must support 
+  (** Create a map from a set type, a key type and a status type. All types must support 
       packing. A map always has a name, and is placed inside a projection. 
       The provided status is used as a default. *)
   val make : Projection.t -> string -> int -> 'status ->
+    (module Fmt.FMT with type t = 'set) -> 
     (module Fmt.FMT with type t = 'key) ->
     (module Fmt.FMT with type t = 'status) ->
-    Projection.view * ('key, 'status) t
+    Projection.view * ('set, 'key, 'status) t
 
   (** Update a map. *) 
-  val update : ('key, 'status) t -> 'key -> ('status -> 'status) -> # ctx Run.effect
+  val update : ('set, 'key, 'status) t -> 'set -> 'key -> ('status -> 'status) -> # ctx Run.effect
 
   (** Grab a status from a map. *)
-  val get : ('key, 'status) t -> 'key -> (# ctx, 'status) Run.t
+  val get : ('set, 'key, 'status) t -> 'set -> 'key -> (# ctx, 'status) Run.t
+
+  (** Count the number of occurences of each status in the specified set. *)
+  val count : ('set, 'key, 'status) t -> 'set -> (# ctx, ('status, int) Std.Map.t) Run.t
 
   (** Returns keys with a specific status, ordered by the binary representation of the key,
       across all databases.*)
-  val global_by_status : ?limit:int -> ?offset:int -> ('key, 'status) t 
-    -> 'status -> (#ctx, (Id.t * 'key) list) Run.t 
+  val global_by_status : ?limit:int -> ?offset:int -> ('set, 'key, 'status) t 
+    -> 'status -> (#ctx, (Id.t * 'set * 'key) list) Run.t 
 
 end
 

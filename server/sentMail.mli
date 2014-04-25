@@ -61,9 +61,9 @@ val get : Mail.info -> PId.t -> (#O.ctx, (info,failure) Std.result) Run.t
 
 (** High-level aggregate statistics about sending an e-mail. *)
 type stats = <
-  prepared : int ;
+  scheduled : int ;
   sent : int ;
-  bounced : int ; 
+  failed : int ; 
   opened : int ; 
   clicked : int ; 
 >
