@@ -174,3 +174,26 @@ let wave =
   end in 
 
   wave
+
+(* Clock information 
+   ================= *)
+
+let last = 
+
+  let lastV, last = Cqrs.MapView.make projection "last" 0
+    (module Mail.I : Fmt.FMT with type t = Mail.I.t)
+    (module Cqrs.Clock : Fmt.FMT with type t = Cqrs.Clock.t) in
+
+  let () = Store.track_full lastV begin fun arg ->
+    let clock = arg # clock in
+    let put e = Cqrs.MapView.update last (e # mid) (fun _ -> `Put clock) in
+    match arg # event with 
+    | `GroupWaveCreated  _  -> return () 
+    | `BatchScheduled    ev -> put ev  
+    | `Sent              ev -> put ev 
+    | `LinkFollowed      ev -> put ev 
+    | `SendingFailed     ev -> put ev
+
+  end in 
+
+  last

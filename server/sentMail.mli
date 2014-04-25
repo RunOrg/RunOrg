@@ -68,7 +68,9 @@ type stats = <
   clicked : int ; 
 >
 
-val stats : Mail.I.t -> (#O.ctx, stats) Run.t
+val stats : PId.t option -> Mail.I.t -> (#O.ctx, [ `NoSuchMail of Mail.I.t
+						 | `NeedAdmin  of Mail.I.t
+						 | `OK of stats ]) Run.t
 
 (** The type of a link identifier. This is not an actual 11-character 
     identifier, but follows the [a-zA-Z0-9] convention anyway. *)

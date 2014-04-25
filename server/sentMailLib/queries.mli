@@ -25,5 +25,7 @@ type stats = <
   clicked : int ; 
 >
 
-val stats : Mail.I.t -> (#O.ctx, stats) Run.t
+val stats : PId.t option -> Mail.I.t -> (#O.ctx, [ `NoSuchMail of Mail.I.t
+						 | `NeedAdmin  of Mail.I.t
+						 | `OK of stats ]) Run.t
 

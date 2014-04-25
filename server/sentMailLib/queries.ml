@@ -60,8 +60,18 @@ type stats = <
   clicked : int ; 
 >
 
-let stats mid = 
-  assert false
+let stats pid mid = 
 
+  (* Mail should exist... *)
+  let! mail = Mail.get mid in 
+  match mail with None -> return (`NoSuchMail mid) | Some mail -> 
 
-
+    (* ...and be visible. *)
+    let! access = Mail.Access.compute pid (mail # audience) in 
+    if not (Set.mem `View access) then return (`NoSuchMail mid) else
+      if not (Set.mem `Admin access) then return (`NeedAdmin mid) else
+	
+	let! clock = Cqrs.MapView.get View.last mid in
+	let! stats = Cqrs.HardStuffCache.get Stats.compute mid (Option.default Cqrs.Clock.empty clock) in
+	
+	return (`OK stats) 
