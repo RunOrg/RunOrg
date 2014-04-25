@@ -107,6 +107,37 @@ TEST("Template previewing shows correct data.", function(Query) {
 
 });
 
+TEST("Correct content number after sending ends.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db,true,"test@runorg.com");
+   
+    var id = Query.post(["db/",db,"/mail"],Example(auth.id),auth).id();
+	
+    var count = 0;
+
+    function loop() {
+
+	if (count++ > 5) return Assert.fail("Mail is not being sent.");
+
+	return Query.get(["db/",db,"/mail/",id,"/to/",auth.id],auth).then(function(d,s,r) {
+
+	    if (d.status != "sent") return Async.sleep(1000).then(loop);
+
+	    return db.then(function(db) {
+		var expected = "https://" + document.location.host + "/db/" + db + "/link/";
+		var link = d.view.text.split("\n")[3].substring(0,expected.length);
+		return Assert.areEqual(expected,link);	    
+	    });
+	});
+
+    }
+    
+    return Query.post(["db/",db,"/mail/",id,"/send"],{"group":"admin"},auth).then(loop);
+
+});
+
+
 // 
 //
 // ### Example request

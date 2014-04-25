@@ -79,7 +79,7 @@ let info =
     let! count = Cqrs.ManyToManyView.count people gid in 
     Cqrs.MapView.update info gid (function
       | None -> 
-	if GId.is_admin gid then `Put (Info.make ~label:None ~count:0 ~audience:Map.empty) else `Keep
+	if GId.is_admin gid then `Put (Info.make ~label:None ~count ~audience:Map.empty) else `Keep
       | Some g -> 
 	if g # count = count then `Keep else `Put (Info.make ~label:(g#label) ~audience:(g#audience) ~count))
   in
