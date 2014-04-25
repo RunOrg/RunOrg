@@ -38,7 +38,7 @@ val scheduled : Mail.I.t -> PId.t -> (#Cqrs.ctx, (I.t * Link.Root.t * data, fail
 
 (** Data for a (mail,contact) pair that was already sent. Data is extracted from the 
     wave AND sent-mail objects. *)
-val sent : Mail.I.t -> PId.t -> (#Cqrs.ctx, (data,failure) Std.result) Run.t
+val sent : I.t -> PId.t -> View.SentInfo.t -> (#Cqrs.ctx, (data,failure) Std.result) Run.t
 
 (** {2 Rendering the e-mail} *)
 

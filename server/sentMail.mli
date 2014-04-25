@@ -28,6 +28,17 @@ module Status : Fmt.FMT with type t =
   | `Sent
   | `Failed ]
 
+(** Failure to sent (or preview) an e-mail. *)
+type failure = 
+  [ `NoInfoAvailable 
+  | `NoSuchRecipient 
+  | `NoSuchSender    of PId.t 
+  | `SubjectError    of string * int * int 
+  | `TextError       of string * int * int 
+  | `HtmlError       of string * int * int 
+  | `Exception       of string 
+  ]
+
 (** Information about a mail sent to a specific person. *)
 type info = <
   mail : Mail.I.t ;
@@ -43,7 +54,7 @@ type info = <
 (** Returns a representation of a mail sent to a specific person. 
     This may be a preview (the mail is not sent yet, perhaps not
     even scheduled) or a view of what was sent. *)
-val get : PId.t -> Mail.I.t -> (#O.ctx, info option) Run.t
+val get : Mail.info -> PId.t -> (#O.ctx, (info,failure) Std.result) Run.t
 
 (** High-level aggregate statistics about sending an e-mail. *)
 type stats = <

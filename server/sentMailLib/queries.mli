@@ -11,7 +11,7 @@ type info = <
   status : Status.t ; 
 >
 
-val get : PId.t -> Mail.I.t -> (#O.ctx, info option) Run.t
+val get : Mail.info -> PId.t -> (#O.ctx, (info,Compose.failure) Std.result) Run.t
 
 type stats = <
   prepared : int ;
