@@ -20,7 +20,7 @@ Route.add(/#\/groups\/([a-zA-Z0-9]{1,11})$/,function(R,id){
 
     function body(R) {
 	api.GET('groups/'+id,{},function(all){
-	    R['contacts/all'](all);
+	    R['people/all'](all);
 	    R.show();
 	});
     }

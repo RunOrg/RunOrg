@@ -6,7 +6,7 @@
     <ul class="nav navbar-top-links navbar-right">
       {< if self }
 	 <li>
-	   <a href="#/contacts/{{self.id}}"><img class="avatar" src="{{self.pic}}"> {{ self.name }}</a>
+	   <a href="#/people/{{self.id}}"><img class="avatar" src="{{self.pic}}"> {{ self.label }}</a>
 	 </li>
 	 <li><a {$logout$} href="javascript:void(0)"></a></li>
       {else}

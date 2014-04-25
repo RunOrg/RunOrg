@@ -27,7 +27,7 @@ Route.add(/#\/groups\/([a-zA-Z0-9]{1,11})\/import$/,function(R,id){
 	    if (imported.length > 0) {
 		sent = true;
 		$form.find('button').attr('disabled',true);
-		api.POST('contacts/import',imported,function(result){
+		api.POST('people/import',imported,function(result){
 		    api.POST('groups/'+id+'/add',result.created,function(){
 			go('#/groups/'+id);
 		    });

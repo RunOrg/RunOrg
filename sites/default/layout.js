@@ -4,7 +4,7 @@ Renderer.fill("layout",function(data) {
     return $.extend({
 	menu: [
 	    { url: "#", label: i18n.chat.title },
-	    { url: "#/contacts", label: i18n.contacts.title },
+	    { url: "#/people", label: i18n.people.title },
 	    { url: "#/groups", label: i18n.groups.title }
 	],
 	self: api.self, 
