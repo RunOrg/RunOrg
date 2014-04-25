@@ -6,6 +6,7 @@ type error =
   | `Unauthorized of string
   | `NotFound of string 
   | `Conflict of string
+  | `InternalError of string
   ]
 
 (** The type of an API GET response. *)

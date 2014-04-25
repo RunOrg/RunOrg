@@ -6,23 +6,23 @@ open Std
    =========================================== *)
 
 type info = <
-  mail : Mail.I.t ;
-  to_  : PId.t ; 
-  preview : Compose.rendered ;
-  sent : Time.t option ; 
-  opened  : Time.t option ; 
+  mail   : Mail.I.t ;
+  to_    : PId.t ; 
+  view   : Compose.rendered ;
+  sent   : Time.t option ; 
+  opened : Time.t option ; 
   status : Status.t ; 
 >
 
 let make mid pid status sent data = 
   let rendered = Compose.render data in 
   ( object
-    method mail    = mid
-    method to_     = pid
-    method sent    = sent
-    method opened  = None
-    method preview = rendered
-    method status  = status 
+    method mail   = mid
+    method to_    = pid
+    method sent   = sent
+    method opened = None
+    method view   = rendered
+    method status = status 
   end : info ) 
 
 let get_unsent mail pid = 

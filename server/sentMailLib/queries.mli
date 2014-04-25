@@ -1,12 +1,12 @@
 (* © 2014 RunOrg *)
 
 type info = <
-  mail    : Mail.I.t ;
-  to_     : PId.t ; 
-  sent    : Time.t option ; 
-  opened  : Time.t option ; 
-  status  : Status.t ; 
-  preview : <
+  mail   : Mail.I.t ;
+  to_    : PId.t ; 
+  sent   : Time.t option ; 
+  opened : Time.t option ; 
+  status : Status.t ; 
+  view   : <
     from    : string ;
     to_     : string ;
     subject : string ;

@@ -118,3 +118,65 @@ module Send = Endpoint.Post(struct
     | `OK (wid, count, at) -> return (`Accepted (Out.make ~count ~at))
 
 end)
+
+(* Sent e-mail information and preview. 
+   ==================================== *)
+
+module GetSent = Endpoint.Get(struct
+
+  module Arg = type module <
+    id       : Mail.I.t ;
+    pid "to" : PId.t ;
+  >
+
+  module Out = type module <
+    status : SentMail.Status.t ;
+    sent   : Time.t option ;
+    view   : <
+      from     : string ;
+      to_ "to" : string ;
+      subject  : string ;
+      html     : string option ;
+      text     : string option ; 
+    >
+  >
+
+  let path = "mail/{id}/to/{to}"
+
+  let forbidden id = 
+    `Forbidden (!! "Not allowed to view mail for recipient %S." (PId.to_string id))
+
+  let senderNotFound id =
+    `NotFound (!! "Sender %S does not exist." (PId.to_string id)) 
+
+  let templateError s (t,l,c) = 
+    `InternalError (!! "Template error in '%s' at line %d, char %d: %s" s (l + 1) (c + 1) t) 
+
+  let response req arg = 
+
+    let! mail = Mail.get (arg # id) in
+    match mail with None -> return (notFound (arg # id)) | Some mail ->
+
+      let! access = Mail.Access.compute (req # as_) (mail # audience) in
+      let  canPreview = Set.mem `View access in
+      let  canView = req # as_ = Some (arg # pid) || Set.mem `Admin access in 
+      
+      if not canView && canPreview then return (forbidden (arg # pid)) else
+	if not canView && not canPreview then return (notFound (arg # id)) else
+	  	  
+	  let! info = SentMail.get mail (arg # pid) in
+	  match info with 
+	  | Bad  `NoInfoAvailable
+	  | Bad  `NoSuchRecipient   -> return (notFound (arg # id))
+	  | Bad (`NoSuchSender pid) -> return (senderNotFound pid)
+	  | Bad (`SubjectError e)   -> return (templateError "subject" e)
+	  | Bad (`TextError    e)   -> return (templateError "text" e)
+	  | Bad (`HtmlError    e)   -> return (templateError "html" e)
+	  | Bad (`Exception    e)   -> return (`InternalError e)
+	  | Ok info -> 
+
+	    if info # status <> `Sent && not canPreview then return (notFound (arg # id)) else 
+	     
+	      return (`OK (info :> Out.t))
+
+end)
