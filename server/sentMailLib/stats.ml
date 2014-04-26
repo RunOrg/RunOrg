@@ -11,7 +11,7 @@ module Summary = type module <
 >
 
 let process mid =
-  let! byStatus = Cqrs.StatusView.count View.status mid in
+  let! byStatus = Cqrs.StatusView.stats View.status mid in
   return (object
     method scheduled = try Map.find `Scheduled byStatus with Not_found -> 0 
     method sent      = try Map.find `Sent      byStatus with Not_found -> 0

@@ -12,6 +12,7 @@ val make : Projection.t -> string -> int -> 'status ->
     
 val update : ('set, 'key, 'status) t -> 'set -> 'key -> ('status -> 'status) -> # Common.ctx Run.effect
 val get : ('set, 'key, 'status) t -> 'set -> 'key -> (# Common.ctx, 'status) Run.t
-val count : ('set, 'key, 'status) t -> 'set -> (# Common.ctx, ('status, int) Map.t) Run.t
+val stats : ('set, 'key, 'status) t -> 'set -> (# Common.ctx, ('status, int) Map.t) Run.t
+val count : ('set, 'key, 'status) t -> 'set -> (# Common.ctx, int) Run.t
 val global_by_status : ?limit:int -> ?offset:int -> ('set, 'key, 'status) t -> 'status 
   -> (#Common.ctx, (Id.t * 'set * 'key) list) Run.t 

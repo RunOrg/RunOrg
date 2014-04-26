@@ -323,7 +323,10 @@ module StatusView : sig
   val get : ('set, 'key, 'status) t -> 'set -> 'key -> (# ctx, 'status) Run.t
 
   (** Count the number of occurences of each status in the specified set. *)
-  val count : ('set, 'key, 'status) t -> 'set -> (# ctx, ('status, int) Std.Map.t) Run.t
+  val stats : ('set, 'key, 'status) t -> 'set -> (# ctx, ('status, int) Std.Map.t) Run.t
+
+  (** Count the number of items in the specified set without a non-default status. *)
+  val count : ('set, 'key, 'status) t -> 'set -> (# ctx, int) Run.t
 
   (** Returns keys with a specific status, ordered by the binary representation of the key,
       across all databases.*)

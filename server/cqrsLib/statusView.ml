@@ -99,7 +99,7 @@ let update map s k f =
 (* Counting sets 
    ============= *)
 
-let count map set = 
+let stats map set = 
 
   let s = Pack.to_string map.spack set in
 
@@ -118,6 +118,20 @@ let count map set =
 		    let n = int_of_string a.(1) in
 		    s, n)
 	  (Array.to_list result)))
+
+let count map set = 
+
+  let s = Pack.to_string map.spack set in
+
+  let! ctx = Run.context in
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
+  let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
+
+  let! result = Sql.query
+    ("SELECT COUNT(*) FROM \""^dbname^"\" WHERE \"db\" = $1 AND \"set\" = $2")
+    [ `Id (ctx # db) ; `Binary s ] in
+
+  return (if Array.length result > 0 then int_of_string result.(0).(0) else 0) 
        
 (* Querying all values 
    =================== *)
