@@ -161,8 +161,8 @@ module GetSent = Endpoint.Get(struct
     status : SentMail.Status.t ;
     sent   : Time.t option ;
     view   : <
-      from     : string ;
-      to_ "to" : string ;
+      from     : < name : string option ; email : string > ;
+      to_ "to" : < name : string option ; email : string > ;
       subject  : string ;
       html     : string option ;
       text     : string option ; 

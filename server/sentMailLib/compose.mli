@@ -8,8 +8,8 @@ open Std
 
 (** The raw data needed to send an e-mail. *)
 type data = < 
-  from    : string ;
-  to_     : string ;
+  from    : < name : string option ; email : string > ;
+  to_     : < name : string option ; email : string > ;
   input   : (string, Json.t) Map.t ;
   subject : Unturing.script ;
   text    : Unturing.script option ;
@@ -47,8 +47,8 @@ val sent : I.t -> View.SentInfo.t -> (#Cqrs.ctx, (data,failure) Std.result) Run.
 
 (** A rendered e-mail. *)
 type rendered = <
-  from    : string ;
-  to_     : string ;
+  from    : < name : string option ; email : string > ;
+  to_     : < name : string option ; email : string > ;
   subject : string ;
   text    : string option ;
   html    : string option ;

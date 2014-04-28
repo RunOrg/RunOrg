@@ -1,2 +1,2 @@
-<*> or <**/*>: package(camlp4), syntax(camlp4o), custom-pp, package(batteries), package(sha), package(postgresql), package(ssl), package(curl), thread
+<*> or <**/*>: package(camlp4), syntax(camlp4o), custom-pp, package(batteries), package(sha), package(postgresql), package(ssl), package(curl), package(netstring), thread
 true: use_menhir

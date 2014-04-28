@@ -37,8 +37,8 @@ include type module
       id      : I.t ;
       mid     : Mail.I.t ;
       pid     : PId.t ;
-      from    : string ; 
-      to_     : string ; 
+      from    : < name : string option ; email : string > ; 
+      to_     : < name : string option ; email : string > ; 
       input   : Json.t ; 
       link    : Link.Root.t ; 
     >

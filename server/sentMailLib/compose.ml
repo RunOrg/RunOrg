@@ -4,10 +4,12 @@ open Std
 
 (* A few data formatting utilities *)
 
-let email_address person = 
-  let email = String.Label.to_string (person # email) in 
-  match person # name with None -> email | Some name ->
-    !! "%S <%s>" (String.Label.to_string name) email
+let email_address person = object
+  val name = Option.map String.Label.to_string (person # name) 
+  method name = name
+  val email = String.Label.to_string (person # email) 
+  method email = email
+end
 
 let person_json person = 
   Json.Object [ 
@@ -22,8 +24,8 @@ let person_json person =
    ======== *)
 
 type data = < 
-  from    : string ;
-  to_     : string ;
+  from    : < name : string option ; email : string > ;
+  to_     : < name : string option ; email : string > ;
   input   : (string, Json.t) Map.t ;
   subject : Unturing.script ;
   text    : Unturing.script option ;
@@ -243,8 +245,8 @@ let sent wid sent =
    ========= *)
 
 type rendered = <
-  from    : string ;
-  to_     : string ;
+  from    : < name : string option ; email : string > ;
+  to_     : < name : string option ; email : string > ;
   subject : string ;
   text    : string option ;
   html    : string option ;

@@ -59,8 +59,8 @@ let status =
 module SentInfo = type module <
   sent   : Time.t ;
   input  : Json.t ; 
-  from   : string ;
-  to_    : string ; 
+  from   : < name : string option ; email : string > ;
+  to_    : < name : string option ; email : string > ; 
   link   : Link.Root.t ; 
 >
 
@@ -86,7 +86,7 @@ module Info = type module <
 
 let info = 
 
-  let infoV, info = Cqrs.MapView.make projection "info" 0
+  let infoV, info = Cqrs.MapView.make projection "info" 1
     (module MidPid : Fmt.FMT with type t = MidPid.t)
     (module Info : Fmt.FMT with type t = Info.t) in
 

@@ -46,8 +46,8 @@ type info = <
   opened : Time.t option ; 
   status : Status.t ; 
   view   : <
-    from    : string ;
-    to_     : string ;
+    from    : < name : string option ; email : string > ;
+    to_     : < name : string option ; email : string > ;
     subject : string ;
     html    : string option ;
     text    : string option ;

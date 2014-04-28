@@ -33,8 +33,8 @@ let next_batch_sync : unit -> (#Cqrs.ctx, (Id.t * Mail.I.t * PId.t) list) Run.t 
    appropriate corresponding data. Assumes to be run in the appropriate database. *)
 
 type mail = < 
-  to_     : string ; 
-  from    : string ; 
+  to_     : < name : string option ; email : string > ; 
+  from    : < name : string option ; email : string > ; 
   input   : (string, Json.t) Map.t ; 
   subject : string ; 
   text    : string option ;
@@ -74,6 +74,59 @@ let prepare_mail : Mail.I.t -> PId.t -> (Cqrs.ctx, (mail,failure) Std.result) Ru
 (* Send e-mail by actually performing the MIME and SMTP magic dance. *)
 
 let send : mail -> (#Cqrs.ctx, (unit,failure) Std.result) Run.t = fun mail ->
+
+  (* Currently using Netsendmail. *)
+
+  let address a = match a # name with 
+    | None -> a # email, a # email
+    | Some name -> name, a # email in
+
+  let base = 
+    Netsendmail.compose 
+      ~in_charset:`Enc_utf8 
+      ~out_charset:`Enc_utf8
+      ~from_addr:(address (mail # from))  
+      ~to_addrs:[address (mail # to_)] 
+      ~subject:(mail # subject) 
+  in
+  
+  let content = match mail # text, mail # html with 
+
+    | Some text, Some html -> 
+
+      base 
+	~content_type:("text/plain", ["charset", Mimestring.mk_param "UTF-8"])
+	~container_type:("multipart/alternative",[])
+	~attachments:[
+	  let header = new Netmime.basic_mime_header [ "Content-type", "text/html;charset=UTF-8" ] in
+	  let body   = new Netmime.memory_mime_body html in
+	  header, `Body body
+	]
+	text
+
+    | Some text, None -> 
+
+      base 
+	~content_type:("text/plain", ["charset", Mimestring.mk_param "UTF-8"])
+	text
+
+    | None, Some html -> 
+
+      base 
+	~content_type:("text/html", ["charset", Mimestring.mk_param "UTF-8"])
+	html
+
+    | None, None -> 
+
+      base 
+	~content_type:("text/plain", ["charset", Mimestring.mk_param "UTF-8"])
+	""
+
+  in
+
+  (* This might block for a short while. *)
+  let () = Netsendmail.sendmail content in 
+
   return (Ok ()) 
 
 (* Prepare an e-mail, send it, and write the appropriate status to the database.
