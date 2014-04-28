@@ -75,6 +75,8 @@ let prepare_mail : Mail.I.t -> PId.t -> (Cqrs.ctx, (mail,failure) Std.result) Ru
 
 let send : mail -> (#Cqrs.ctx, (unit,failure) Std.result) Run.t = fun mail ->
 
+  let () = Log.trace "Sending e-mail to %s" (mail # to_ # email) in
+
   (* Currently using Netsendmail. *)
 
   let address a = match a # name with 
@@ -154,9 +156,11 @@ let process (id,mid,pid) =
       let! sent = send mail in
       match sent with Bad why -> fail why | Ok () ->
 	
+	let input = Json.Object (Map.to_list (Compose.remove_links (mail # input))) in 
+
 	let! _ = Store.append [ 
-	  Events.sent ~id:(mail # wid) ~mid ~pid ~from:(mail # from) ~to_:(mail # to_) ~link:(mail # link)
-	    ~input:(Json.Object (Map.to_list (mail # input))) 
+	  Events.sent 
+	    ~id:(mail # wid) ~mid ~pid ~from:(mail # from) ~to_:(mail # to_) ~link:(mail # link) ~input
 	] in 
 
 	return () 

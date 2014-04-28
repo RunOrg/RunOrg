@@ -27,7 +27,9 @@ type failure =
   | `Exception       of string 
   ]
 
-(** Remove the links from the input map, as they can be re-created from the link root. *)
+(** Remove the links from the input map, as they can be re-created from the link root. 
+    Call this function before saving input + link root to the database. [sent] below automatically
+    re-composes links. *)
 val remove_links : (string, Json.t) Map.t -> (string, Json.t) Map.t
 
 (** Preview data for a (mail,contact) pair that has not been scheduled yet. 

@@ -40,9 +40,10 @@ function Example(cid) {
 	"from": cid,
 	"subject": "Hello, world",
 	"text": { 
-	    "script": "$0;to.firstname;$1;self",
+	    "script": "$0;to.email;$1;self",
 	    "inline": ["Hello, ", ".\n\nPlease click on this link:\n"]
 	},
+	"self": "https://example.com/{id}",
 	"audience": {},
 	"urls": [],
     };
@@ -111,7 +112,7 @@ TEST("Correct number after sending ends.", function(Query) {
 
     }
     
-    return Query.auth(db,true,"test+2@runorg.com").id.then(function(){
+    return Query.auth(db,true,"vnicollet+unittest@runorg.com").id.then(function(){
 	return Query.post(["db/",db,"/mail/",id,"/send"],{"group":"admin"},auth).then(loop);
     });
 
