@@ -1,7 +1,7 @@
 // JSON <template>
 // Mail / A template object
 // 
-// Describes how an e-mails subject, text body or HTML 
+// Describes how an e-mail subject, text body or HTML 
 // body should be build based on information about the
 // sender, the recipient and the mail draft's own properties.
 //
