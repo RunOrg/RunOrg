@@ -188,7 +188,7 @@ let scheduled mid cid =
       
   end
 
-(* Implement later. *)
+(* Read data from a sent mail. *)
 let sent wid sent = 
 
   let handle_failure = function 
