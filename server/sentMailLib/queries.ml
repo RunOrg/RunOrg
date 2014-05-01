@@ -75,3 +75,44 @@ let stats pid mid =
 	let! stats = Cqrs.HardStuffCache.get Stats.compute mid (Option.default Cqrs.Clock.empty clock) in
 	
 	return (`OK stats) 
+
+(* Following links 
+   =============== *)
+
+type link = <
+  id   : I.t ;
+  mid  : Mail.I.t ;
+  pid  : PId.t ;
+  link : [ `Self of String.Url.t | `Tracker | `Url of int * String.Url.t ] ;
+  auth : bool ;
+>
+
+let link ln = 
+
+  let! info = Cqrs.MapView.get View.byLinkRoot (Link.root ln) in
+  match info with None -> return `NotFound | Some (wid,mid,pid) -> 
+
+    let! wave = Cqrs.MapView.get View.wave wid in 
+    match wave with None -> return `NotFound | Some wave ->
+
+      let link = match Link.what ln with
+	| `Track  -> Some `Tracker
+	| `Self   -> Option.map (fun ln -> `Self ln) (wave # self)
+	| `Auth i 
+	| `View i -> (try Some (`Url (i, List.at (wave # urls) i)) with _ -> None) in
+
+      let auth = match Link.what ln with
+	| `Self 
+	| `Auth _ -> true
+	| `Track
+	| `View _ -> false in
+
+      match link with None -> return `NotFound | Some link  ->
+	
+	return (`OK (object
+	  method id = wid
+	  method mid = mid
+	  method pid = pid
+	  method link = link
+	  method auth = auth
+	end))

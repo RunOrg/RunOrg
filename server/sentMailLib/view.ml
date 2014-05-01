@@ -219,7 +219,7 @@ let byLinkRoot =
     | `Sent              ev -> 
 
       Cqrs.MapView.update byLinkRoot (ev # link) (function 
-        | Some _ -> `Keep
+        | Some _ -> `Keep (* <-- Double sending cannot happen. *)
 	| None   -> `Put (ev # id, ev # mid, ev # pid))
 
   end in

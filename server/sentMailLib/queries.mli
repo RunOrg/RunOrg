@@ -1,5 +1,7 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 type info = <
   mail   : Mail.I.t ;
   to_    : PId.t ; 
@@ -29,3 +31,12 @@ val stats : PId.t option -> Mail.I.t -> (#O.ctx, [ `NoSuchMail of Mail.I.t
 						 | `NeedAdmin  of Mail.I.t
 						 | `OK of stats ]) Run.t
 
+type link = <
+  id : I.t ;
+  mid : Mail.I.t ;
+  pid : PId.t ;
+  link : [ `Self of String.Url.t | `Tracker | `Url of int * String.Url.t ] ;
+  auth : bool ;
+>
+
+val link : Link.t -> (#O.ctx, [ `NotFound | `OK of link ]) Run.t
