@@ -59,6 +59,31 @@ let people =
 
   people
 
+(* Finding groups by access level
+   ============================== *)
+
+let byAccess = 
+  
+  let byAccessV, byAccess = GroupAccess.Map.make projection "byAccess" 0 
+    ~only:[`View] (module GId : Fmt.FMT with type t = GId.t) in
+
+  let () = Store.track byAccessV begin function 
+
+    | `Created ev -> 
+
+      GroupAccess.Map.update byAccess (ev # id) (ev # audience) 
+
+    | `Deleted ev ->
+
+      GroupAccess.Map.remove byAccess (ev # id) 
+
+    | `Added    _ 
+    | `Removed  _ -> return ()
+
+  end in 
+
+  byAccess
+
 (* Group information 
    ================= *)
 
