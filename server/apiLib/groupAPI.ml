@@ -111,6 +111,14 @@ module Get = Endpoint.Get(struct
 end)
 
 module Info = type module <
+  id       : GId.t ;
+  label    : String.Label.t option ; 
+  access   : Group.Access.Set.t ;
+  count    : int option ;
+  audience : Group.Access.Audience.t option ;
+>
+
+module Short = type module <
   id     : GId.t ;
   label  : String.Label.t option ; 
   access : Group.Access.Set.t ;
@@ -156,7 +164,7 @@ end)
 module All = Endpoint.Get(struct
 
   module Arg = type module unit
-  module Out = type module < list : Info.t list >
+  module Out = type module < list : Short.t list >
   
   let path = "groups"
 

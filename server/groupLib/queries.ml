@@ -5,18 +5,27 @@ open Std
 (* Group information 
    ================= *)
 
-type info = <
+type short = <
   id     : GId.t ;
   label  : String.Label.t option ; 
   access : GroupAccess.Set.t ;
   count  : int option ;
 >
 
+type info = <
+  id       : GId.t ; 
+  label    : String.Label.t option ;
+  access   : GroupAccess.Set.t ;
+  count    : int option ;
+  audience : GroupAccess.Audience.t option ; 
+>
+
 let format_info gid access info = object
-  method id  = gid
-  method access = access
-  method label  = info # label
-  method count  = if Set.mem `List access then Some (info # count) else None
+  method id       = gid
+  method access   = access
+  method label    = info # label
+  method count    = if Set.mem `List access then Some (info # count) else None
+  method audience = if Set.mem `Admin access then Some (info # audience) else None
 end 
 
 let get pid gid = 
@@ -38,7 +47,8 @@ let get_many pid gids =
 
 let all pid ~limit ~offset = 
   let! list = GroupAccess.Map.list ~limit ~offset View.byAccess pid `View in 
-  get_many pid list
+  let! list = get_many pid list in
+  return (list :> short list) 
 
 (* Members in the group 
    ==================== *)

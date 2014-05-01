@@ -57,18 +57,30 @@ val list : PId.t option -> ?limit:int -> ?offset:int -> GId.t
 val list_force : ?limit:int -> ?offset:int -> GId.t -> (#O.ctx, PId.t list) Run.t
 
 (** Short information about a group. *)
-type info = <
+type short = <
   id     : GId.t ; 
   label  : String.Label.t option ;
   access : Access.Set.t ;
   count  : int option ;
 >
 
+(** All meta-information about a group. *)
+type info = <
+  id       : GId.t ; 
+  label    : String.Label.t option ;
+  access   : Access.Set.t ;
+  count    : int option ;
+  audience : Access.Audience.t option ; 
+>
+
 (** Get short information about a group. *)
 val get : PId.t option -> GId.t -> (#O.ctx, info option) Run.t 
 
+(** Get short information about several groups. *)
+val get_many : PId.t option -> GId.t list -> (#O.ctx, info list) Run.t 
+
 (** Get all the groups in the database. *)
-val all : PId.t option -> limit:int -> offset:int -> (#O.ctx, info list) Run.t
+val all : PId.t option -> limit:int -> offset:int -> (#O.ctx, short list) Run.t
 
 (** List all the groups of a person. *)
 val of_person : PId.t -> (#O.ctx, GId.t Set.t) Run.t 
