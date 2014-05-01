@@ -311,6 +311,46 @@ module Get = functor(A:GET_ARG) -> struct
 
 end
 
+module type RAW_GET_ARG = sig
+  module Arg : Fmt.FMT
+  val path : string
+  val response : Httpd.request -> Arg.t -> (O.ctx, Httpd.response) Run.t
+end
+
+module RawGet = functor(A:RAW_GET_ARG) -> struct
+
+  let path = split ("db/{-}/" ^ A.path) 
+  let argparse = argparse (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+
+  let logPath = "/db/{db}/" ^ A.path
+    
+  let action req = 
+    let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
+    match db with 
+    | None -> let! () = LogReq.trace "API parsing failed" in 
+	      return (bad_request logPath "Could not parse parameters") 
+    | Some db ->
+      match argparse req with 
+      | Bad more -> let! () = LogReq.trace "API parsing failed" in
+		    return (bad_request ~more logPath "Could not parse parameters") 
+      | Ok args ->
+	let! ctx = Db.ctx (Id.of_string db) in
+	match ctx with 
+	| None -> let! () = LogReq.trace "API database not found" in 
+		  return (not_found None logPath (!! "Database %s does not exist" db)) 
+	| Some ctx -> let! () = LogReq.trace "API database found" in
+		      run_checked req logPath ctx begin
+			let! () = LogReq.trace "API starting ..." in
+			let! out = A.response req args in
+			let! () = LogReq.trace "API finished !" in
+			return out
+		      end
+
+  let () = Dictionary.add (snd Dictionary.get action) path
+
+end
+
+
 (* DELETE endpoints 
    ================ *)
 
