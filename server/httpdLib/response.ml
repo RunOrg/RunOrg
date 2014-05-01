@@ -18,6 +18,7 @@ type time = float
 
 type status = 
   [ `OK 
+  | `Found
   | `BadRequest
   | `RequestEntityTooLarge 
   | `NotImplemented 
@@ -48,6 +49,7 @@ let status = function
   | `OK -> "200 OK"
   | `Accepted -> "202 Accepted"
   | `NoContent -> "204 No Content"
+  | `Found -> "302 Found"  
   | `NotModified -> "304 Not Modified" 
   | `BadRequest -> "400 Bad Request" 
   | `Unauthorized -> "401 Unauthorized"

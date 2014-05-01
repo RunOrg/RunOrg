@@ -63,6 +63,7 @@ type response
 (** The type of an HTTP response status. *)
 type status = 
   [ `OK 
+  | `Found
   | `BadRequest
   | `RequestEntityTooLarge 
   | `NotImplemented 

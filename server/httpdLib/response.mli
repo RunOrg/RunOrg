@@ -5,6 +5,7 @@ open Std
 (** The status of a response. *)
 type status = 
   [ `OK 
+  | `Found
   | `BadRequest
   | `RequestEntityTooLarge 
   | `NotImplemented
