@@ -50,12 +50,16 @@ module Add = Endpoint.Post(struct
   let needModerator gid = 
     `Forbidden (!! "You need 'moderate' access to add people to group %S." (GId.to_string gid))
 
+  let missingPerson pid = 
+    `NotFound (!! "Person %S does not exist." (PId.to_string pid))
+
   let response req args post = 
     let! result = Group.add (req # as_) post [ args # id ] in
     match result with 
     | `OK            at -> return (`Accepted (Out.make ~at))
     | `NeedModerator id -> return (needModerator id)
     | `NotFound      id -> return (notFound id)
+    | `MissingPerson id -> return (missingPerson id) 
 
 end)
 

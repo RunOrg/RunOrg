@@ -28,6 +28,7 @@ val create :
     or if the contact is already in the group. *)
 val add : PId.t option -> PId.t list -> GId.t list -> (#O.ctx, [ `OK of Cqrs.Clock.t
 							       | `NeedModerator of GId.t 
+							       | `MissingPerson of PId.t
 							       | `NotFound of GId.t ]) Run.t
 
 (** As [add], but skips access level checks. *)

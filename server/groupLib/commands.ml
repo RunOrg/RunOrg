@@ -61,10 +61,21 @@ let with_moderator_rights pid groups f =
 
       f ()
 
+let with_safe_people people f = 
+  
+  let! missing = List.M.find (fun pid -> 
+    let! info = Person.get pid in
+    return (if info = None then Some pid else None)) people in
+
+  match missing with Some id -> return (`MissingPerson id) | None -> 
+
+    f () 
+
 let add pid people groups = 
-  with_moderator_rights pid groups (fun () ->     
-    let! at = add_internal pid people groups in 
-    return (`OK at)) 
+  with_safe_people people (fun () -> 
+    with_moderator_rights pid groups (fun () ->     
+      let! at = add_internal pid people groups in 
+      return (`OK at))) 
     
 let remove pid people groups = 
   with_moderator_rights pid groups (fun () -> 
