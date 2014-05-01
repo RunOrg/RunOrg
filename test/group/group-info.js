@@ -66,7 +66,6 @@ TEST("The group's access levels are returned.", function(Query) {
 
 });
 
-
 // - `count` is the number of group members (people currently in the group). This field is
 //   only available if the viewer has **list** access to the group.
 
@@ -82,6 +81,23 @@ TEST("The group's member count is returned.", function(Query) {
     return Query.post(["db/",db,"/groups/",id,"/add"],[auth.id],auth).then(function(){	
 	return Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d,s,r) {	    
 	    return Assert.areEqual(1, d.count);	    
+	});
+    });
+
+});
+
+TEST("The group's member count requires 'list' access.", function(Query) {
+
+    var example = { "label" : "Associates", "audience" : { "view" : "anyone" } };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+
+    var id = Query.post(["db/",db,"/groups"],example,auth).id();
+    
+    return Query.post(["db/",db,"/groups/",id,"/add"],[auth.id],auth).then(function(){	
+	return Query.get(["db/",db,"/groups/",id,"/info"]).then(function(d,s,r) {	    
+	    return Assert.areEqual(null, d.count);	    
 	});
     });
 
