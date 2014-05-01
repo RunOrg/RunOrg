@@ -50,6 +50,7 @@ include type module
       mid  : Mail.I.t ;
       pid  : PId.t ;
       link : [ `Self | `Tracker | `Url of int ] ;
+      auth : Token.I.t option ; 
       auto : bool ;
       ip   : IpAddress.t ; 
     >

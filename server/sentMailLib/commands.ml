@@ -50,6 +50,37 @@ let send pid mid gid =
 
 	  return (`OK (id, group # count, clock))
 
-let follow lnk = 
-  assert false
+(* Following links 
+   =============== *)
 
+let follow ln ip = 
+
+  let! ctx = Run.context in 
+
+  let! link = Queries.link ln in 
+  match link with `NotFound -> return (`NotFound (ln, ctx # db)) | `OK info -> 
+
+    let! auth = 
+      if info # auth then 
+	let! tok = Token.create (`Person (ctx # db, info # pid)) in
+	return (Some tok) 
+      else return None 
+    in
+
+    let result = match info # link with 
+      | `Tracker      -> `Track
+      | `Self    url
+      | `Url (_, url) -> match auth with None -> `Link url | Some tok -> `Auth (tok,url) in
+
+    let link = match info # link with 
+      | `Tracker   -> `Tracker
+      | `Self _    -> `Self
+      | `Url (i,_) -> `Url i in
+
+    let! _ = Store.append [
+      Events.linkFollowed 
+	~id:(info # id) ~mid:(info # mid) ~pid:(info # pid) 
+	~auto:(result = `Track) ~ip ~auth ~link
+    ] in
+
+    return result

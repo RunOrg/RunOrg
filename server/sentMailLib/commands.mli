@@ -1,5 +1,7 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 val send :
   PId.t option -> 
   Mail.I.t ->
@@ -9,7 +11,7 @@ val send :
 		    | `GroupEmpty of GId.t
 		    | `OK of I.t * int * Cqrs.Clock.t ]) Run.t
   
-val follow : Link.t -> (#O.ctx, [ `NotFound of Link.t * Id.t
-				| `Auth of Token.I.t * string
-				| `Link of string
-				| `Track ])  Run.t
+val follow : Link.t -> IpAddress.t -> (#O.ctx, [ `NotFound of Link.t * Id.t
+					       | `Auth of Token.I.t * String.Url.t
+					       | `Link of String.Url.t
+					       | `Track ])  Run.t

@@ -1,5 +1,7 @@
 (* © 2014 RunOrg *)
 
+open Std
+
 (** Mail that is sent lives separately from the original. 
     It is accessed in a different pattern (by the receiver, rather
     than the server) and needs to keep large amounts of statistics
@@ -80,10 +82,10 @@ module Link : sig
 end
 
 (** Follow a link. Marks that link as followed. *)
-val follow : Link.t -> (#O.ctx, [ `NotFound of Link.t * Id.t
-				| `Auth of Token.I.t * string
-				| `Link of string
-				| `Track ]) Run.t
+val follow : Link.t -> IpAddress.t -> (#O.ctx, [ `NotFound of Link.t * Id.t
+					       | `Auth of Token.I.t * String.Url.t
+					       | `Link of String.Url.t
+					       | `Track ]) Run.t
 
 (** Try sending all currently scheduled mail. Call this function 
     at start-up to run the mailing service. *)
