@@ -1,67 +1,69 @@
-// JSON <groupinfo>
+// JSON <group-info>
 // Groups / A short representation of a group's information
-// 
+//
+// [Viewer-dependent](/docs/#/concept/viewer-dependent.md). 
+//
 // Returned by most API methods that involve groups. It is intended to 
 // provide data relevant for displaying the group: its label and count.
 // 
-// Typical examples: [listing public groups](/docs/#/group/public.js) or 
+// Typical examples: [listing groups](/docs/#/group/list.js) or 
 // [groups participating in a chat](/docs/#/chat/get.js). 
 //
-// ### `ShortContact` JSON format
+// ### JSON format
 //     { id : <id>, 
 //       label : <label> | null, 
-//       count : <int> }
+//       access : [ <access>, .. ],
+//       count : <int> | null }
 // 
 // - `id` is the [unique 11-character identifier](/docs/#/types/id.js) for this 
 //   contact
 
-TODO("The groups's identifier is returned.", function(next) {
+TEST("The groups's identifier is returned.", function(Query) {
 
     var example = {};
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    var id = Test.query("POST",["db/",db,"/groups"],example,auth).result("id");
-    var id2 = Test.query("GET",["db/",db,"/groups/",id,"/info"],auth).result("id");
+    var id = Query.post(["db/",db,"/groups"],example,auth).id();
+    var id2 = Query.get(["db/",db,"/groups/",id,"/info"],auth).id();
 
-    Assert.areEqual(id,id2).then(next);
+    return Assert.areEqual(id,id2);
 
 });
 
 // - `label` is a [human-readable name](/docs/#/types/label.js). Not all groups
 //   have one, because it is not a mandatory property when creating a group.
-TODO("The groups's label is returned if available.", function(next) {
+
+TEST("The groups's label is returned if available.", function(Query) {
 
     var example = { "label" : "Associates" };
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    var id = Test.query("POST",["db/",db,"/groups"],example,auth).result("id");
-    var label = Test.query("GET",["db/",db,"/groups/",id,"/info"],auth).result("label");
+    var id = Query.post(["db/",db,"/groups"],example,auth).id();
+    var label = Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d) { return d.label; });
 
-    Assert.areEqual(example.label,label).then(next);
+    return Assert.areEqual(example.label,label);
 
 });
 
 // - `count` is the number of group members (contacts currently in the group).
 
-TODO("The group's member count is returned.", function(next) {
+TEST("The group's member count is returned.", function(Query) {
 
     var example = { "label" : "Associates" };
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
 
-    var id = Test.query("POST",["db/",db,"/groups"],example,auth).result("id");
+    var id = Query.post(["db/",db,"/groups"],example,auth).id();
     
-    Test.query("POST",["db/",db,"/groups/",id,"/add"],[auth.id],auth).result().then(function(){
-
-	var count = Test.query("GET",["db/",db,"/groups/",id,"/info"],auth).result("count");
-
-	Assert.areEqual(1, count).then(next);
-
+    return Query.post(["db/",db,"/groups/",id,"/add"],[auth.id],auth).then(function(){	
+	return Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d,s,r) {	    
+	    return Assert.areEqual(1, d.count);	    
+	});
     });
 
 });
@@ -69,9 +71,5 @@ TODO("The group's member count is returned.", function(next) {
 // ### Example value
 //     { "id" : "0Et9j0026rO",
 //       "label" : "Team members",
+//       "access" : [ "list", "view" ],
 //       "count": 16 }
-//
-// If you end up with a group's id but not its basic information, this usually
-// means the group has gone missing from the database. You can still
-// [try to get its data directly](/docs/#/group/info.js), but it is not likely
-// to work.
