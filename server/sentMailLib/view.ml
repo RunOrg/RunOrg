@@ -197,3 +197,31 @@ let last =
   end in 
 
   last
+
+(* Finding mail by link-root 
+   ========================= *)
+
+module WidMidPid = type module (I.t * Mail.I.t * PId.t) 
+
+let byLinkRoot = 
+
+  let byLinkRootV, byLinkRoot = Cqrs.MapView.make projection "byLinkRoot" 0
+    (module Link.Root : Fmt.FMT with type t = Link.Root.t) 
+    (module WidMidPid : Fmt.FMT with type t = WidMidPid.t) in
+
+  let () = Store.track byLinkRootV begin function
+
+    | `GroupWaveCreated  _  
+    | `BatchScheduled    _  
+    | `LinkFollowed      _  
+    | `SendingFailed     _  -> return () 
+
+    | `Sent              ev -> 
+
+      Cqrs.MapView.update byLinkRoot (ev # link) (function 
+        | Some _ -> `Keep
+	| None   -> `Put (ev # id, ev # mid, ev # pid))
+
+  end in
+  
+  byLinkRoot
