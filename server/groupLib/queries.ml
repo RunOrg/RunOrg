@@ -26,14 +26,19 @@ let get pid gid =
     if not (Set.mem `View access) then return None else 
       return (Some (format_info gid access info))
 
+let get_many pid gids = 
+  let compute = GroupAccess.compute pid in 
+  List.M.filter_map begin fun gid ->     
+    let! info = Cqrs.MapView.get View.info gid in
+    match info with None -> return None | Some info ->     
+      let! access = compute (info # audience) in      
+      if not (Set.mem `View access) then return None else
+	return (Some (format_info gid access info))
+  end gids
+
 let all pid ~limit ~offset = 
-  let  compute = GroupAccess.compute pid in 
-  let! list = Cqrs.MapView.all ~limit ~offset View.info in
-  List.M.filter_map begin fun (gid,info) -> 
-    let! access = compute (info # audience) in 
-    if not (Set.mem `View access) then return None else
-      return (Some (format_info gid access info))
-  end list
+  let! list = GroupAccess.Map.list ~limit ~offset View.byAccess pid `View in 
+  get_many pid list
 
 (* Members in the group 
    ==================== *)
