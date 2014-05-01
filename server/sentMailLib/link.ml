@@ -10,8 +10,7 @@ let enc3 n =
   str
 
 let enc2 n = 
-  let str = String.create 3 in 
-  let n   = str.[2] <- Char.base62_encode (n mod 62) ; n / 62 in
+  let str = String.create 2 in 
   let n   = str.[1] <- Char.base62_encode (n mod 62) ; n / 62 in
   let ()  = str.[0] <- Char.base62_encode (n mod 62) in
   str

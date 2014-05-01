@@ -5,13 +5,9 @@ RunOrg supports e-mail authentication. The process is simple:
  - Send an e-mail containing a link that enables authentication
    (using the `self` or `auth` template variables). 
 
- - The recipient clicks the link, is redirected to the original 
-   URL with an additional query string parameter: an _e-mail_
-   authentication token.
-
- - The page at the original URL uses that token to generate an 
-   actual [API token](/docs/#/types/token.js). The visitor is now
-   logged in !
+ - The recipient clicks the link, is redirected to the original URL
+   with an additional query string parameter: an [API
+   token](/docs/#/types/token.js). The visitor is now logged in !
 
 ### Example draft e-mail 
 
@@ -31,7 +27,7 @@ which is always authenticated.
     to view the newsletter.
 
 The generated link is secure, and points to the public URL of your
-RunOrg server.  It includes a 28-character unique identifier designed
+RunOrg server.  It includes a 27-character unique identifier designed
 to be non-falsifiable.
 
 Clicking this link will redirect to the original self-link (with
@@ -39,10 +35,8 @@ Clicking this link will redirect to the original self-link (with
 
 ### Redirection URL
 
-    https://example.com/newsletters/0xyxA0995rM?auth=0xy..001
+    https://example.com/newsletters/0xyxA0995rM?runorg=HkrGF3YYxMu
 
-The authentication token is the same 28-character unique identifier
-that could be found in the e-mail.
+The additional `runorg` parameter is an [API token](/docs/#/types/token.js)
+that can be used to authenticate requests.
 
-The page at that URL can then use the provided parameter to [authenticate
-with an e-mail token](/docs/#/contact/authmail.js).
