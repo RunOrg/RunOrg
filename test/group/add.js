@@ -117,7 +117,6 @@ TEST("Returns 404 when database does not exist.", function(Query) {
 
 TEST("Returns 404 when group does not exist.", function(Query) {
     var db = Query.mkdb();
-    var auth = Query.auth(db); 
     return Query.post(["db/",db,"/groups/00000000000/add"],[]).assertStatus(404);
 });
 

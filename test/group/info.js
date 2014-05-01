@@ -1,24 +1,35 @@
 // GET /db/{db}/groups/{id}/info
-// Groups / Read group information
+// Groups / Read group meta-data
 // 
 // Alpha @ 0.1.23
 //
 // `200 OK`,
-// [Read-only](/docs/#/concept/read-only.md).
+// [Read-only](/docs/#/concept/read-only.md),
+// [Viewer-dependent](/docs/#/concept/viewer-dependent.md).
 //
-// Returns all available information about a group (except, of course, the full
-// list of its members). 
+// Returns all available meta-data about a group that can be viewed 
+// by [`{as}`](/docs/#/concept/as.md).
 // 
 // ### Response format
-//     { "id": <id>,
-//       "label": <label> | null,
-//       "count": <int> }
+//     { "id"       : <id>,
+//       "label"    : <label> | null,
+//       "access"   : [ <access>, ... ],
+//       "count"    : <int> | null,
+//       "audience" : <group-audience> }
 // - `id` is the group [identifier](/docs/#/types/id.js) (that was passed in the URL).
 // - `label` is an optional [human-readable name](/docs/#/types/label.js) for the group.
-// - `count` is the number of contacts in the group.
+// - `access` is the list of access levels the person `{as}` has over
+//   the group. See [audience and access](/docs/#/concept/audience.md) for more
+//   information.
+// - `count` (**list**-only) is the number of members in the group.
+// - `audience` (**admin**-only) is the current audience of the group. See [audience and 
+//   access](/docs/#/concept/audience.md) for more information.
 
-TODO("The response has valid return code and content type.", function(next) {
-    Assert.fail();
+TEST("The response has valid return code and content type.", function(Query) {
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    return Query.get(["db/",db,"/groups/admin/info"],auth)
+	.assertStatus(200).assertIsJson();    
 });
 
 // # Examples
@@ -30,42 +41,110 @@ TODO("The response has valid return code and content type.", function(next) {
 //     200 OK
 //     Content-Type: application/json 
 //     
-//     { "id": "0SNQe0032JZ",
-//       "label": "Team members",
-//       "count" : 215 }
+//     { "id"       : "0SNQe0032JZ",
+//       "label"    : "Team members",
+//       "access"   : [ "view", "list", "moderate", "admin" ],
+//       "count"    : 215,
+//       "audience" : {} }
 
-TODO("Returns correct number of contacts in count.", function(next) {
-    Assert.fail();
+TEST("Returns correct count.", function(Query) {
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    return Query.get(["db/",db,"/groups/admin/info"],auth).then(function(d,s,r) {
+	return Assert.areEqual(1, d.count);
+    });
 });
 
-TODO("Returns correct group label.", function(next) {
-    Assert.fail();
+TEST("Returns correct group label.", function(Query) {
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/groups"],{"label":"My Group"},auth).id();
+    return Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d,s,r) {
+	return Assert.areEqual("My Group", d.label);
+    });
+});
+
+TEST("Returns correct access and audience.", function(Query) {
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/groups"],{"audience":{"admin":"anyone"}},auth).id();
+    return Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d,s,r) {
+	return Assert.areEqual({
+	    "id": id,
+	    "label": null,
+	    "access": [ "view", "list", "admin", "moderate" ],
+	    "count": 0,
+	    "audience": { "admin": "anyone" }
+	}, d);
+    });
+});
+
+TEST("Do not include 'count' or 'audience' without list access.", function(Query) {
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/groups"],{"audience":{"view":"anyone"}},auth).id();
+    return Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d,s,r) {
+	return Assert.areEqual({
+	    "id" :      id,
+	    "label":    null,
+	    "access":   [ "view" ],
+	    "count":    null, /* no server side support for missing fields */
+	    "audience": null  /* no server side support for missing fields */
+	}, d);
+    });
+});
+
+TEST("Do not include 'audience' without admin access.", function(Query) {
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/groups"],{"audience":{"moderate":"anyone"}},auth).id();
+    return Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d,s,r) {
+	return Assert.areEqual({
+	    "id" :      id,
+	    "label":    null,
+	    "access":   [ "view", "list", "moderate" ],
+	    "count":    0,
+	    "audience": null  /* no server side support for missing fields */
+	}, d);
+    });
 });
 
 // # Errors
 // 
+// ## Returns `401 Unauthorized` 
+// - ... if the provided token does not allow acting as `{as}`.
+
+TEST("Returns 401 when token is not valid.", function(Query) {
+    var db = Query.mkdb();
+    return Query.get(["db/",db,"/groups/admin/info"],{id:"01234567890",token:"01234567890"})
+	.assertStatus(401);
+});
+ 
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TODO("Returns 404 when database does not exist.", function(next) {
-    Assert.fail();
+TEST("Returns 404 when database does not exist.", function(Query) {
+    return Query.get(["db/00000000000/groups/admin/info"]).assertStatus(404);
 });
 
 // - ... if group `{id}` does not exist in database `{db}`
 
-TODO("Returns 404 when group does not exist.", function(next) {
-    Assert.fail();
+TEST("Returns 404 when group does not exist.", function(Query) {
+    var db = Query.mkdb();
+    return Query.get(["db/",db,"/groups/00000000000/info"]).assertStatus(404);
 });
 
-// ## Returns `401 Unauthorized` 
-// - ... if the provided token does not grant access to group information,
-//   or no token was provided
+// - ... if person `{as}` does not have at least **view** access
+//   to group `{id}`, to ensure [absence 
+//   equivalence](/docs/#/concept/absence-equivalence.md).
 
-TODO("Returns 401 when token is not valid.", function(next) {
-    Assert.fail();
+TEST("Returns 404 when no 'view' access.", function(Query) {
+    var db = Query.mkdb();
+    var peon = Query.auth(db,false,"peon@runorg.com");
+    return Query.get(["db/",db,"/groups/admin/info"],peon).assertStatus(404);
 });
- 
+
 // # Access restrictions
 //
-// Currently, anyone can read about a group with a token for the corresponding database. 
-// This is subject to change in future versions.
+// An [access level](/docs/#/group/audience.js) of **view** is required 
+// to view group meta-data.
