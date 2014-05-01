@@ -7,18 +7,14 @@
 // [Delayed](/docs/#/concept/delayed.md), 
 // [Sync Idempotent](/docs/#/concept/sync-idempotent.md).
 
-TODO("The response has valid return code and content type.", function(next) {
+TEST("The response has valid return code and content type.", function(Query) {
 
     var example = { "email" : "vnicollet@runorg.com" };
 
-    var db = Query.mkdb(),
-        token = Query.auth(db),
-        response = Test.query("POST",["db/",db,"/people/import"],[example],token).response();
-
-    response.map(function(r) {
-	Assert.areEqual(202, r.status).then();
-	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    return Query.post(["db/",db,"/people/import"],[example],auth)
+	.assertStatus(202).assertIsJson();
 
 });
 
@@ -51,9 +47,9 @@ TODO("The response has valid return code and content type.", function(next) {
 // may bounce due to the [global limit on request body sizes](/docs/#/config/httpd.js). 
 // 
 // ### Response format
-//     { "created": [ <id>, ... ], 
+//     { "imported": [ <id>, ... ], 
 //       "at": <clock> }
-// - `created` is a list of all identifiers associated to the imported people, 
+// - `imported` is a list of all identifiers associated to the imported people, 
 //   in the same order as the array of people in the request. 
 // - `at` indicates the [clock position](/docs/#/types/clock.js) when all the
 //   imported people will be available. 
@@ -71,35 +67,41 @@ TODO("The response has valid return code and content type.", function(next) {
 //     202 Accepted
 //     Content-Type: application/json
 //
-//     { "created": [ "0Et9j0026rO", "0SMXP00G0ON" ],
+//     { "imported": [ "0Et9j0026rO", "0SMXP00G0ON" ],
 //       "at": [[2,87]] }
 
-TODO("Single import works.", function(next) {
+TEST("Single import works.", function(Query) {
 
     var example = { "email" : "vnicollet@runorg.com",
 		    "fullname" : "Victor Nicollet",
 		    "gender" : "M" };
 
-    var db = Query.mkdb(),
-        token = Query.auth(db),
-        id = Test.query("POST",["db/",db,"/people/import"],[example],token).result('created',0),
-        created = Test.query("GET",["db/",db,"/people/",id],{},token).result();
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
 
-    var expected = { "id": id, 
-		     "name": "Victor Nicollet",
-		     "gender": "M", 
-		     "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060" };
+    var id = Query.post(["db/",db,"/people/import"],[example],auth)
+	.then(function(d) { return d.imported[0]; });
+    
+    var created = Query.get(["db/",db,"/people/",id],auth)
+	.then(function(d) { return d; });
 
-    Assert.areEqual(expected, created).then(next);
+    var expected = { 
+	"id": id, 
+	"name": "Victor Nicollet",
+	"gender": "M", 
+	"pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060" 
+    };
+    
+    return Assert.areEqual(expected, created);
 
 });
 
 //
 // # Duplicate entries
 // 
-// Duplicate entries (that is, entries for which a contact already exists with
+// Duplicate entries (that is, entries for which a person already exists with
 // the same email address) will be silently ignored, and the identifier for the 
-// old contact will be returned. 
+// old person will be returned. 
 //
 // Please note that the `email` field is not a strict uniqueness constraint: 
 // there are normal situations under which two or more people may share an
@@ -114,27 +116,35 @@ TODO("Single import works.", function(next) {
 // internal server errors...), use the fact that it is 
 // [Sync Idempotent](/docs/#/concepts/sync-idempotent.js). 
 //
-// ## Returns `404 Not Found`
-// - ... if database `{db}` does not exist
-
-TODO("Returns 404 when database does not exist.", function(next) {
-    Test.query("POST","/db/00000000001/people/import",{}).error(404).then(next);
-});
-
 //
 // ## Returns `401 Unauthorized`
 // - ... if the provided token does not allow importing new people, or no token
 //   was provided
 
-TODO("Returns 401 when token is not valid.", function(next) {
+TEST("Returns 401 when token is not valid.", function(Query) {
     var db = Query.mkdb();
-    Test.query("POST",["db/",db,"/people/import"],[]).error(401).then(function() {
-	Test.query("POST",["db/",db,"/people/import"],[],"0123456789a").error(401).then(next);
-    });
+    return Query.post(["db/",db,"/people/import"],[],{id:"0123456789a",token:"01234567890"})
+	.assertStatus(401);
 });
 
-//
+// ## Returns `403 Forbidden`
+// - ... if person `{as}` is not allowed to import people.
+
+TEST("Returns 403 when not allowed to import contacts.", function(Query) {
+    var db = Query.mkdb();
+    var auth = Query.auth(db,false);
+    return Query.post(["/db/",db,"/people/import"],[],auth).assertStatus(403);
+});
+
+// ## Returns `404 Not Found`
+// - ... if database `{db}` does not exist
+
+TEST("Returns 404 when database does not exist.", function(Query) {
+    return Query.post("/db/00000000001/people/import",[]).assertStatus(404);
+});
+
+
 // # Access restrictions
 //
-// Currently, anyone can import people with a token for the corresponding 
-// database. This is subject to change in future versions.
+// Only [database administrators](/docs/#/group/admin.md) are allowed to import
+// people into the database.
