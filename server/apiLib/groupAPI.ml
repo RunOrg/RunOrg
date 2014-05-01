@@ -99,9 +99,10 @@ module Get = Endpoint.Get(struct
 end)
 
 module Info = type module <
-  id    : GId.t ;
-  label : String.Label.t option ; 
-  count : int ;
+  id     : GId.t ;
+  label  : String.Label.t option ; 
+  access : Group.Access.Set.t ;
+  count  : int option ;
 >
 
 module GetInfo = Endpoint.Get(struct
@@ -112,7 +113,7 @@ module GetInfo = Endpoint.Get(struct
   let path = "groups/{gid}/info"
 
   let response req args = 
-    let! group_opt = Group.get (args # gid) in
+    let! group_opt = Group.get (req # as_) (args # gid) in
     match group_opt with Some group -> return (`OK group) | None ->
       return (notFound (args # gid))
 
@@ -140,17 +141,17 @@ module Delete = Endpoint.Delete(struct
 
 end)
 
-module AllPublic = Endpoint.Get(struct
+module All = Endpoint.Get(struct
 
   module Arg = type module unit
-  module Out = type module < list : Info.t list ; count : int >
+  module Out = type module < list : Info.t list >
   
-  let path = "groups/public"
+  let path = "groups"
 
   let response req () = 
     let limit = Option.default 1000 (req # limit) in
     let offset = Option.default 0 (req # offset) in    
-    let! list, count = Group.all ~limit ~offset in
-    return (`OK (Out.make ~list ~count))
+    let! list = Group.all (req # as_) ~limit ~offset in
+    return (`OK (Out.make ~list))
 
 end)

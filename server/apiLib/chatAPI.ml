@@ -135,7 +135,7 @@ module Get = Endpoint.Get(struct
     let! info = Chat.get (arg # id) in 
     match info with None -> return (not_found (arg # id)) | Some info -> 
       let! people = List.M.filter_map Person.get (info # people) in 
-      let! groups = List.M.filter_map Group.get (info # groups) in 
+      let! groups = List.M.filter_map (Group.get (req # as_)) (info # groups) in 
       return (`OK (Out.make ~people ~groups ~info))
 
 end)
@@ -155,7 +155,7 @@ module GetAllAs = Endpoint.Get(struct
     let  limit  = Option.default 100 (req # limit) in
     let  offset = Option.default 0 (req # offset) in
     let! list = Chat.all_as ~limit ~offset (req # as_) in
-    let! groups = List.(M.filter_map Group.get 
+    let! groups = List.(M.filter_map (Group.get (req # as_)) 
 			  (unique (flatten (map (#groups) list)))) in
     let! people = List.(M.filter_map Person.get
 			    (unique (flatten (map (#people) list)))) in

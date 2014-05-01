@@ -103,6 +103,9 @@ module Send = Endpoint.Post(struct
   let needAccess id = 
     `Forbidden (!! "Not allowed to send mail in database %S." (Id.to_string id))
 
+  let needList id =
+    `NotFound (!! "Not allowed to list members of group %S." (GId.to_string id)) 
+
   let groupNotFound id =
     `NotFound (!! "Group %S does not exist." (GId.to_string id)) 
 
@@ -112,6 +115,7 @@ module Send = Endpoint.Post(struct
     let! result = SentMail.send (req # as_) (arg # id) (post # group) in
     match result with 
     | `NeedAccess       id -> return (needAccess id)
+    | `NeedList        gid -> return (needList gid)
     | `NoSuchMail      mid -> return (notFound mid) 
     | `NoSuchGroup     gid -> return (groupNotFound gid) 
     | `GroupEmpty        _ -> return (`Accepted (Out.make ~count:0 ~at:Cqrs.Clock.empty))

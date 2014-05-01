@@ -21,15 +21,18 @@ let send pid mid gid =
     let! info = Mail.get mid in 
     match info with None -> return (`NoSuchMail mid) | Some info -> 
 
-      let! group = Group.get gid in 
+      let! group = Group.get pid gid in 
       match group with None -> return (`NoSuchGroup gid) | Some group -> 
 
-	if group # count = 0 then return (`GroupEmpty gid) else 
+	match group # count with 
+	| None -> return (`NeedList gid) 
+	| Some 0 -> return (`GroupEmpty gid) 
+	| Some count -> 
 
 	  let id = I.gen () in
 	  
 	  let rec batches acc offset = 
-	    if offset > group # count then return acc else
+	    if offset > count then return acc else
 	      let! list, _ = Group.list ~limit:batch_size ~offset gid in 
 	      batches 
 		((Events.batchScheduled ~id ~mid ~pos:offset ~list) :: acc)
@@ -48,7 +51,7 @@ let send pid mid gid =
 	  
 	  let! clock = Store.append (groupWaveCreate :: batches) in
 
-	  return (`OK (id, group # count, clock))
+	  return (`OK (id, count, clock))
 
 (* Following links 
    =============== *)

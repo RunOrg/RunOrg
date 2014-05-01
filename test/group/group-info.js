@@ -35,7 +35,7 @@ TEST("The groups's identifier is returned.", function(Query) {
 // - `label` is a [human-readable name](/docs/#/types/label.js). Not all groups
 //   have one, because it is not a mandatory property when creating a group.
 
-TEST("The groups's label is returned if available.", function(Query) {
+TEST("The group's label is returned if available.", function(Query) {
 
     var example = { "label" : "Associates" };
 
@@ -49,7 +49,26 @@ TEST("The groups's label is returned if available.", function(Query) {
 
 });
 
-// - `count` is the number of group members (contacts currently in the group).
+// - `access` is the list of [access levels](/docs/#/group/audience.js) available to 
+//  the viewer.
+
+TEST("The group's access levels are returned.", function(Query) {
+
+    var example = { "audience" : { "moderate" : "anyone" } };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+
+    var id = Query.post(["db/",db,"/groups"],example,auth).id();
+    var access = Query.get(["db/",db,"/groups/",id,"/info"]).then(function(d) { return d.access; });
+
+    return Assert.areEqual([ "view", "list", "moderate" ], access);
+
+});
+
+
+// - `count` is the number of group members (people currently in the group). This field is
+//   only available if the viewer has **list** access to the group.
 
 TEST("The group's member count is returned.", function(Query) {
 

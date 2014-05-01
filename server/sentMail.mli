@@ -18,6 +18,7 @@ val send :
   PId.t option -> 
   Mail.I.t ->
   GId.t -> (#O.ctx, [ `NeedAccess of Id.t
+		    | `NeedList of GId.t
 		    | `NoSuchMail of Mail.I.t
 		    | `NoSuchGroup of GId.t 
 		    | `GroupEmpty of GId.t

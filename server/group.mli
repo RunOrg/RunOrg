@@ -50,16 +50,17 @@ val list : ?limit:int -> ?offset:int -> GId.t -> (#O.ctx, PId.t list * int) Run.
 
 (** Short information about a group. *)
 type info = <
-  id    : GId.t ; 
-  label : String.Label.t option ;
-  count : int ;
+  id     : GId.t ; 
+  label  : String.Label.t option ;
+  access : Access.Set.t ;
+  count  : int option ;
 >
 
 (** Get short information about a group. *)
-val get : GId.t -> (#O.ctx, info option) Run.t 
+val get : PId.t option -> GId.t -> (#O.ctx, info option) Run.t 
 
 (** Get all the groups in the database. *)
-val all : limit:int -> offset:int -> (#O.ctx, info list * int) Run.t
+val all : PId.t option -> limit:int -> offset:int -> (#O.ctx, info list) Run.t
 
 (** List all the groups of a person. *)
 val of_person : PId.t -> (#O.ctx, GId.t Set.t) Run.t 

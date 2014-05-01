@@ -6,25 +6,34 @@ open Std
    ================= *)
 
 type info = <
-  id    : GId.t ;
-  label : String.Label.t option ; 
-  count : int ;
+  id     : GId.t ;
+  label  : String.Label.t option ; 
+  access : GroupAccess.Set.t ;
+  count  : int option ;
 >
 
-let format_info gid info = object
-  method id = gid
-  method label = info # label
-  method count = info # count
+let format_info gid access info = object
+  method id  = gid
+  method access = access
+  method label  = info # label
+  method count  = if Set.mem `List access then Some (info # count) else None
 end 
 
-let get gid = 
+let get pid gid = 
   let! info = Cqrs.MapView.get View.info gid in
-  match info with None -> return None | Some info -> return (Some (format_info gid info))
+  match info with None -> return None | Some info ->
+    let! access = GroupAccess.compute pid (info # audience) in
+    if not (Set.mem `View access) then return None else 
+      return (Some (format_info gid access info))
 
-let all ~limit ~offset = 
+let all pid ~limit ~offset = 
+  let  compute = GroupAccess.compute pid in 
   let! list = Cqrs.MapView.all ~limit ~offset View.info in
-  let! count = Cqrs.MapView.count View.info in 
-  return (List.map (fun (gid,info) -> format_info gid info) list, count) 
+  List.M.filter_map begin fun (gid,info) -> 
+    let! access = compute (info # audience) in 
+    if not (Set.mem `View access) then return None else
+      return (Some (format_info gid access info))
+  end list
 
 (* Members in the group 
    ==================== *)
