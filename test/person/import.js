@@ -73,7 +73,7 @@ TEST("The response has valid return code and content type.", function(Query) {
 TEST("Single import works.", function(Query) {
 
     var example = { "email" : "vnicollet@runorg.com",
-		    "fullname" : "Victor Nicollet",
+		    "name" : "Victor Nicollet",
 		    "gender" : "M" };
 
     var db = Query.mkdb();
@@ -87,9 +87,9 @@ TEST("Single import works.", function(Query) {
 
     var expected = { 
 	"id": id, 
-	"name": "Victor Nicollet",
+	"label": "Victor Nicollet",
 	"gender": "M", 
-	"pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060" 
+	"pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060?d=identicon" 
     };
     
     return Assert.areEqual(expected, created);
