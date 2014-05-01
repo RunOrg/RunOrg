@@ -208,3 +208,44 @@ module GetSent = Endpoint.Get(struct
 	      return (`OK (info :> Out.t))
 
 end)
+
+(* Following links
+   =============== *)
+
+module Follow = Endpoint.RawGet(struct
+    
+  module Arg = type module < link : SentMail.Link.t >
+
+  let path = "link/{link}"
+
+  let notFound = 
+    Httpd.raw 
+      ~headers:[ "Content-Type", "text/html" ]
+      ~status:`NotFound
+      "<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1></body>"
+
+  let redirect url = 
+    let url = String.Url.to_string url in 
+    Httpd.raw
+      ~headers:[ "Location", url ]
+      ~status:`Found
+      url
+
+  let track = 
+    Httpd.raw 
+      ~headers:[ "Content-Type", "image/gif" ]
+      ~status:`OK 
+      ("\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff"
+       ^ "\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b")
+
+  let response req arg = 
+    let! follow = SentMail.follow (arg # link) (req # client_ip) in
+    match follow with 
+    | `NotFound (_,_) -> return notFound
+    | `Track          -> return track  
+    | `Link url       -> return (redirect url)
+    | `Auth (tok,url) -> let tok = Token.I.to_string tok in
+			 let url = String.Url.add_query_string_parameter "runorg" tok url in
+			 return (redirect url) 
+
+end)
