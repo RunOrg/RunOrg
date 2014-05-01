@@ -16,8 +16,14 @@
 //     { "status" : "preview" | "scheduled" | "sent", 
 //       "sent"   : <time> | null,
 //       "view"   : {
-//         "from"    : <string>,
-//         "to"      : <string>,
+//         "from"    : { 
+//           "email" : <string>, 
+//           "name"  : <string> | null 
+//         },
+//         "to"      : { 
+//           "email" : <string>, 
+//           "name"  : <string> | null 
+//         },
 //         "subject" : <string>,
 //         "text"    : <string> | null,
 //         "html"    : <string> | null 
@@ -28,8 +34,10 @@
 // - `sent` is the time when RunOrg sent the e-mail, only set when `status` 
 //   is `"sent"`.
 // - `view` is the actual e-mail data, it includes: 
-// - `view.from` is the contents of the `From:` header. 
-// - `view.to` is the contents of the `To:` header.
+// - `view.from` is the contents of the `From:` header, split into the actual
+//   `email` and an optional `name`.  
+// - `view.to` is the contents of the `To:` header, split into the actual 
+//   `email` and an optional `name`.
 // - `view.subject` is the contents of the `Subject:` header.
 // - `view.text` is the text body of the e-mail, if provided. 
 // - `view.html` is the HTML body of the e-mail, if provided. 
@@ -91,8 +99,8 @@ TEST("Template previewing shows correct data.", function(Query) {
 		"status": "preview",
 		"sent"  : null,
 		"view"  : {
-		    "from"   : "test@runorg.com",
-		    "to"     : "test@runorg.com",
+		    "from"   : { "email": "test@runorg.com", "name": null },
+		    "to"     : { "email": "test@runorg.com", "name": null },
 		    "subject": "Hello, world",
 		    "text"   : "Hello, test@runorg.com.\n\nPlease click on this link:\n" + self,
 		    "html"   : "Hello, <b>test@runorg.com</b>. Please <a href='" + self + "'>click here</a>"
@@ -180,7 +188,7 @@ TEST("Returns 404 when draft does not exist.", function(Query) {
 });
 
 // - ... if person `{as}` does not have **view** access to draft `{id}`,
-//   to ensure[absence 
+//   to ensure [absence 
 //   equivalence](/docs/#/concept/absence-equivalence.md). Important exception: 
 //   a recipient is always able to view any e-mail they received, even if they
 //   cannot view the original draft.   
