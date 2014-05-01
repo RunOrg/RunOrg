@@ -58,7 +58,7 @@ module Make = functor (Access:ACCESS_LEVEL) -> struct
 	  let v = try Audience.of_json v with Json.Error (path,error) -> 
 	    raise (Json.Error (k :: path, error)) in
 	  let k = try Access.of_json (Json.String k) with Json.Error (path,error) -> 
-	    raise (Json.Error ([k], "Unrecognized access level.")) in
+	    raise (Json.Error (["." ^ k], "Unrecognized access level.")) in
 	  (k, v) 	  
 	) o)
       end
