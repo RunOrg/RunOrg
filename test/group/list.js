@@ -1,33 +1,28 @@
-// GET /db/{db}/groups/public
-// Groups / List all public groups in the database
+// GET /db/{db}/groups
+// Groups / List all groups in the database
 //
 // Alpha @ 0.1.27
 // 
 // `200 OK`, 
 // [Read-only](/docs/#/concept/read-only.md),
+// [Viewer-dependent](/docs/#/concept/viewer-dependent.md),
 // [Paginated](/docs/#/concept/paginated.md).
 //
-// Returns all the groups in the database that can be seen without
-// authentication, in arbitrary order.
-// Supports `limit` and `offset` pagination. 
+// Returns all the groups in the database that can be seen by `{as}`,
+// in arbitrary order. Supports `limit` and `offset` pagination. 
 //
 // ### Response format
-//     { "list": [ <groupinfo>, ... ],
-//       "count": <int> }
+//     { "list": [ <group-info>, ... ] }
 // - `list` is a list of groups on the requested page, in 
-//   [short format](/docs/#/group/group-info.js)
-// - `count` is the total number of public groups in the database.
+//   [short format](/docs/#/group/group-info.js).
 
-TODO("The response has valid return code and content type.", function(next) {
+TEST("The response has valid return code and content type.", function(Query) {
 
-    var db = Query.mkdb(),
-        token = Query.auth(db),
-        response = Test.query("GET",["db/",db,"/groups/public"],{},token).response();
-
-    response.map(function(r) {
-	Assert.areEqual(200, r.status).then();
-	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    
+    return Query.get(["db/",db,"/groups"],auth)
+	.assertStatus(200).assertIsJson();
 
 });
 
@@ -43,33 +38,34 @@ TODO("The response has valid return code and content type.", function(next) {
 //     { "list" : [ 
 //       { "id" : "0SNQe00311H",
 //         "label" : null,
+//         "access": [ "list", "view" ],
 //         "count": 25 },
 //       { "id" : "0SNQg00511H",
 //         "label" : "Team members",
-//         "count": 8 } ],
-//       "count" : 18 }
-
-TODO("Returns correct number of groups in count.", function(next) {
-});
-
-TODO("Returns data for all public groups.", function(next) {
-    Assert.fail();
-});
-
-TODO("Do not return non-public groups.", function(next) {
-    Assert.fail();
-});
+//         "access" : [ "view" ]
+//         "count": null } ] }
 
 // # Errors
 // 
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TODO("Returns 404 when database does not exist.", function(next) {
-    Test.query("GET","/db/00000000001/groups/public").error(404).then(next);
+TEST("Returns 404 when database does not exist.", function(Query) {
+    return Query.get("/db/00000000001/groups").assertStatus(404);
 });
- 
+
+// 
+// ## Returns `401 Unauthorized`
+// - ... if the authorization token does not allow acting as `{as}`.
+
+TEST("Returns 401 when token is invalid.", function(Query) {
+    var db = Query.mkdb();
+    return Query.get(["/db/",db,"/groups"],{id:"1234567890A",token:"1234567890A"})
+	.assertStatus(401);
+});
+  
 // # Access restrictions
 //
-// By definition, anyone can retrieve results from this API. If there are no public
-// groups, an empty list will be returned.
+// By definition, anyone can retrieve results from this API. If the viewer
+// does not have **view** acces to any group, the returned list will be 
+// empty.
