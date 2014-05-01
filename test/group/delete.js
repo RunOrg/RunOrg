@@ -45,7 +45,7 @@ TEST("Deleted group disappears.", function(Query) {
     var id = Query.post(["db/",db,"/groups"],{},auth).id();
 
     return Query.del(["db/",db,"/groups/",id],auth).then(function() {
-	return Query.get(["db/",db,"/groups/",id],auth).assertStatus(404);
+	return Query.get(["db/",db,"/groups/",id,"/info"],auth).assertStatus(404);
     });
 
 });
