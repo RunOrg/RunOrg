@@ -43,3 +43,6 @@ val view : Root.t -> int -> t
 
 (** Obtain the root of this link. *)
 val root : t -> Root.t
+
+(** Describe what this link is about. *)
+val what : t -> [ `Self | `Track | `View of int | `Auth of int ]
