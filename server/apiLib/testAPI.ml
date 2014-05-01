@@ -40,7 +40,7 @@ module AuthDb = Endpoint.Post(struct
     if not Configuration.test then return bad_auth else
       match String.Label.of_string (post # email) with None -> return bad_email | Some email -> 
 	let! ctx = Run.context in 
-	let! id, at = Person.create email in
+	let! id, at = Person.create_forced email in
 	let  owner = `Person (ctx # db, id) in
 	let! at = 
 	  if post # admin then let! at' = Group.add_forced [id] [GId.admin] in

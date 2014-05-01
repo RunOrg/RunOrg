@@ -2,7 +2,7 @@
 
 open Std
 
-let create ?name ?givenName ?familyName ?gender email = 
+let create_forced ?name ?givenName ?familyName ?gender email = 
   let! id = Cqrs.MapView.get View.byEmail email in 
   match id with Some id -> return (id, Cqrs.Clock.empty) | None -> 
 
@@ -18,3 +18,23 @@ let create ?name ?givenName ?familyName ?gender email =
 
     let! clock = Store.append events in
     return (id, clock) 
+
+type 'ctx creator = 
+  ?name:String.Label.t -> 
+  ?givenName:String.Label.t -> 
+  ?familyName:String.Label.t -> 
+  ?gender:[`F|`M] -> 
+  String.Label.t -> ('ctx, PId.t * Cqrs.Clock.t) Run.t
+
+(* Who is allowed to import contacts ? *)
+let import_audience = Audience.admin 
+
+let import pid = 
+  
+  let! allowed = Audience.is_member pid import_audience in 
+  if not allowed then 
+    let! ctx = Run.context in 
+    return (`NeedAccess (ctx # db))
+  else
+    return (`OK create_forced)
+  

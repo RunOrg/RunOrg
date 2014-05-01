@@ -4,15 +4,19 @@ open Std
 
 (** People who can connect to the system and receive e-mails. *)
 
-(** Create a new contact with the specified e-mail, and return its identifier. 
-    If the e-mail already belongs to a contact, the identifier of that contact
-    is returned instead. *)
-val create : 
+(** A function used to create people in the database. *)
+type 'ctx creator = 
   ?name:String.Label.t -> 
   ?givenName:String.Label.t -> 
   ?familyName:String.Label.t -> 
   ?gender:[`F|`M] -> 
-  String.Label.t -> (# O.ctx, PId.t * Cqrs.Clock.t) Run.t
+  String.Label.t -> ('ctx, PId.t * Cqrs.Clock.t) Run.t
+
+(** Create a new profile without paying heed to any access restrictions. *)
+val create_forced : #O.ctx creator
+
+(** If allowed to import, return a person-creator function. *)
+val import : PId.t option -> (#O.ctx as 'ctx, [ `OK of 'ctx creator | `NeedAccess of Id.t ]) Run.t
   
 (** A short profile. *)
 type short = <

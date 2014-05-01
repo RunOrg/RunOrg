@@ -18,6 +18,6 @@ let auth_persona assertion =
     let! id = Cqrs.MapView.get View.byEmail email in 
     let! info = Option.M.bind Queries.get id in
     match info with Some info -> respond Cqrs.Clock.empty info | None -> 
-      let! id, clock = Commands.create email in
+      let! id, clock = Commands.create_forced email in
       let  info = Queries.initial_short id email in
       respond clock info 

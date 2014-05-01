@@ -108,24 +108,30 @@ module Import = Endpoint.Post(struct
 
   let path = "people/import"
 
+  let needAccess id = 
+    `Forbidden (!! "You may not import people into database %S." (Id.to_string id))
+
   let response req () post = 
 
-    let! imported = List.M.map begin fun profile ->
-      Person.create 
-	?name:(profile # name)
-	?givenName:(profile # givenName)
-	?familyName:(profile # familyName)
-	?gender:(profile # gender)
-	(profile # email) 
-    end post in 
+    let! create = Person.import (req # as_) in
+    match create with `NeedAccess id -> return (needAccess id) | `OK create -> 
 
-    let out = Out.make 
-      ~at:(List.fold_left (fun acc (_,clock) -> Cqrs.Clock.merge acc clock) Cqrs.Clock.empty imported)
-      ~imported:(List.map fst imported) 
-    in
-
-    return (`Accepted out) 
-			      
+      let! imported = List.M.map begin fun profile ->
+	create 
+	  ?name:(profile # name)
+	  ?givenName:(profile # givenName)
+	  ?familyName:(profile # familyName)
+	  ?gender:(profile # gender)
+	  (profile # email) 
+      end post in 
+      
+      let out = Out.make 
+	~at:(List.fold_left (fun acc (_,clock) -> Cqrs.Clock.merge acc clock) Cqrs.Clock.empty imported)
+	~imported:(List.map fst imported) 
+      in
+      
+      return (`Accepted out) 
+	
 end)
 
 module Get = Endpoint.Get(struct
