@@ -44,3 +44,20 @@ let of_string url =
 let of_string_template id url = 
   Some (fun i -> let segs = BatString.nsplit url ("{"^id^"}") in
 		 `Raw (String.concat i segs))
+
+(* URL manipulation 
+   ================ *)
+
+let raw_add_query_string_parameter key value t = 
+
+  let add key value t = 
+    let sep = if BatString.exists t "?" then "&" else "?" in 
+    t ^ sep ^ key ^ "=" ^ value (* TODO: escaping *)
+  in
+
+  try let url, hash = BatString.split t "#" in
+      add key value url ^ "#" ^ hash
+  with Not_found -> add key value t
+
+let add_query_string_parameter key value = function 
+  | `Raw t -> `Raw (raw_add_query_string_parameter key value t)
