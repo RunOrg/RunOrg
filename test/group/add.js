@@ -19,14 +19,14 @@ TEST("The response has valid return code and content type.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     var peon = Query.auth(db,false,"peon@runorg.com");
-    return Query.post(["db/",db,"groups/admin/add"],[peon.id],auth)
+    return Query.post(["db/",db,"/groups/admin/add"],[peon.id],auth)
 	.assertStatus(202).assertIsJson();    
 });
 
 TEST("An empty list is acceptable.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    return Query.post(["db/",db,"groups/admin/add"],[],auth)
+    return Query.post(["db/",db,"/groups/admin/add"],[],auth)
 	.assertStatus(202);    
 });
 
@@ -34,22 +34,22 @@ TEST("Duplicate contacts in list are acceptable.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     var peon = Query.auth(db,false,"peon@runorg.com");
-    return Query.post(["db/",db,"groups/admin/add"],[peon.id,peon.id],auth)
+    return Query.post(["db/",db,"/groups/admin/add"],[peon.id,peon.id],auth)
 	.assertStatus(202);    
 });
 
 TEST("Contacts already in group are ignored.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    return Query.post(["db/",db,"groups/admin/add"],[auth.id],auth)
+    return Query.post(["db/",db,"/groups/admin/add"],[auth.id],auth)
 	.assertStatus(202);    
 });
 
 TEST("Added contacts can be found in the group.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var peon = Query.auth(db,false,"test,2@runorg.com");
-    return Query.post(["db/",db,"groups/admin/add"],[peon.id,peon.id],auth).then(function() {
+    var peon = Query.auth(db,false,"test+2@runorg.com");
+    return Query.post(["db/",db,"/groups/admin/add"],[peon.id,peon.id],auth).then(function() {
 
 	var list = Query.get(["db/",db,"/groups/admin"],auth).then(function(d) { return d.list; });
 	var expected = [{
