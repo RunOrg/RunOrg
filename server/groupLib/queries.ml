@@ -43,10 +43,20 @@ let all pid ~limit ~offset =
 (* Members in the group 
    ==================== *)
 
-let list ?limit ?offset gid = 
-  let! count = Cqrs.ManyToManyView.count View.people gid in 
-  let! list  = Cqrs.ManyToManyView.list ?limit ?offset View.people gid in
-  return (list, count)
+let list pid ?limit ?offset gid = 
+
+  let! info = Cqrs.MapView.get View.info gid in
+  match info with None -> return (`NotFound gid) | Some info ->
+
+    let! access = GroupAccess.compute pid (info # audience) in
+    if not (Set.mem `View access) then return (`NotFound gid) else       
+      if not (Set.mem `List access) then return (`NeedList gid) else
+
+	  let! list  = Cqrs.ManyToManyView.list ?limit ?offset View.people gid in
+	  return (`OK (list, info # count))
+
+let list_force ?limit ?offset gid = 
+  Cqrs.ManyToManyView.list ?limit ?offset View.people gid
 
 (* Groups of a member
    ================== *)

@@ -33,7 +33,7 @@ let send pid mid gid =
 	  
 	  let rec batches acc offset = 
 	    if offset > count then return acc else
-	      let! list, _ = Group.list ~limit:batch_size ~offset gid in 
+	      let! list = Group.list_force ~limit:batch_size ~offset gid in 
 	      batches 
 		((Events.batchScheduled ~id ~mid ~pos:offset ~list) :: acc)
 		(offset + batch_size) in 

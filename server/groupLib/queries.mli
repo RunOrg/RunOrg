@@ -2,7 +2,12 @@
 
 open Std
 
-val list : ?limit:int -> ?offset:int -> GId.t -> (#O.ctx, PId.t list * int) Run.t
+val list : PId.t option -> ?limit:int -> ?offset:int -> GId.t 
+  -> (#O.ctx, [ `OK of PId.t list * int
+	      | `NotFound of GId.t 
+	      | `NeedList of GId.t ]) Run.t
+
+val list_force : ?limit:int -> ?offset:int -> GId.t -> (#O.ctx, PId.t list) Run.t
 
 type info = <
   id     : GId.t ;

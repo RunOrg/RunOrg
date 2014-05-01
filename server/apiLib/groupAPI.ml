@@ -89,12 +89,20 @@ module Get = Endpoint.Get(struct
 
   let path = "groups/{id}"
 
+  let needList gid = 
+    `Forbidden (!! "You need 'list' access to group %S." (GId.to_string gid))
+
   let response req args = 
     let limit = Option.default 1000 (req # limit) in
     let offset = Option.default 0 (req # offset) in
-    let! cids, count = Group.list ~limit ~offset (args # id) in
-    let! list = List.M.filter_map Person.get cids in 
-    return (`OK (Out.make ~list ~count))
+    let! listing = Group.list (req # as_) ~limit ~offset (args # id) in
+    match listing with 
+    | `NotFound gid -> return (notFound gid)
+    | `NeedList gid -> return (needList gid) 
+    | `OK (list, count) -> 
+
+      let! list = List.M.filter_map Person.get list in 
+      return (`OK (Out.make ~list ~count))
 
 end)
 
