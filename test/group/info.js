@@ -81,9 +81,9 @@ TEST("Returns correct access and audience.", function(Query) {
 
 TEST("Do not include 'count' or 'audience' without list access.", function(Query) {
     var db = Query.mkdb();
-    var auth = Query.auth(db);
+    var auth = Query.auth(db);    
     var id = Query.post(["db/",db,"/groups"],{"audience":{"view":"anyone"}},auth).id();
-    return Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d,s,r) {
+    return Query.get(["db/",db,"/groups/",id,"/info"]).then(function(d,s,r) {
 	return Assert.areEqual({
 	    "id" :      id,
 	    "label":    null,
@@ -98,7 +98,7 @@ TEST("Do not include 'audience' without admin access.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     var id = Query.post(["db/",db,"/groups"],{"audience":{"moderate":"anyone"}},auth).id();
-    return Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d,s,r) {
+    return Query.get(["db/",db,"/groups/",id,"/info"]).then(function(d,s,r) {
 	return Assert.areEqual({
 	    "id" :      id,
 	    "label":    null,

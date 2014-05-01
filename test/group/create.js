@@ -69,7 +69,8 @@ TEST("Group with forced id appears.", function(Query) {
 	    "id":id,
 	    "label":"Board members",
 	    "access":["view","list","admin","moderate"],
-	    "count":0
+	    "count":0,
+	    "audience": {}
 	};
 	return Assert.areEqual(expected, get);
     });
@@ -96,7 +97,8 @@ TEST("New group with forced id created after deletion.", function(Query) {
 		    "id":id,
 		    "label":"Board members",
 		    "access":["view","list","admin","moderate"],
-		    "count":0
+		    "count":0,
+		    "audience": {}
 		};
 		return Assert.areEqual(expected, get);
 	    });
@@ -139,14 +141,16 @@ TEST("Multiple creations create multiple groups.", function(Query) {
 	"id":id1,
 	"label":"Sample group",
 	"access":["view","list","admin","moderate"],
-	"count":0
+	"count":0,
+	"audience": {}
     };
 
     var expected2 = {
 	"id":id2,
 	"label":"Sample group",
 	"access":["view","list","admin","moderate"],
-	"count":0
+	"count":0,
+	"audience": {}
     };
     
     return $.when(
