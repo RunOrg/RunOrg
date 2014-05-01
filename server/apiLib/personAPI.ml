@@ -102,7 +102,7 @@ module Import = Endpoint.Post(struct
   > list
 
   module Out = type module <
-    created   : PId.t list ;
+    imported  : PId.t list ;
     at        : Cqrs.Clock.t ;
   >
 
@@ -110,7 +110,7 @@ module Import = Endpoint.Post(struct
 
   let response req () post = 
 
-    let! created = List.M.map begin fun profile ->
+    let! imported = List.M.map begin fun profile ->
       Person.create 
 	?name:(profile # name)
 	?givenName:(profile # givenName)
@@ -120,8 +120,8 @@ module Import = Endpoint.Post(struct
     end post in 
 
     let out = Out.make 
-      ~at:(List.fold_left (fun acc (_,clock) -> Cqrs.Clock.merge acc clock) Cqrs.Clock.empty created)
-      ~created:(List.map fst created) 
+      ~at:(List.fold_left (fun acc (_,clock) -> Cqrs.Clock.merge acc clock) Cqrs.Clock.empty imported)
+      ~imported:(List.map fst imported) 
     in
 
     return (`Accepted out) 
