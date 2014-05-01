@@ -65,7 +65,13 @@ TEST("Group with forced id appears.", function(Query) {
     
     return Query.post(["db/",db,"/groups"],example,auth).then(function() {
 	var get = Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d) { return d; });
-	return Assert.areEqual({"id":id,"label":"Board members",count:0}, get);
+	var expected = {
+	    "id":id,
+	    "label":"Board members",
+	    "access":["view","list","admin","moderate"],
+	    "count":0
+	};
+	return Assert.areEqual(expected, get);
     });
 
 });
@@ -86,7 +92,13 @@ TEST("New group with forced id created after deletion.", function(Query) {
 
 	    return Query.post(["db/",db,"/groups"],example,auth).then(function(){
 		var get = Query.get(["db/",db,"/groups/",id,"/info"],auth).then(function(d) { return d; });
-		return Assert.areEqual({"id":id,"label":"Board members",count:0}, get);
+		var expected = {
+		    "id":id,
+		    "label":"Board members",
+		    "access":["view","list","admin","moderate"],
+		    "count":0
+		};
+		return Assert.areEqual(expected, get);
 	    });
 	});
     });
@@ -122,11 +134,25 @@ TEST("Multiple creations create multiple groups.", function(Query) {
 
     var get1 = Query.get(["db/",db,"/groups/",id1,"/info"],auth).then(function(d) { return d; });
     var get2 = Query.get(["db/",db,"/groups/",id2,"/info"],auth).then(function(d) { return d; });
+
+    var expected1 = {
+	"id":id1,
+	"label":"Sample group",
+	"access":["view","list","admin","moderate"],
+	"count":0
+    };
+
+    var expected2 = {
+	"id":id2,
+	"label":"Sample group",
+	"access":["view","list","admin","moderate"],
+	"count":0
+    };
     
     return $.when(
 	Assert.notEqual(id1, id2),
-	Assert.areEqual({"id":id1,"label":"Sample group",count:0}, get1),
-	Assert.areEqual({"id":id2,"label":"Sample group",count:0}, get2)
+	Assert.areEqual(expected1, get1),
+	Assert.areEqual(expected2, get2)
     );
 	    
 });
