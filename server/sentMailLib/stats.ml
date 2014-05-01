@@ -12,12 +12,21 @@ module Summary = type module <
 
 let process mid =
   let! byStatus = Cqrs.StatusView.stats View.status mid in
+  let! byOpenStatus = Cqrs.StatusView.stats View.openStatus mid in 
   return (object
-    method scheduled = try Map.find `Scheduled byStatus with Not_found -> 0 
-    method sent      = try Map.find `Sent      byStatus with Not_found -> 0
-    method failed    = try Map.find `Failed    byStatus with Not_found -> 0 
-    method opened    = 0
-    method clicked   = 0
+
+    val scheduled = try Map.find `Scheduled byStatus with Not_found -> 0 
+    val sent      = try Map.find `Sent      byStatus with Not_found -> 0
+    val failed    = try Map.find `Failed    byStatus with Not_found -> 0 
+    val opened    = try Map.find `Opened    byOpenStatus with Not_found -> 0 
+    val clicked   = try Map.find `Clicked   byOpenStatus with Not_found -> 0
+
+    method scheduled = scheduled
+    method sent = sent
+    method failed = failed
+    method opened = opened + clicked
+    method clicked = clicked
+
   end)
 
 let compute = 

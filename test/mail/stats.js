@@ -118,6 +118,84 @@ TEST("Correct number after sending ends.", function(Query) {
 
 });
 
+TEST("Correct number after clicking links.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+
+    var example = Example(auth.id);
+    example.html = { "script" : "track", "inline" : [] };
+    example.text = { "script" : "self" , "inline" : [] };
+
+    var id = Query.post(["db/",db,"/mail"],example,auth).id();
+    var auth2 = Query.auth(db,true,"test+2@runorg.com"); 	
+
+    var createAuth2 = auth2.id;
+
+    // Request sending and wait until it is done.
+    function send() {
+	
+	var count = 0;
+	
+	function waitUntilSent() {
+	    
+	    if (count++ > 20) return Assert.fail("Mail is not being sent");
+	    
+	    return Query.get(["db/",db,"/mail/",id,"/stats"],auth).then(function(d,s,r) {	    
+
+		if (d.scheduled != 0) 
+		    return Async.sleep(1000).then(waitUntilSent);
+		   
+		return true;	    
+		
+	    });
+	    
+	}
+    
+	return Query.post(["db/",db,"/mail/",id,"/send"],{"group":"admin"},auth).then(waitUntilSent);
+
+    }
+
+    // Click links 
+    function click() {
+	return $.when(
+	    Query.get(["db/",db,"/mail/",id,"/to/",auth.id],auth).then(function(d,s,r) {
+		// Ignore error
+		var def = $.Deferred();
+		$.ajax({url:d.view.html}).always(function() { def.resolve(true); });
+		return def.promise();
+	    }),
+	    Query.get(["db/",db,"/mail/",id,"/to/",auth2.id],auth).then(function(d,s,r) {
+		// Ignore error
+		var def = $.Deferred();
+		$.ajax({url:d.view.text}).always(function() { def.resolve(true); });
+		return def.promise();
+	    })
+	);
+    }
+
+    // Wait for stats to be available and perform check
+    var count = 0;
+
+    function waitForStats()
+    {
+	if (count++ > 20) return Assert.fail("Stats are not computed");
+	
+	return Query.get(["db/",db,"/mail/",id,"/stats"],auth).then(function(d,s,r) {	    
+	    
+	    if (d.opened != 2) 
+		return Async.sleep(1000).then(waitForStats);
+	    
+	    return Assert.areEqual(1, d.clicked);	    
+	    
+	});
+
+    }
+
+     return createAuth2.then(send).then(click).then(waitForStats);
+
+});
+
 
 // 
 //

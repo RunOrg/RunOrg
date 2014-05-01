@@ -73,7 +73,7 @@ let stats pid mid =
 	
 	let! clock = Cqrs.MapView.get View.last mid in
 	let! stats = Cqrs.HardStuffCache.get Stats.compute mid (Option.default Cqrs.Clock.empty clock) in
-	
+
 	return (`OK stats) 
 
 (* Following links 
