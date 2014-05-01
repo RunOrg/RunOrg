@@ -64,26 +64,31 @@ TEST("Returns data for all contacts.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var other = Query.auth(db,true,"test+2@runorg.com");
+
+    return auth.id.then(function() {
+
+	var other = Query.auth(db,true,"test+2@runorg.com");
     
-    return $.when(auth,other).then(function() {
+	return other.id.then(function() {
 
-	var list = Query.get(["db/",db,"/groups/admin"],auth).then(function(d) { return d.list; });
-	var expected = [{
-	    "id" : other.id,
-	    "label" : "test+2@runorg.com",
-	    "gender" : null,
-	    "pic" : "https://www.gravatar.com/avatar/fcf1ec969e2da183f88f5a6dca0c1d65?d=identicon"
-	}, {
-	    "id" : auth.id,
-	    "label" : "test@runorg.com",
-	    "gender" : null,
-	    "pic" : "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70?d=identicon"
-	}];
+	    var list = Query.get(["db/",db,"/groups/admin"],auth).then(function(d) { return d.list; });
+	    var expected = [{
+		"id" : auth.id,
+		"label" : "test@runorg.com",
+		"gender" : null,
+		"pic" : "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70?d=identicon"
+	    }, {
+		"id" : other.id,
+		"label" : "test+2@runorg.com",
+		"gender" : null,
+		"pic" : "https://www.gravatar.com/avatar/fcf1ec969e2da183f88f5a6dca0c1d65?d=identicon"
+	    }];
+	    
+	    return Assert.areEqual(expected,list);
 
-	return Assert.areEqual(expected,list);
+	});
     });
-    
+
 });
 
 // # Errors
@@ -106,7 +111,7 @@ TEST("Returns 403 when no 'list' access.", function(Query) {
     var auth = Query.auth(db);
     var id = Query.post(["db/",db,"/groups"],{"audience":{"view":"anyone"}},auth).id();	
     var peon = Query.auth(db, false, "peon@runorg.com");
-    return Query.get(["db/",db,"/groups/admin"])
+    return Query.get(["db/",db,"/groups/",id])
 	.assertStatus(403);
 });
 
