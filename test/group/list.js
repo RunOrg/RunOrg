@@ -45,6 +45,44 @@ TEST("The response has valid return code and content type.", function(Query) {
 //         "access" : [ "view" ]
 //         "count": null } ] }
 
+TEST("Initially empty.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+
+    return Query.get(["/db/",db,"/groups"],auth).then(function(d,s,r) {
+	return Assert.areEqual([],d.list);
+    });
+
+});
+
+TEST("Need view access to see elements.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+
+    var id1 = Query.post(["/db/",db,"/groups"],{}, auth).id();
+    var id2 = Query.post(["/db/",db,"/groups"],{"audience":{"view":"anyone"}},auth).id();
+
+    var peon = Query.auth(db,false,"peon@runorg.com");
+
+    return $.when(id1,id2).then(function() {
+	return Query.get(["/db/",db,"/groups"],peon).then(function(d,s,r) {
+
+	    var expected = [
+		{ "id" : id2,
+		  "label" : null,
+		  "access" : [ "view" ],
+		  "count" : null }
+	    ];
+
+	    return Assert.areEqual(expected,d.list);
+
+	});
+    });
+
+});
+
 // # Errors
 // 
 // ## Returns `404 Not Found`
