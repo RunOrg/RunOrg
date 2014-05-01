@@ -85,14 +85,6 @@ TEST("Need view access to see elements.", function(Query) {
 
 // # Errors
 // 
-// ## Returns `404 Not Found`
-// - ... if database `{db}` does not exist
-
-TEST("Returns 404 when database does not exist.", function(Query) {
-    return Query.get("/db/00000000001/groups").assertStatus(404);
-});
-
-// 
 // ## Returns `401 Unauthorized`
 // - ... if the authorization token does not allow acting as `{as}`.
 
@@ -100,6 +92,14 @@ TEST("Returns 401 when token is invalid.", function(Query) {
     var db = Query.mkdb();
     return Query.get(["/db/",db,"/groups"],{id:"1234567890A",token:"1234567890A"})
 	.assertStatus(401);
+});
+
+// 
+// ## Returns `404 Not Found`
+// - ... if database `{db}` does not exist
+
+TEST("Returns 404 when database does not exist.", function(Query) {
+    return Query.get("/db/00000000001/groups").assertStatus(404);
 });
   
 // # Access restrictions
