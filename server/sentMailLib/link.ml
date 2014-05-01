@@ -29,7 +29,7 @@ module Root = struct
   let length = 11 + 11 + 3
 
   let to_string (wid,tid,pos) = 
-    (I.to_string wid) ^ Token.I.(to_string (gen ())) ^ (enc3 pos) 
+    (I.to_string wid) ^ (Token.I.to_string tid) ^ (enc3 pos) 
 
   let of_string s = 
       if String.length s <> length then 
