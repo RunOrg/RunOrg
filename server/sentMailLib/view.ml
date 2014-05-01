@@ -53,6 +53,41 @@ let status =
 
   status
 
+(* Individual e-mail status by (mid,pid) pair.
+   =========================================== *)
+
+module OpenStatus = type module [ `None | `Opened | `Clicked ] 
+
+let openStatus = 
+
+  let openStatusV, openStatus = Cqrs.StatusView.make projection "openStatus" 0 `None
+    (module Mail.I : Fmt.FMT with type t = Mail.I.t)
+    (module PId : Fmt.FMT with type t = PId.t)
+    (module OpenStatus : Fmt.FMT with type t = OpenStatus.t) in
+
+  let () = Store.track openStatusV begin function 
+
+    | `GroupWaveCreated  _ 
+    | `BatchScheduled    _ 
+    | `Sent              _ 
+    | `SendingFailed     _ -> return () 
+    | `LinkFollowed     ev -> 
+
+      if ev # auto then 
+	Cqrs.StatusView.update openStatus (ev # mid) (ev # pid) (function
+	| `None
+	| `Opened  -> `Opened
+	| `Clicked -> `Clicked)
+      else
+	Cqrs.StatusView.update openStatus (ev # mid) (ev # pid) (function
+	| `None
+	| `Opened  
+	| `Clicked -> `Clicked)
+
+  end in
+
+  openStatus
+
 (* Individual e-mail info by (mid,pid) pair.
    =========================================== *)
 
