@@ -1,29 +1,27 @@
 // GET /db/{db}/people/{id}
-// People / Fetch basic information for person {id}
+// People / Fetch basic information for a person 
 //
 // Alpha @ 0.1.21
 //
 // `200 OK`, [Read-only](/docs/#/concept/read-only.md).
 //
 
-TODO("The response has valid return code and content type.", function(next) {
+TEST("The response has valid return code and content type.", function(Query) {
 
     var example = { "email" : "vnicollet@runorg.com" };
 
-    var db = Query.mkdb(),
-        token = Query.auth(db),
-        id = Test.query("POST",["db/",db,"/people/import"],[example],token).result('created',0),
-        response = Test.query("GET",["db/",db,"/people/",id],{},token).response();
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/people/import"],[example],auth)
+	.then(function(d) { return d.imported[0]; });
 
-    response.map(function(r) {
-	Assert.areEqual(200, r.status).then();
-	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
+    return Query.get(["db/",db,"/people/",id])
+	.assertStatus(200).assertIsJson();
 
 });
 
-// Returns a short representation of the specified person, as a 
-// [`<short>`](/docs/#/person/short.js).
+// Returns a [short representation](/docs/#/person/short.js) of person
+// `{id}`.
 //
 // ### Example request
 //     GET /db/0Et4X0016om/people/0Et9j0026rO
@@ -33,27 +31,29 @@ TODO("The response has valid return code and content type.", function(next) {
 //     Content-Type: application/json
 //
 //     { "id" : "0Et9j0026rO",
-//       "name" : "Victor Nicollet",
+//       "label" : "Victor Nicollet",
 //       "gender" : "M", 
 //       "pic" : "https://www.gravatar.com/avatar/648e25e4372728b2d3e0c0b2b6e26f4e" }
 
-TODO("The example was properly returned.", function(next) {
+TEST("The example was properly returned.", function(Query) {
 
     var example = { "email" : "vnicollet@runorg.com",
-		    "fullname" : "Victor Nicollet",
+		    "name" : "Victor Nicollet",
 		    "gender" : "M" };
 
-    var db = Query.mkdb(),
-        token = Query.auth(db),
-        id = Test.query("POST",["db/",db,"/people/import"],[example],token).result('created',0),
-        created = Test.query("GET",["db/",db,"/people/",id],{},token).result();
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/people/import"],[example],auth)
+	.then(function(d) { return d.imported[0]; });
+
+    var created = Query.get(["db/",db,"/people/",id]).then(function(d) { return d; });
 
     var expected = { "id": id, 
-		     "name": "Victor Nicollet",
+		     "label": "Victor Nicollet",
 		     "gender": "M", 
-		     "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060" };
+		     "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060?d=identicon" };
 
-    Assert.areEqual(expected, created).then(next);
+    return Assert.areEqual(expected, created);
 
 });
 
@@ -63,33 +63,18 @@ TODO("The example was properly returned.", function(next) {
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TODO("Returns 404 when database does not exist.", function(next) {
-    Test.query("GET","/db/00000000001/people/00000000002/").error(404).then(next);
+TEST("Returns 404 when database does not exist.", function(Query) {
+    return Query.get("/db/00000000001/people/00000000002/").assertStatus(404);
 });
 
 // - ... if person `{id}` does not exist in database `{db}`
 
-TODO("Returns 404 when person does not exist in database.", function(next) {
-    var db = Query.mkdb(),
-        token = Query.auth(db);
-
-    Test.query("GET",["db/",db,"/people/00000000002/"],{},token).error(404).then(next);
-});
-
-// 
-// ## Returns `401 Unauthorized` 
-// - ... if the provided token does not provide access to the person,
-//   or no token was provided
-
-TODO("Returns 401 when token is not valid.", function(next) {
+TEST("Returns 404 when person does not exist in database.", function(Query) {
     var db = Query.mkdb();
-    Test.query("GET",["db/",db,"/people/00000000002/"]).error(401).then(function() {
-	Test.query("GET",["db/",db,"/people/00000000002/"],{},"0123456789a").error(401).then(next);
-    });
+    return Query.get(["db/",db,"/people/00000000002/"]).assertStatus(404);
 });
 
 // 
 // # Access restrictions
 //
-// Currently, anyone can view any person's basic information with a token for the 
-// corresponding database. This is subject to change in future versions.
+// Anyone can view any person's basic information, if they have their identifier.
