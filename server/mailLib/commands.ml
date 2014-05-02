@@ -20,7 +20,10 @@ let create pid ~from ~subject ?text ?html ?(custom=Json.Null) ?(urls=[]) ?self a
     return (`NeedAccess (ctx # db))
   else
 
-    let! at = Store.append 
-      [ Events.created ~id ~pid ~from ~subject ~text ~html ~audience ~custom ~urls ~self ] in
-    
-    return (`OK (id, at)) 
+    let! view_sender = Person.can_view_full pid from in
+    if not view_sender then return (`NeedViewProfile from) else
+
+      let! at = Store.append 
+	[ Events.created ~id ~pid ~from ~subject ~text ~html ~audience ~custom ~urls ~self ] in
+      
+      return (`OK (id, at)) 

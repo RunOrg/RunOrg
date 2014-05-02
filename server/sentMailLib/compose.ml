@@ -122,12 +122,12 @@ let preview (mail:Mail.info) cid =
   Run.on_failure handle_failure begin 
 
     (* Needed for filling the 'person' side of the template. *)
-    let! person = Person.full cid in 
+    let! person = Person.full_forced cid in 
     let  person = match person with None -> raise (PrepareFailure `NoSuchRecipient) | Some c -> c in 
 
     (* Needed for filling the 'sender' side of the template. *)
     let  scid   = mail # from in 
-    let! sender = Person.full scid in
+    let! sender = Person.full_forced scid in
     let  sender = match sender with None -> raise (PrepareFailure (`NoSuchSender scid)) | Some s -> s in 
 
     let! ctx    = Run.context in 
@@ -165,12 +165,12 @@ let scheduled mid cid =
     let  wave = match wave with None -> raise (PrepareFailure `NoInfoAvailable) | Some w -> w in
 
     (* Needed for filling the 'person' side of the template. *)
-    let! person = Person.full cid in 
+    let! person = Person.full_forced cid in 
     let  person = match person with None -> raise (PrepareFailure `NoSuchRecipient) | Some c -> c in 
 
     (* Needed for filling the 'sender' side of the template. *)
     let  scid   = wave # from in 
-    let! sender = Person.full scid in
+    let! sender = Person.full_forced scid in
     let  sender = match sender with None -> raise (PrepareFailure (`NoSuchSender scid)) | Some s -> s in 
 
     let! ctx    = Run.context in 

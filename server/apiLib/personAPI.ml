@@ -148,6 +148,9 @@ module Get = Endpoint.Get(struct
     
 end)
 
+let needAllAccess id = 
+  `Forbidden (!! "Not allowed to list people in database '%s'." (Id.to_string id)) 
+
 module All = Endpoint.Get(struct
 
   module Arg = type module unit
@@ -161,8 +164,10 @@ module All = Endpoint.Get(struct
   let response req () = 
     let limit = Option.default 1000 (req # limit) in
     let offset = Option.default 0 (req # offset) in
-    let! list, count = Person.all ~limit ~offset in
-    return (`OK (Out.make ~list ~count))
+    let! result = Person.all (req # as_) ~limit ~offset in
+    match result with 
+    | `NeedAccess    id -> return (needAllAccess id)
+    | `OK (list, count) ->  return (`OK (Out.make ~list ~count))
 
 end)
 
@@ -178,7 +183,9 @@ module Search = Endpoint.Get(struct
   let response req arg = 
     let limit  = Option.default 10 (req # limit) in
     let prefix = arg # q in 
-    let! list = Person.search ~limit prefix in
-    return (`OK (Out.make ~list))
+    let! result = Person.search (req # as_) ~limit prefix in
+    match result with 
+    | `NeedAccess id -> return (needAllAccess id)
+    | `OK       list -> return (`OK (Out.make ~list))
 
 end)

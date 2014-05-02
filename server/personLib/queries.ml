@@ -33,35 +33,50 @@ let get pid =
   let! found = Cqrs.MapView.get View.short pid in 
   match found with None -> return None | Some short -> return (Some (format_short pid short))
 
-let all ~limit ~offset = 
-  let! list = Cqrs.MapView.all ~limit ~offset View.short in
-  let! count = Cqrs.MapView.count View.short in 
-  return (List.map (fun (pid,short) -> format_short pid short) list, count)
+let all_audience = Audience.admin
+
+let all pid ~limit ~offset = 
+  let! allowed = Audience.is_member pid all_audience in 
+  if not allowed then 
+      let! ctx = Run.context in 
+      return (`NeedAccess (ctx # db))
+  else
+    let! list = Cqrs.MapView.all ~limit ~offset View.short in
+    let! count = Cqrs.MapView.count View.short in 
+    return (`OK (List.map (fun (pid,short) -> format_short pid short) list, count))
 
 (* Filtered access 
    =============== *)
 
-let search ?(limit=10) prefix = 
-  let  exact, prefix = String.Word.for_prefix_search prefix in 
-  let! ids = 
-    if exact = [] then Cqrs.SearchView.find ~limit View.search prefix else
+let search pid ?(limit=10) prefix = 
 
-      let limit = limit * 10 in
-      let! lists = List.M.map identity 
-	(Cqrs.SearchView.find ~limit View.search prefix 
-	 :: List.map (Cqrs.SearchView.find_exact ~limit View.search) exact) in
+  let! allowed = Audience.is_member pid all_audience in 
+  if not allowed then 
+      let! ctx = Run.context in 
+      return (`NeedAccess (ctx # db))
+  else
+    let  exact, prefix = String.Word.for_prefix_search prefix in 
+    let! ids = 
+      if exact = [] then Cqrs.SearchView.find ~limit View.search prefix else
+	
+	let limit = limit * 10 in
+	let! lists = List.M.map identity 
+	  (Cqrs.SearchView.find ~limit View.search prefix 
+	   :: List.map (Cqrs.SearchView.find_exact ~limit View.search) exact) in
+	
+	(* [id, n] where n is the number of times id was returned by a search *)
+	let ids = List.map (function 
+	  | [] -> assert false (* Cannot be returned by List.group *)
+	  | (h :: _) as l -> h, List.length l) 
+	  (List.group compare (List.flatten lists)) in
       
-      (* [id, n] where n is the number of times id was returned by a search *)
-      let ids = List.map (function 
-	| [] -> assert false (* Cannot be returned by List.group *)
-	| (h :: _) as l -> h, List.length l) 
-	(List.group compare (List.flatten lists)) in
-      
-      let ids = List.sort (fun (_,a) (_,b) -> compare b a) ids in 
-      
-      return (List.map fst (List.take limit ids))
-  in  
-  List.M.filter_map get ids 
+	let ids = List.sort (fun (_,a) (_,b) -> compare b a) ids in 
+	
+	return (List.map fst (List.take limit ids))
+    in  
+    
+    let! list = List.M.filter_map get ids in
+    return (`OK list) 
   
 (* Full profile 
    ============ *)
@@ -88,6 +103,24 @@ let format_full pid full = object
   method familyName = full # familyName
 end 
 
-let full pid = 
+let full_forced pid = 
   let! found = Cqrs.MapView.get View.full pid in 
-  match found with None -> return None | Some full -> return (Some (format_full pid full))
+  match found with 
+  | None -> return None
+  | Some full -> return (Some (format_full pid full))
+
+let full_audience = Audience.admin
+
+let can_view_full who pid = 
+  if who = Some pid then return true else Audience.is_member who full_audience
+
+let full who pid = 
+  let! allowed = can_view_full who pid in 
+  if not allowed then 
+      let! ctx = Run.context in 
+      return (`NeedAccess (ctx # db))
+  else
+    let! found = Cqrs.MapView.get View.full pid in 
+    match found with 
+    | None -> return (`NotFound pid) 
+    | Some full -> return (`OK (format_full pid full))

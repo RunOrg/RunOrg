@@ -12,4 +12,5 @@ val create :
   ?urls:String.Url.t list -> 
   ?self:(I.t -> String.Url.t) -> 
   MailAccess.Audience.t -> (#O.ctx, [ `NeedAccess of Id.t
+				    | `NeedViewProfile of PId.t 
 				    | `OK of I.t * Cqrs.Clock.t ]) Run.t

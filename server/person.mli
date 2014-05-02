@@ -30,10 +30,12 @@ type short = <
 val get : PId.t -> (# O.ctx, short option) Run.t
 
 (** Return the short profiles for all people. *)
-val all : limit:int -> offset:int -> (# O.ctx, short list * int) Run.t
+val all : PId.t option -> limit:int -> offset:int -> (# O.ctx, [ `NeedAccess of Id.t 
+							       | `OK of short list * int ]) Run.t
 
 (** Search for a person by a prefix of a word in the fullname. *)
-val search : ?limit:int -> string -> (#O.ctx, short list) Run.t
+val search : PId.t option -> ?limit:int -> string -> (#O.ctx, [ `NeedAccess of Id.t
+							      | `OK of short list ]) Run.t
 
 (** Attempt to log in with persona. Returns a token and the short profile for
     the authenticated token, or [None] if the authentication failed. May create a
@@ -53,4 +55,13 @@ type full = <
 >
 
 (** Get the full profile of a person. *)
-val full : PId.t -> (#Cqrs.ctx, full option) Run.t
+val full : PId.t option -> PId.t -> (#Cqrs.ctx, [ `NeedAccess of Id.t
+						| `NotFound of PId.t
+						| `OK of full ]) Run.t
+
+(** Get the full profile of a person, without access level checks. Use
+    internally, be cautious not to allow indirect access to data. *)
+val full_forced : PId.t -> (#Cqrs.ctx, full option) Run.t
+
+(** Can a contact view the full profile of another contact ? *)
+val can_view_full : PId.t option -> PId.t -> (#Cqrs.ctx, bool) Run.t

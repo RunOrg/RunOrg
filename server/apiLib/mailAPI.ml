@@ -29,6 +29,9 @@ module Create = Endpoint.Post(struct
   let needAccess id = 
     `Forbidden (!! "Not allowed to create mail in database %S." (Id.to_string id))
 
+  let needViewProfile pid = 
+    `Forbidden (!! "Not allowed to view profile of sender %S." (PId.to_string pid)) 
+
   let response req () post = 
     
     let self = match post # self with None -> None | Some self ->      
@@ -41,8 +44,9 @@ module Create = Endpoint.Post(struct
       ~urls:(post # urls) ~custom:(post # custom) ?self (post # audience) in
     
     match result with 
-    | `NeedAccess id -> return (needAccess id)
-    | `OK   (id, at) -> return (`Accepted (Out.make ~id ~at))
+    | `NeedAccess       id -> return (needAccess id)
+    | `NeedViewProfile pid -> return (needViewProfile pid) 
+    | `OK         (id, at) -> return (`Accepted (Out.make ~id ~at))
 
 end)
 

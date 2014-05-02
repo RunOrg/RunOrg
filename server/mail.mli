@@ -22,6 +22,7 @@ val create :
   ?urls:String.Url.t list -> 
   ?self:(I.t -> String.Url.t) -> 
   Access.Audience.t -> (#O.ctx, [ `NeedAccess of Id.t
+				| `NeedViewProfile of PId.t 
 				| `OK of I.t * Cqrs.Clock.t ]) Run.t
 
 (** Information about an e-mail. *)
