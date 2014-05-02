@@ -232,6 +232,10 @@ let of_channel c = fun ctx bad ok ->
   let ev = Event.receive c in
   Wait (Event.wrap ev (fun v -> Fork (lazy [try ok v with exn -> bktrc "of_channel" bad exn])))
 
+let to_channel c v = fun ctx bad ok ->
+  let ev = Event.send c v in
+  Wait (Event.wrap ev (fun () -> Fork (lazy [try ok () with exn -> bktrc "to_channel" bad exn])))
+
 let on_failure f m = fun ctx bad ok -> 
   let bad exn _ = 
     match catch "on_failure" f exn with 

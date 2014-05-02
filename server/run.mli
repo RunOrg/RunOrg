@@ -236,6 +236,9 @@ val of_lazy  :    'value Lazy.t -> ('ctx,'value) t
     is evaluated. *)
 val of_channel : 'value Event.channel -> ('ctx,'value) t
 
+(** [to_channel c v] attempts to write value [v] to channel [c]. *)
+val to_channel : 'value Event.channel -> 'value -> 'ctx effect 
+
 (** [on_failure f m] attempts to run [m], and calls [f exn] if an exception
     occurred while running [m]. *)
 val on_failure : (exn -> ('ctx,'a) t) -> ('ctx,'a) t -> ('ctx,'a) t

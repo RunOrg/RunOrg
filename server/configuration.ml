@@ -155,6 +155,7 @@ module Httpd = struct
   let max_header_size  = Parse.size  "httpd.max.header-size" 4096 true
   let max_body_size    = Parse.size  "httpd.max.body-size" (1024*1024) true
   let max_duration     = Parse.float "httpd.max.duration" 1.0
+  let max_connections  = Parse.int   "httpd.max.connections" 256 
 end
 
 let token_key = Parse.req "token.key"
