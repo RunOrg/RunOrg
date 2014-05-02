@@ -91,7 +91,7 @@ TEST("Returns 403 when not an admin.", function(Query) {
 // - ... if database `{db}` does not exist
 
 TEST("Returns 404 when database does not exist.", function(Query) {
-    return Query.get("/db/00000000001/people/00000000002/search?q=").assertStatus(404);
+    return Query.get("/db/00000000001/people/search?q=").assertStatus(404);
 });
 
 // # Access restrictions

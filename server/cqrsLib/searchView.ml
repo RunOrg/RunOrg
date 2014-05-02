@@ -72,6 +72,7 @@ let find ?(limit=10) index prefix =
   
   let! ctx = Run.context in 
   let! dbname = Run.with_context (ctx :> ctx) index.dbname in 
+  let! () = Run.with_context (ctx :> ctx) index.wait in 
   
   let prefix = String.escape '\\' ['\'';'\\';'%';'_'] prefix in
     
@@ -90,7 +91,8 @@ let find_exact ?(limit=10) index word =
   
   let! ctx = Run.context in 
   let! dbname = Run.with_context (ctx :> ctx) index.dbname in 
-      
+  let! () = Run.with_context (ctx :> ctx) index.wait in 
+  
   let! result = Sql.query 
     (!! "SELECT DISTINCT \"k\" FROM \"%s\" WHERE \"db\" = $1 AND \"word\" = $2 LIMIT %d" 
 	dbname limit) 
