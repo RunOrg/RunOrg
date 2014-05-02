@@ -96,5 +96,5 @@ TEST("Returns 404 when database does not exist.", function(Query) {
 
 // # Access restrictions
 //
-// Currently, anyone can list all people with a token for the corresponding database. 
-// This is subject to change in future versions.
+// Only [database administrators](/docs/#/group/admin.md) may search for
+// people by name.
