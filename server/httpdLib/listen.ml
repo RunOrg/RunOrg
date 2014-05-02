@@ -34,11 +34,27 @@ let start config handler =
   (* This thread listens for connections on the opened port, and
      passes them on to the processor loop below. *)
   let _ = Thread.create begin fun socket ->     
-    while true do       
+
+    let rec loop () = 
+
       (* This line blocks while waiting for a new connection. *)
       let socket, client = Unix.accept socket in
-      send socket
-    done 
+      let () = send socket in
+
+      loop () 
+      
+    in
+    
+    ( try loop () with 
+    | Unix.Unix_error (Unix.EMFILE, _, _) -> 
+      Log.error "httpd listener thread: too many open file descriptors." 
+    | exn -> 
+      Log.exn exn "httpd listener thread" ) ; 
+
+    (* The listener thread has died: something must have gone terribly wrong.
+       Rather than try to salvage the situation, reboot the entire process. *)
+    exit (-1) 
+
   end socket in 
 
   (* This code runs in the main thread, as part of the scheduler's loop.
