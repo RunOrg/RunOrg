@@ -74,12 +74,12 @@ TEST("Returns data for all contacts.", function(Query) {
 	    var list = Query.get(["db/",db,"/groups/admin"],auth).then(function(d) { return d.list; });
 	    var expected = [{
 		"id" : auth.id,
-		"label" : "test@runorg.com",
+		"label" : "test@…",
 		"gender" : null,
 		"pic" : "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70?d=identicon"
 	    }, {
 		"id" : other.id,
-		"label" : "test+2@runorg.com",
+		"label" : "test+2@…",
 		"gender" : null,
 		"pic" : "https://www.gravatar.com/avatar/fcf1ec969e2da183f88f5a6dca0c1d65?d=identicon"
 	    }];

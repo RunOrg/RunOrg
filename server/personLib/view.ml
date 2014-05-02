@@ -52,6 +52,19 @@ let new_name force oldName newName givenName familyName =
 			      match String.Label.of_string (gns ^ " " ^ fns) with 
 			      | None   -> Some gn
 			      | Some l -> Some l
+
+let no_label = 
+  match String.Label.of_string "???" with 
+  | Some label -> label
+  | None -> assert false
+  
+let new_label email nameopt = 
+  match nameopt with Some name -> name | None -> 
+    try let first, _ = String.split (String.Label.to_string email) "@" in 
+	match String.Label.of_string (first ^ "@…") with 
+	| Some label -> label
+	| None -> no_label
+    with Not_found -> no_label (* <-- No '@' in email: allow leak. *)
 			      
 let short = 
   
@@ -63,17 +76,19 @@ let short =
 
     | `Created ev -> 
 
+      let label = new_label (ev # email) None in 
       Cqrs.MapView.update short (ev # id) 
 	(function 
-	| None -> `Put (Short.make ~email:(ev # email) ~label:(ev # email) ~force:false ~gender:None)
+	| None -> `Put (Short.make ~email:(ev # email) ~label ~force:false ~gender:None)
 	| Some o -> `Keep)
 
     | `InfoUpdated ev -> 
 
       Cqrs.MapView.update short (ev # id) 
 	(function None -> `Keep | Some old -> 
-	  let force, name = new_name (old # force) (Some (old # label)) (ev # name) (ev # givenName) (ev # familyName) in
-	  let label  = if force || not (old # force) then Option.default (old # email) name else old # label in
+	  let force, name = new_name (old # force) 
+	    (Some (old # label)) (ev # name) (ev # givenName) (ev # familyName) in
+	  let label  = if force || not (old # force) then new_label (old # email) name else old # label in
 	  let gender = if ev # gender = None then old # gender else ev # gender in
 	  `Put (Short.make ~email:(old # email) ~label ~force ~gender))
 
@@ -128,9 +143,10 @@ let full =
 
     | `Created ev -> 
 
+      let label = new_label (ev # email) None in 
       Cqrs.MapView.update full (ev # id) 
 	(function 
-	| None -> `Put (Full.make ~email:(ev # email) ~label:(ev # email) ~gender:None
+	| None -> `Put (Full.make ~email:(ev # email) ~label ~gender:None
 			  ~name:None ~familyName:None ~givenName:None ~force:false )
 	| Some o -> `Keep)
 
@@ -138,8 +154,9 @@ let full =
 
       Cqrs.MapView.update full (ev # id) 
 	(function None -> `Keep | Some old -> 
-	  let force, name = new_name (old # force) (old # name) (ev # name) (ev # givenName) (ev # familyName) in
-	  let label = Option.default (old # email) name in
+	  let force, name = new_name (old # force) (old # name) 
+	    (ev # name) (ev # givenName) (ev # familyName) in
+	  let label = new_label (old # email) name in
 	  let gender = if ev # gender = None then old # gender else ev # gender in
 	  `Put (Full.make ~email:(old # email) ~label ~name ~force ~gender
 		  ~givenName:(ev # givenName) ~familyName:(ev # familyName)))

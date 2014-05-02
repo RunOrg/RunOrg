@@ -102,8 +102,8 @@ TEST("Template previewing shows correct data.", function(Query) {
 		    "from"   : { "email": "test@runorg.com", "name": null },
 		    "to"     : { "email": "test@runorg.com", "name": null },
 		    "subject": "Hello, world",
-		    "text"   : "Hello, test@runorg.com.\n\nPlease click on this link:\n" + self,
-		    "html"   : "Hello, <b>test@runorg.com</b>. Please <a href='" + self + "'>click here</a>"
+		    "text"   : "Hello, test@….\n\nPlease click on this link:\n" + self,
+		    "html"   : "Hello, <b>test@…</b>. Please <a href='" + self + "'>click here</a>"
 		}
 	    };
 
@@ -158,11 +158,11 @@ TEST("Correct content number after sending ends.", function(Query) {
 //     { "status": "sent",
 //       "sent"  : "2014-04-21T19:31:44Z",
 //       "view"  : {
-//         "from"   : "Victor Nicollet <vnicollet@runorg.com>",
-//         "to"     : "postmaster@example.com",
+//         "from"   : { "name": "Victor Nicollet", "email": "vnicollet@runorg.com" },
+//         "to"     : { "name": null, "email": "postmaster@example.com" },
 //         "subject": "Greetings",
 //         "text"   : null,
-//         "html"   : "Hello, postmaster@example.com !" 
+//         "html"   : "Hello, postmaster@… !" 
 //       } }
 //
 // # Errors

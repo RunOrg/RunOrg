@@ -90,7 +90,7 @@ TEST("The 'view'-level data is present.", function(Query) {
 	expected.id = id;
 	expected.from = { 
 	    "id": auth.id, 
-	    "label": "test@runorg.com",
+	    "label": "test@…",
 	    "gender": null,
 	    "pic": "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70?d=identicon" };
 	expected.audience = null; // No server-side support for missing fields
@@ -123,7 +123,7 @@ TEST("The 'admin'-level data is present.", function(Query) {
 	expected.id = id;
 	expected.from = { 
  	    "id": auth.id, 
-	    "label": "test@runorg.com",
+	    "label": "test@…",
 	    "gender": null,
 	    "pic": "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70?d=identicon" };
 	expected.access = [ "view", "admin" ];
@@ -149,7 +149,7 @@ TEST("The 'admin'-level data is present.", function(Query) {
 //     { "id": "0vJlA00A26W"",
 //       "from": {
 //         "id": "0vJlA00826W",
-//         "label": "vnicollet@runorg.com",
+//         "label": "vnicollet@…",
 //         "gender": null,
 //         "pic": "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70?d=identicon" },
 //       "subject": "Hello, world",

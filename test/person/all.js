@@ -81,7 +81,7 @@ TEST("Returns data for all people.", function(Query) {
 
 	var expected = [ 
 	    { "id" : ids[0],
-	      "label" : "test@runorg.com",
+	      "label" : "test@…",
 	      "gender" : null,
 	      "pic" : "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70?d=identicon" },		
 	    { "id" : ids[1], 
