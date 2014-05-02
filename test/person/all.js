@@ -17,17 +17,11 @@
 //   [short format](/docs/#/person/short.js)
 // - `count` is the total number of people in the database.
 
-TODO("The response has valid return code and content type.", function(next) {
-
-    var db = Query.mkdb(),
-        token = Query.auth(db),
-        response = Test.query("GET",["db/",db,"/people"],{},token).response();
-
-    response.map(function(r) {
-	Assert.areEqual(200, r.status).then();
-	Assert.isTrue(r.responseJSON, "Response type is JSON").then();
-    }).then(next);
-
+TEST("The response has valid return code and content type.", function(Query) {
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    return Query.get(["db/",db,"/people"],auth)
+	.assertStatus(200).assertIsJson();
 });
 
 // # Examples
@@ -50,71 +44,87 @@ TODO("The response has valid return code and content type.", function(next) {
 //         "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060"} ],
 //       "count" : 215 }
 
-TODO("Returns correct number of people in count.", function(next) {
+TEST("Returns correct number of people in count.", function(Query) {
 
     var example = { "email" : "vnicollet@runorg.com",
 		    "fullname" : "Victor Nicollet",
 		    "gender" : "M" };
 
-    var db = Query.mkdb(), token = Query.auth(db);
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
     
-    Test.query("POST",["db/",db,"/people/import"],[example],token).always().then(function() {
+    return Query.post(["db/",db,"/people/import"],[example],auth).then(function() {
 
-	var count = Test.query("GET",["db/",db,"/people?limit=0"],{},token).result("count");
-	Assert.areEqual(2, count).then(next);	
+	var count = Query.get(["db/",db,"/people?limit=0"],auth)
+	    .then(function(d) { return d.count; });
+
+	return Assert.areEqual(2, count);
 
     });       
 
 });
 
-TODO("Returns data for all people.", function(next) {
+TEST("Returns data for all people.", function(Query) {
 
     var example = [ { "email": "test@runorg.com" },
 		    { "email" : "vnicollet@runorg.com",
-		      "fullname" : "Victor Nicollet",
+		      "name" : "Victor Nicollet",
 		      "gender" : "M" } ];
 
-    var db = Query.mkdb(), token = Query.auth(db);
-    Test.query("POST",["db/",db,"/people/import"],example,token).result('created').map(function(ids){ 
-	    
-	var list = Test.query("GET",["db/",db,"/people"],{},token).result("list");
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+
+    return Query.post(["db/",db,"/people/import"],example,auth).then(function(d,s,r) {
+
+	var ids  = d.imported;	    
+	var list = Query.get(["db/",db,"/people"],auth).then(function(d) { return d.list; });
 
 	var expected = [ 
 	    { "id" : ids[0],
-	      "name" : "test@runorg.com",
+	      "label" : "test@runorg.com",
 	      "gender" : null,
-	      "pic" : "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70" },		
+	      "pic" : "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70?d=identicon" },		
 	    { "id" : ids[1], 
-	      "name" : "Victor Nicollet",
+	      "label" : "Victor Nicollet",
 	      "gender" : "M", 
-	      "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060" } ];
+	      "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060?d=identicon" } ];
 	
-	Assert.areEqual(expected, list).then(next);
+	return Assert.areEqual(expected, list);
 
-    }).then();
+    });
+
 });
 
 // # Errors
-// 
+//
+// ## Returns `401 Unauthorized` 
+// - ... if the provided token does allow acting as `{as}`.
+
+TEST("Returns 401 when token is not valid.", function(Query) {
+    var db = Query.mkdb();
+    return Query.get(["db/",db,"/people"],{id:"01234567890",token:"01234567890"})
+	.assertStatus(401);
+});
+
+// ## Returns `403 Forbidden` 
+// - ... if `{as}` is not a database administrator
+
+TEST("Returns 403 when not an admin.", function(Query) {
+    var db = Query.mkdb();
+    var peon = Query.auth(db, false);
+    return Query.get(["db/",db,"/people"],peon).assertStatus(403);
+});
+  
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
 
-TODO("Returns 404 when database does not exist.", function(next) {
-    Test.query("GET","/db/00000000001/people/00000000002/").error(404).then(next);
+TEST("Returns 404 when database does not exist.", function(Query) {
+    return Query.get("/db/00000000001/people/00000000002/").assertStatus(404);
 });
 
-// ## Returns `401 Unauthorized` 
-// - ... if the provided token does not grant access to all people,
-//   or no token was provided
-
-TODO("Returns 401 when token is not valid.", function(next) {
-    var db = Query.mkdb();
-    Test.query("GET",["db/",db,"/people"]).error(401).then(function() {
-	Test.query("GET",["db/",db,"/people"],{},"0123456789a").error(401).then(next);
-    });
-});
- 
 // # Access restrictions
 //
-// Currently, anyone can list all people with a token for the corresponding database. 
-// This is subject to change in future versions.
+// Only [database administrators](/docs/#/group/admin.md) may list all people
+// in the database. 
+//
+// Note that [viewing individuals](/docs/#/contact/get.js) is open to anyone.
