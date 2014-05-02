@@ -1,7 +1,7 @@
 // GET /db/{db}/groups
 // Groups / List all groups in the database
 //
-// Alpha @ 0.1.27
+// Beta @ 0.9.0
 // 
 // `200 OK`, 
 // [Read-only](/docs/#/concept/read-only.md),

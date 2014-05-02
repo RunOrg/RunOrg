@@ -1,7 +1,7 @@
 // GET /db/{db}/groups/{id}/info
 // Groups / Read group meta-data
 // 
-// Alpha @ 0.1.23
+// Beta @ 0.9.0
 //
 // `200 OK`,
 // [Read-only](/docs/#/concept/read-only.md),

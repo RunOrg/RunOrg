@@ -1,7 +1,7 @@
 // GET /db/{db}/people/{id}
 // People / Fetch basic information for a person 
 //
-// Alpha @ 0.1.21
+// Beta @ 0.9.0
 //
 // `200 OK`, [Read-only](/docs/#/concept/read-only.md).
 //

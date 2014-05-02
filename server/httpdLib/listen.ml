@@ -1,4 +1,4 @@
-(* © 2013 RunOrg *)
+(* © 2014 RunOrg *)
 
 open Std
 open Common
@@ -10,7 +10,12 @@ let start config handler =
   Https.init () ;
   
   let connections = Event.new_channel () in 
-
+  
+  (* A "non-blocking" semaphore for not exceeding the maximum number of 
+     connections. Current implementation is blocking and could cause random
+     performance issues if the thread scheduler feels like switching contexts
+     in the middle of a critical section ; could be made actually non-blocking
+     (just a matter of atomically changing an integer... *)
   let incr_recycles, zero_recycles = 
 
     let n = ref 0 in
@@ -41,8 +46,8 @@ let start config handler =
       Log.error "HTTPD event waited %f seconds" (duration /. 1000.) 
   in
   
-  (* Asks for the socket to be shut down and recycled. Called by the
-     main thread. *)
+  (* Called by the main thread. Closes a socket and notifies the listener
+     thread that it was closed. *)
   let recycle socket = 
     let () = try Unix.close socket with _ -> () in		  
     incr_recycles () ;
@@ -53,10 +58,8 @@ let start config handler =
      passes them on to the processor loop below. *)
   let _ = Thread.create begin fun socket ->     
 
-    (* All sockets are passed back to this thread in order to be closed. 
-       This lets the thread count the number of open connections. This
-       function decrements then number of opened sockets based on the 
-       current recycle requests in the channel. *)
+    (* Find out if any connections were recycled since the last time, and
+       adjust the number of opened connections accordingly. *)
     let rec recycle opened = 
       if opened = 0 then 0 else 
 	let r = zero_recycles () in

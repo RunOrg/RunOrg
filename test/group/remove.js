@@ -1,7 +1,7 @@
 // POST /db/{db}/groups/{id}/remove
 // Groups / Remove members from a group
 // 
-// Alpha @ 0.1.23
+// Beta @ 0.9.0
 //
 // `202 Accepted`,
 // [Delayed](/docs/#/concept/delayed.md),

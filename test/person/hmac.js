@@ -1,7 +1,7 @@
 // POST /db/{db}/people/auth/hmac
 // People / Authenticate with HMAC proof
 // 
-// Alpha @ 0.1.35
+// Beta @ 0.0.0
 //
 // `200 OK`, [Idempotent](/docs/#/concept/idempotent.md).
 //

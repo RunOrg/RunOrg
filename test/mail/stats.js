@@ -1,7 +1,7 @@
 // GET /db/{db}/mail/{id}/stats
 // Mail / Statistics about sending and opening
 //
-// Alpha @ 0.1.54
+// Beta @ 0.9.0
 // 
 // `200 OK`, 
 // [Read-only](/docs/#/concept/read-only.md).

@@ -1,7 +1,7 @@
 // POST /db/{db}/people/auth/persona
 // People / Authenticate with Mozilla Persona
 //
-// Alpha @ 0.1.30
+// Beta @ 0.9.0
 //
 // `202 Accepted`, [Sync idempotent](/docs/#/concept/sync-idempotent.md).
 //

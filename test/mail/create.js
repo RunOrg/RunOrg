@@ -1,7 +1,7 @@
 // POST /db/{db}/mail
 // Mail / Create a new draft.
 //
-// Alpha @ 0.1.50
+// Beta @ 0.9.0
 // 
 // `202 Accepted`, [Delayed](/docs/#/concept/delayed.md).
 //

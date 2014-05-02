@@ -1,7 +1,7 @@
 // POST /db/{db}/groups
 // Groups / Create a group
 // 
-// Alpha @ 0.1.37
+// Beta @ 0.9.0
 //
 // `202 Accepted`, 
 // [Delayed](/docs/#/concept/delayed.md).

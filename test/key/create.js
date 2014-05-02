@@ -1,7 +1,7 @@
 // POST /db/{db}/keys
 // Keys / Create new API key
 //
-// Alpha @ 0.1.40
+// Beta @ 0.9.0
 // 
 // `202 Accepted`,
 // [Delayed](/docs/#/concept/delayed.md).

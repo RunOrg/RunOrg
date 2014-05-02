@@ -1,7 +1,7 @@
 // POST /db/{db}/contacts/import
 // People / Import people by e-mail
 //
-// Alpha @ 0.1.22
+// Beta @ 0.9.0
 //
 // `202 Accepted`, 
 // [Delayed](/docs/#/concept/delayed.md), 

@@ -1,7 +1,7 @@
 // GET /db/{db}/forms/{id}
 // Forms / Get the meta-data of a form.
 // 
-// Alpha @ 0.1.37
+// Beta @ 0.9.0
 //
 // `200 OK`, 
 // [Read-only](/docs/#/concept/read-only.md),

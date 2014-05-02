@@ -1,7 +1,7 @@
 // GET /db/{db}/chat/{id}
 // Chatrooms / Read chatroom properties
 //
-// Alpha @ 0.1.22
+// Beta @ 0.9.0
 //
 // `200 OK`, 
 // [Read-only](/docs/#/concept/read-only.md).

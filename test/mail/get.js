@@ -1,7 +1,7 @@
 // GET /db/{db}/mail/{id}
 // Mail / Read a draft
 //
-// Alpha @ 0.1.50
+// Beta @ 0.9.0
 // 
 // `200 OK`, 
 // [Read-only](/docs/#/concept/read-only.md),
