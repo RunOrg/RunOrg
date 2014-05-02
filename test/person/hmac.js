@@ -71,7 +71,7 @@ TEST("Correctly authenticates user.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     var id = Query.post(["db/",db,"/people/import"],[example],auth)
-	.then(function(d,s,r) { return d.created[0]; });
+	.then(function(d,s,r) { return d.imported[0]; });
 
     var key = "74e6f7298a9c2d168935f58c001bad88";
     var kid = Query.post(["db/",db,"/keys"],{"hash":"SHA-1","key":key,"encoding":"hex"},auth).id();
@@ -101,6 +101,13 @@ TEST("Correctly authenticates user.", function(Query) {
 });
 
 // # Errors 
+//
+// ## Returns `400 Bad Request`
+// - ... if `proof` was not correctly hex-encoded
+// - ... if `expires` has already passed
+//
+// ## Returns `401 Forbidden` 
+// - ... if the proof is invalid. 
 // 
 // ## Returns `404 Not Found`
 // - ... if database `{db}` does not exist
@@ -113,14 +120,7 @@ TEST("Returns 404 when database does not exist.", function(Query) {
 
 // - ... if key `{key}` does not exist in database `{db}`
 // - ... if person `{id}` does not exist in database `{db}`
-//
-// ## Returns `400 Bad Request`
-// - ... if `proof` was not correctly hex-encoded
-// - ... if `expires` has already passed
-//
-// ## Returns `401 Forbidden` 
-// - ... if the proof is invalid. 
-// 
+
 // Debugging a `401` status code when HMACs and secret keys are involved can be 
 // very annoying ; the RunOrg API includes some helpful information to help you 
 // find the root cause. 
