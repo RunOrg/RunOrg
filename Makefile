@@ -34,11 +34,8 @@ clean:
 	make -C plang clean
 
 start:
-	mkdir .server
-	echo "#!/bin/sh\ncd ..\n./runorg\n" > .server/run 
-	chmod u+x .server/run
 	supervise .server & 
 
 stop:
 	svc -d .server || echo "server was not running"
-	rm -rf .server
+	rm -rf .server/supervise

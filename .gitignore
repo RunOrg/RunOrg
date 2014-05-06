@@ -1,4 +1,4 @@
-.server/
+.server/supervise
 conf.ini
 runorg
 server/test.ml
