@@ -32,5 +32,8 @@ val on_first_connection : Common.ctx Run.effect -> unit
 (** Executes an operation inside a transaction *)
 
 val transaction : (#Common.ctx as 'ctx, 'a) Run.t -> ( 'ctx, 'a ) Run.t
-
  
+val using : 
+  SqlConnection.config -> 
+  (Common.cqrs -> (#Common.ctx as 'ctx)) -> 
+  ('ctx, 'a) Run.t -> ('any, 'a) Run.t

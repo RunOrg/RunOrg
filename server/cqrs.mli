@@ -1,19 +1,6 @@
 (** A database connection. This is an internal type that you should not use. *)
 type cqrs
 
-(** Configuration object for connecting to a PostgreSQL database. *)
-type config = {
-  host : string ;
-  port : int ;
-  database : string ;
-  user : string ;
-  password : string ;
-  pool_size : int ;
-}
-
-(** Exception raised when connecting to the database failed. *)
-exception ConnectionFailed of string
-
 module Clock : sig
 
   include Fmt.FMT
@@ -66,7 +53,7 @@ end
 (** Use the provided CQRS context creation function to create that context
     and evaluate a thread. When the thread returns or fails, closes the CQRS 
     context. It should not be used anymore after that. *)
-val using : config -> (cqrs -> (#ctx as 'ctx)) -> ('ctx, 'a) Run.t -> ('any, 'a) Run.t 
+val using : SqlConnection.config -> (cqrs -> (#ctx as 'ctx)) -> ('ctx, 'a) Run.t -> ('any, 'a) Run.t 
 
 (** An event writer is a function that writes events of the specified type to 
     an underlying stream. *)
@@ -118,7 +105,7 @@ module Projection : sig
   exception LeftBehind of string * Clock.t * Clock.t
 
   (** Create a projection from a name and a database configuration. *)
-  val make : string -> config -> t
+  val make : string -> SqlConnection.config -> t
 
   (** [register kind name version] registers an view of type [kind] called
       [name] at version number [version]. 
@@ -431,12 +418,12 @@ module Running : sig
   exception Shutdown 
 
   (** Ask for all instances to shut down. *)
-  val reset : config -> unit
+  val reset : SqlConnection.config -> unit
 
   (** Long-running thread, marks the instance as still
       running. Throws [Shutdown] (and breaks out of eval) when 
       a shutdown is requested. *)
-  val heartbeat : config -> unit Run.thread
+  val heartbeat : SqlConnection.config -> unit Run.thread
 
 end
 

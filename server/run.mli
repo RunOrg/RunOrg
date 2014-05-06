@@ -243,10 +243,10 @@ val to_channel : 'value Event.channel -> 'value -> 'ctx effect
     occurred while running [m]. *)
 val on_failure : (exn -> ('ctx,'a) t) -> ('ctx,'a) t -> ('ctx,'a) t
 
-(** [finally f m] calls [f ()] when [m] has finished running (whether 
+(** [finally f m] forks [f ()] when [m] has finished running (whether 
     successfully or because of an exception). Any threads forked during
     the execution of [m] may still be running. *)
-val finally : (unit -> unit) -> ('ctx,'a) t -> ('ctx,'a) t
+val finally : (unit -> ('ctx,unit) t) -> ('ctx,'a) t -> ('ctx,'a) t
 
 (** [loop (fun continue -> ...)] runs its body and returns the
     result. The body may return [continue] to have the loop 

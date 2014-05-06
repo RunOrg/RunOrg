@@ -35,7 +35,7 @@ let start () =
 
 let reset config =
   Run.eval ()
-    (Pool.using config (fun cqrs -> new cqrs_ctx cqrs) 
+    (Sql.using config (fun cqrs -> new cqrs_ctx cqrs) 
        (Sql.command "UPDATE \"meta:runs\" SET \"shutdown\" = 'now' WHERE \"shutdown\" IS NULL" []))
 	
 (* Stay alive 
@@ -45,13 +45,13 @@ exception Shutdown
 	      
 let heartbeat config =
   let mkctx cqrs = new cqrs_ctx cqrs in
-  let! id = Pool.using config mkctx (start ()) in
+  let! id = Sql.using config mkctx (start ()) in
   match id with None -> raise Shutdown | Some id ->
     Run.loop begin fun continue -> 
       
       let! () = Run.sleep 10000.0 in
       
-      let! result = Pool.using config mkctx (Sql.query begin
+      let! result = Sql.using config mkctx (Sql.query begin
 	"UPDATE \"meta:runs\" SET \"heartbeat\" = 'now' WHERE \"id\" = $1 "
 	^ "RETURNING \"shutdown\" IS NOT NULL"
       end [ `Int id ]) in

@@ -1,6 +1,6 @@
 (* © 2014 RunOrg *)
 
-let config = Cqrs.(Configuration.Database.({ host ; port ; user ; database ; password ; pool_size }))
+let config = SqlConnection.(Configuration.Database.({ host ; port ; user ; database ; password ; pool_size }))
 
 let cqrs cqrs = new Cqrs.cqrs_ctx cqrs
 

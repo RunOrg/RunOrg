@@ -1,8 +1,8 @@
 (* © 2014 RunOrg *)
 
-val reset : Common.config -> unit
+val reset : SqlConnection.config -> unit
 
 exception Shutdown
 
-val heartbeat : Common.config -> unit Run.thread
+val heartbeat : SqlConnection.config -> unit Run.thread
 

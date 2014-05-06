@@ -1,6 +1,5 @@
 include CqrsLib.Common
 include CqrsLib.EventStream
-include CqrsLib.Pool
 
 module Clock = CqrsLib.Clock 
 module FeedMapView = CqrsLib.FeedMapView
@@ -15,3 +14,6 @@ module SearchView = CqrsLib.SearchView
 module SetView = CqrsLib.SetView
 module Sql = CqrsLib.Sql
 module StatusView = CqrsLib.StatusView
+
+let using config mkctx thread = 
+  Sql.using config mkctx thread

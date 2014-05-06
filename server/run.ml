@@ -244,10 +244,10 @@ let on_failure f m = fun ctx bad ok ->
   in
   m ctx bad ok 
 
-let finally f m = fun ctx bad ok ->
-  let f () = try f () with exn -> Log.exn exn "Exception thrown in Run.finally" in
-  let bad exn trace = f () ; bad exn trace in
-  let ok x = f () ; ok x in
+let finally (f : unit -> ('ctx,unit) t) (m : ('ctx,'a) t) = fun ctx bad ok ->
+  let f () = f () ctx (fun exn trace -> Log.exn exn "Exception thrown in Run.finally" ; nop) (fun () -> nop) in
+  let bad exn trace = Fork (lazy [ bad exn trace ; f () ]) in
+  let ok x = Fork (lazy [ ( try ok x with exn -> bktrc "finally" bad exn ) ; f () ]) in
   m ctx bad ok 
 
 let background f x = 

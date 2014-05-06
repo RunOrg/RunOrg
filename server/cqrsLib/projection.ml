@@ -24,7 +24,7 @@ type t = {
 
   (* These two values are provided during initialization. *)
   name : string ;
-  config : config ; 
+  config : SqlConnection.config ; 
 
   (* A list of all views (kind, name and version number) that
      were registered in this projection. *)
@@ -80,7 +80,7 @@ let get_id_and_version t =
     
     let hash = hash t in 
     
-    let! r = query 
+    let! r = Sql.query 
       ("SELECT \"id\", \"version\" FROM \"meta:projections\" WHERE \"name\" = $1 AND \"hash\" = $2")
       [ `String t.name ; `String hash ] in
     
@@ -153,7 +153,7 @@ let save_clock t clock =
 (* Runs a projection. Returns when out of events to process. *)
 let run t = 
 
-  Pool.using t.config (fun cqrs -> new cqrs_ctx cqrs) begin  
+  Sql.using t.config (fun cqrs -> new cqrs_ctx cqrs) begin  
     
     let! c       = clock t in 	  
     let  actions = Seq.join (List.map (fun f -> f c) t.streams) in
