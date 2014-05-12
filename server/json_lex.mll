@@ -1,5 +1,5 @@
 {
-  (* Ohm is © 2012 Victor Nicollet *)
+  (* © 2014 RunOrg *)
 
   let val_true = Json_type.Bool true
   let val_false = Json_type.Bool false
@@ -85,6 +85,7 @@ and key = parse
 and string buffer = parse
    '"' { Buffer.contents buffer }
  | [^ '"' '\\'] + { append buffer lexbuf ; string buffer lexbuf }  
+ | "\\/" { Buffer.add_char buffer '/' ; string buffer lexbuf }
  | "\\n" { Buffer.add_char buffer '\n' ; string buffer lexbuf } 
  | "\\b" { Buffer.add_char buffer '\b' ; string buffer lexbuf } 
  | "\\t" { Buffer.add_char buffer '\t' ; string buffer lexbuf } 
