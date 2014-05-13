@@ -8,4 +8,5 @@ PersonAPI
 ServerAdminAPI
 SitesAPI
 TestAPI
+TokenAPI
 Version
