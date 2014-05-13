@@ -10,7 +10,7 @@ module Get = Endpoint.Get(struct
     self  : PersonAPI.Short.t ;
   >  
 
-  let path = "token/{token}"
+  let path = "tokens/{token}"
 
   let notFound tok = 
     `NotFound (!! "Token %S does not exist." (Token.I.to_string tok))
