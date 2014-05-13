@@ -1,6 +1,8 @@
 // JSON <template>
 // Types / Template
 //
+// Beta @ 0.9.4
+//
 // Templates describe how RunOrg should generate text or HTML from input data.
 //
 // For example, a template can be used to generate include the contact's name
@@ -105,13 +107,13 @@ TEST("Text-based template.", function(Query){
 TEST("HTML-based template.", function(Query){
 
     var data = {
-	script: "$0;to.firstname;$1",
-	inline: [ "Hello, <b>", "</b> !" ],
+	script: "$0;to.firstname;$1;$2[0];$3.x",
+	inline: [ "Hello, <b>", "</b> !", [ "<" ], { "x" : ">" } ],
 	input : { "to": { "firstname": "Victor&", "lastname": "Nicollet" } },
 	html  : true
     };
 
     var result = Query.post("/test/unturing",data).then(function(d,s,r) { return d.result; });
-    return Assert.areEqual("Hello, <b>Victor&amp;</b> !", result);
+    return Assert.areEqual("Hello, <b>Victor&amp;</b> !&lt;&gt;", result);
 
 });

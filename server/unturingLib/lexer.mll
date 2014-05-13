@@ -32,6 +32,8 @@ rule token inline = parse
   | ']'  { BracketC }
   | eof  { EOF }
 
+  | int as i { Int (int_of_string i) } 
+
   | '$' (int as i) { let i = int_of_string i in 
 		     Inline (i, inline i) }
 
