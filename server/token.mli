@@ -27,3 +27,7 @@ val is_person : I.t -> (# O.ctx, [`Auth] PId.id option) Run.t
 
 (** Can a token impersonate the provided person ? *)
 val can_be : I.t -> PId.t -> (# O.ctx, bool) Run.t
+
+(** Get information about a person-owned token. *)
+val describe : I.t -> (# O.ctx, PId.t option) Run.t
+ 

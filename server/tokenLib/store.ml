@@ -69,3 +69,9 @@ let can_be id pid =
     | Some (`ServerAdmin) -> return true
     | _ -> return false
   
+let describe id = 
+  let! ctx   = Run.context in 
+  let! owner = load id in
+  match owner with 
+  | Some (`Person (db,pid)) when db = ctx # db -> return (Some pid) 
+  | _ -> return None
