@@ -1,5 +1,5 @@
 // JSON <token>
-// Types / Token
+// Tokens / Token
 //
 // A short string.
 //

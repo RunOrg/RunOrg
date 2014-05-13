@@ -36,7 +36,7 @@
 // ### Response format
 //     { "token": <token>,
 //       "self" : <shortperson> }
-// - `token` is an [authentication token](/docs/#/types/token.js). 
+// - `token` is an [authentication token](/docs/#/token.md). 
 // - `self ` is the [short profile](/docs/#/person/short-person.js) for the authenticated
 //   person.
 // 

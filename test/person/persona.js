@@ -15,7 +15,7 @@
 //     { "token": <token>,
 //       "self" : <shortperson>, 
 //       "at"   : <clock> }
-// - `token` is an [authentication token](/docs/#/types/token.js). 
+// - `token` is an [authentication token](/docs/#/token.md). 
 // - `self ` is the [short profile](/docs/#/person/short-person.js) for the authenticated
 //   person.
 // - `at` is the time when the person (if it was created by this request) will be present

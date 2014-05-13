@@ -7,7 +7,7 @@ RunOrg supports e-mail authentication. The process is simple:
 
  - The recipient clicks the link, is redirected to the original URL
    with an additional query string parameter: an [API
-   token](/docs/#/types/token.js). The visitor is now logged in !
+   token](/docs/#/token.md). The visitor is now logged in !
 
 ### Example draft e-mail 
 
@@ -37,6 +37,6 @@ Clicking this link will redirect to the original self-link (with
 
     https://example.com/newsletters/0xyxA0995rM?runorg=HkrGF3YYxMu
 
-The additional `runorg` parameter is an [API token](/docs/#/types/token.js)
+The additional `runorg` parameter is an [API token](/docs/#/token.md)
 that can be used to authenticate requests.
 
