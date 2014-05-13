@@ -12,7 +12,7 @@
 //     { "token": <token>,
 //       "self" : <person> }
 // - `token` is the exact same token that was provided as input. 
-// - `self` is the [short profile](/docs/person/short.js) for the person who owns
+// - `self` is the [short profile](/docs/#/person/short.js) for the person who owns
 //   the tokens. 
 //
 // The identifier of the returned person can be used for the [`?as`](/docs/#/concept/as.md)

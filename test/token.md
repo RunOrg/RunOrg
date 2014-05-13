@@ -8,8 +8,8 @@ They are used by users to prove their [identity](/docs/#/concept/as.md) to the R
 
 Tokens are returned by authentication methods such as:
  
- - **Mozilla Persona**: [`POST /db/{db}/person/auth/persona`](/docs/#/contact/persona.js)
- - **HMAC**: [`POST /db/{db}/person/auth/hmac`](/docs/#/contact/hmac.js) 
+ - **Mozilla Persona**: [`/db/{db}/people/auth/persona`](/docs/#/person/persona.js)
+ - **HMAC**: [`/db/{db}/people/auth/hmac`](/docs/#/person/hmac.js) 
 
 When an user follows a link in an e-mail created with [`self` or
 `auth` urls](/docs/#/mail/auth.md), a brand new authentication token
