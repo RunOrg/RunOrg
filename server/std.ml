@@ -228,6 +228,16 @@ module List = struct
   let find_bad list = 
     find_map (function Bad x -> Some x | _ -> None) list
 
+  (** [filter_ok list] returns either the first element [Bad x] in the list, 
+      or [Ok l] where the elements of [l] are all the values in the list taken 
+      out of their [Ok] constructor. *)
+  let filter_ok list = 
+    List.fold_right 
+      (fun x acc ->
+	match acc with Bad _ as e -> e | Ok l ->
+	  match x with Bad _ as e -> e | Ok x -> Ok (x :: l))
+      list (Ok [])
+      
 end
 
 (** Shorthand notation for [sprintf] *)

@@ -31,6 +31,9 @@ exception Timeout
 (** Sends a response on a socket, then closes the socket. *)
 val send : Ssl.socket -> Common.config -> t -> 'ctx Run.effect
 
+(** Add CORS information to a request. *)
+val with_CORS : Request.cors option -> t -> t
+
 (** Binds a response to a request. There are no semantic consequences 
     of doing so, beyond having the request-response pair appear in the 
     logs once the request is sent. *)

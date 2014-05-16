@@ -134,8 +134,8 @@ let json headers status body = {
   started = None ;
 }
 
-let with_CORS request response = 
-  match request # origin with None -> response | Some origin ->
+let with_CORS cors response = 
+  match cors with None -> response | Some (origin,reqheaders) ->
 
     let headers = 
       ( "Access-Control-Allow-Origin", origin ) 
@@ -145,14 +145,13 @@ let with_CORS request response =
 
     let headers = 
       try ("Access-Control-Allow-Headers", 
-	   Map.find "ACCESS-CONTROL-REQUEST-HEADERS" (request # headers)) :: headers
+	   Map.find "ACCESS-CONTROL-REQUEST-HEADERS" reqheaders) :: headers
       with Not_found -> headers in
 
     { response with headers }
 		    
 let for_request time request response = 
-  with_CORS request 
-    { response with request = Some request ; started = Some time }
+  { response with request = Some request ; started = Some time }
 
 (* Response builders
    ================= *)

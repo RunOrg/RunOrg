@@ -35,6 +35,9 @@ let handle_request_failure config time = function
   | Request.BodyTooLong -> 
     return (Response.Make.error time `RequestEntityTooLarge
 	      (!! "Body may not exceed %d bytes" config.max_body_size)) ;
+
+  | Request.Timeout -> 
+    return (Response.Make.error time `BadRequest "Timed out while waiting for input")
     
   | Request.SyntaxError reason ->
     return (Response.Make.error time `BadRequest 
@@ -42,9 +45,7 @@ let handle_request_failure config time = function
     
   | Request.NotImplemented verb -> 
     return (Response.Make.error time `NotImplemented 
-	      ("Method " ^ verb ^ " is not supported.")) ;	
-    
-  | exn -> raise exn
+	      ("Method " ^ verb ^ " is not supported.")) 
 
 let handle_response_failure = function 
   | Response.Timeout -> 
@@ -82,20 +83,28 @@ let parse context socket config handler =
     (* To avoid locking up a thread, all socket operations are non-blocking. *)
     let () = Unix.set_nonblock socket in
 
-    let! response = Run.on_failure (handle_request_failure config time) begin
+    let! origin, request = Request.parse config ssl_socket in    
 
-      let! request  = Request.parse config ssl_socket in
+    let! response = match request with
 
-      let! () = LogReq.set_request_path (Request.to_string request) in
-      let! () = LogReq.trace "HTTP parsed" in
+      | Ok request -> 
+      
+	let! () = LogReq.set_request_path (Request.to_string request) in
+	let! () = LogReq.trace "HTTP parsed" in
+	
+	let! response = Run.on_failure (handle_action_failure time request) (handler request) in 
+	
+	let! () = LogReq.trace "response computed" in
+	
+	return (Response.for_request time request response)	
 
-      let! response = Run.on_failure (handle_action_failure time request) (handler request) in 
+      | Bad error -> 
+	
+	handle_request_failure config time error
 
-      let! () = LogReq.trace "response computed" in
+    in
 
-      return (Response.for_request time request response)	
-
-    end in
+    let response = Response.with_CORS origin response in 
 
     Run.on_failure handle_response_failure 
       (Response.send ssl_socket config response)
