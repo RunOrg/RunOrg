@@ -98,6 +98,14 @@ module Parse = struct
 	key path (Printexc.to_string exn) ;
       exit (-1)
 
+  let audiences key =
+    try List.map BatString.trim (BatString.nsplit (List.assoc key assoc) " ") with 
+    | Not_found -> []
+    | exn -> 
+      Printf.printf "When reading audience field %s in configuration file %S:\n%s\n%!"
+	key path (Printexc.to_string exn) ;
+      exit (-1)
+
   let error key what = 
     Printf.printf "When reading field %s in configuration file %S:\n%s"
       key path what ;
@@ -146,6 +154,9 @@ let admins = Parse.emails "admin.list"
 
 (* eg "https://runorg.local:4443" *)
 let admin_audience = Parse.req "admin.audience"
+
+(* eg "https://runorg.local:4443, https://api.runorg.com" *)
+let default_audience = Parse.audiences "default.audience"
 
 module Httpd = struct
   let port             = Parse.int   "httpd.port" 443 

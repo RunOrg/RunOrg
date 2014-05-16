@@ -49,6 +49,9 @@ val admins : string list
 (** The full domain audience on which the admin UI runs. *)
 val admin_audience : string
 
+(** Default audience domains used when creating a database. *)
+val default_audience : string list 
+
 module Httpd : sig
   val port : int
   val key_path : string 
