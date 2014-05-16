@@ -6,7 +6,7 @@ open Std
    ============== *)
 
 let auth_persona assertion = 
-  let! email = Persona.validate ~audience:Configuration.admin_audience assertion in 
+  let! email = Persona.validate ~audience:Configuration.Audience.admin assertion in 
   match email with None -> return None | Some email -> 
     if not (List.mem email Configuration.admins) then return None else
       let! token = Token.create `ServerAdmin in 

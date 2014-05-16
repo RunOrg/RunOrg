@@ -3,6 +3,7 @@
 open Std
 open Common
 
+module Ssl = SafeSsl
 
 (* Request parser logging 
    ====================== *)

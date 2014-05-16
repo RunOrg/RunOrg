@@ -7,7 +7,7 @@ open Std
 
 module Event = type module 
     [ `DatabaseCreated of string
-    | `DomainsConfigUpdated of string list 
+    | `PersonaAudienceUpdated of String.Url.t list 
     ]
 
 module Stream = Cqrs.Stream(struct
@@ -19,10 +19,10 @@ end)
    ======== *)
 
 let create _ label = 
-  let  id = Id.gen () in
+  let  id = Id.gen () in 
   let  events = [
     `DatabaseCreated label ;
-    `DomainsConfigUpdated Configuration.default_audience ;
+    `PersonaAudienceUpdated Configuration.Audience.persona ;
   ] in
   let! clock = Run.edit_context (fun ctx -> ctx # with_db id) (Stream.append events) in
   return (id, clock) 
@@ -50,7 +50,7 @@ module View = struct
 	let  created = ctx # time in
 	Cqrs.MapView.update all () (fun _ -> `Put (Item.make ~created ~label))
 
-      | `DomainsConfigUpdated [] -> return () 
+      | `PersonaAudienceUpdated _ -> return () 
 
     end in 
 
@@ -81,4 +81,4 @@ let ctx id =
   return (if exists then Some ctx else None) 
 
 let persona_audience () = 
-  return Configuration.admin_audience
+  return Configuration.Audience.admin

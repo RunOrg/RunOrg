@@ -3,6 +3,8 @@
 open Std
 open Common
 
+module Ssl = SafeSsl
+
 let init () =
   Ssl.init () 
 

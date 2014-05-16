@@ -46,11 +46,15 @@ end
 (** The list of all super-administrator emails loaded from configuration. *)
 val admins : string list
 
-(** The full domain audience on which the admin UI runs. *)
-val admin_audience : string
+module Audience : sig 
 
-(** Default audience domains used when creating a database. *)
-val default_audience : string list 
+  (** The full domain audience on which the admin UI runs. *)
+  val admin : string
+
+  (** Default audience domains used when creating a database. *)
+  val persona : StdLib.Url.t list 
+
+end
 
 module Httpd : sig
   val port : int

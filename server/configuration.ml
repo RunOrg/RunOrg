@@ -1,5 +1,7 @@
 (* © 2014 RunOrg *)
 
+module Url = StdLib.Url
+
 module Parse = struct
 
   (* Default location, can be overriden by flag. *)
@@ -88,7 +90,7 @@ module Parse = struct
       exit (-1)
 
   let emails key =
-    try List.map BatString.trim (BatString.nsplit (List.assoc key assoc) " ") with 
+    try List.map BatString.trim (BatString.nsplit (List.assoc key assoc) ",") with 
     | Not_found -> 
       Printf.printf "Required field %s not found in configuration file %S\n%!"
 	key path ;
@@ -99,7 +101,12 @@ module Parse = struct
       exit (-1)
 
   let audiences key =
-    try List.map BatString.trim (BatString.nsplit (List.assoc key assoc) " ") with 
+    try 
+      let raw = List.map BatString.trim (BatString.nsplit (List.assoc key assoc) ",")  in
+      List.map (fun str -> match Url.of_string str with 
+      | Some url -> url
+      | None     -> failwith (Printf.sprintf "%S is not an url" str)) raw
+    with 
     | Not_found -> []
     | exn -> 
       Printf.printf "When reading audience field %s in configuration file %S:\n%s\n%!"
@@ -152,11 +159,13 @@ end
 (* eg vnicollet@runorg.com, foo.bar@example.com *)
 let admins = Parse.emails "admin.list"
 
-(* eg "https://runorg.local:4443" *)
-let admin_audience = Parse.req "admin.audience"
 
-(* eg "https://runorg.local:4443, https://api.runorg.com" *)
-let default_audience = Parse.audiences "default.audience"
+module Audience = struct
+
+  let admin = Parse.req "audience.admin"
+  let persona = Parse.audiences "audience.persona"
+
+end
 
 module Httpd = struct
   let port             = Parse.int   "httpd.port" 443 
