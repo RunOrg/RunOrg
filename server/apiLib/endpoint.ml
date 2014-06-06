@@ -62,15 +62,6 @@ let respond_error ?headers more path what =
   let list = match more with None -> list | Some json -> ( "details", json ) :: list in
   Httpd.json ~status (Json.Object list) 
 
-let bad_request ?(more=[]) path error = 
-  Httpd.json 
-    ~status:`BadRequest 
-    (Json.Object (("error", Json.String error) :: ("path", Json.String path) :: 
-      (List.map (fun (a,b) -> a, Json.String b) more)))
-
-let not_found path message = 
-  respond_error None path (`NotFound message) 
-
 let respond path to_json = function 
   | `WithJSON (more,what) -> respond_error (Some more) path what   
   | `OK               out -> Httpd.json (to_json out)
@@ -170,6 +161,10 @@ module Dictionary = struct
 	"error", Json.String "Method not allowed" ;
 	"path",  Json.String path ])
 
+  (* The HTTP response sent when the URI does not match an endpoint. *)
+  let not_found path = 
+    respond_error None path (`NotFound "No such resource")
+
   (* Dispatches a request, returns a response. *)
   let dispatch req = 
 
@@ -189,7 +184,7 @@ module Dictionary = struct
       | Some lens -> 
 	match find (req # path) with 
   	  | [] -> let! () = LogReq.trace "API dispatch failed" in
-		  return (not_found ("/" ^ String.concat "/" (req # path)) "No such resource") 
+		  return (not_found ("/" ^ String.concat "/" (req # path)))
 	  | [r] -> begin match lens r with 
 	    | None -> let! () = LogReq.trace "API dispatch failed" in
 		      return (method_not_allowed (r.path) (allow r))
@@ -232,6 +227,63 @@ let run_checked req path ctx action =
 		  ]))
 
   end
+
+(* Endpoint definition utilities 
+   ============================= *)
+
+module SEndpointUtils = functor(A:sig
+  module Arg : Fmt.FMT
+  val path : string 
+end) -> struct
+
+  (* The original path, but split into a list of segments. *)
+  let path = split A.path
+  
+  (* A function that parses the arguments from a request according to the 
+     provided parsing rules. *)
+  let args_of_request = args_of_request (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+
+  (* The path to be used when logging. *)
+  let logPath = "/" ^ A.path
+
+  let bad_request ?(more=[]) error = 
+    Httpd.json 
+      ~status:`BadRequest 
+      (Json.Object (("error", Json.String error) :: ("path", Json.String logPath) :: 
+		       (List.map (fun (a,b) -> a, Json.String b) more)))
+
+  let on_bad_body more = 
+    let! () = LogReq.trace "API parsing failed" in
+    return (bad_request ?more "Could not parse body")
+
+  let on_bad_args more = 
+    let! () = LogReq.trace "API parsing failed" in
+    return (bad_request ~more "Could not parse parameters")
+
+end 
+
+module EndpointUtils = functor(A:sig
+  module Arg : Fmt.FMT
+  val path : string 
+end) -> struct
+    
+  include SEndpointUtils(struct
+    module Arg = A.Arg
+    let path = "db/{db}/" ^ A.path
+  end)
+
+  (* Return this when the database could not be found. *)
+  let on_no_database db = 
+    let! () = LogReq.trace "API database not found" in 
+    return (respond_error None logPath (`NotFound (!! "Database %s does not exist" db)))
+
+  (* Return this when there is no 'db' segment in the path. *)
+  let on_no_database_id () = 
+    let! () = LogReq.trace "API parsing failed" in
+    return (bad_request "Could not parse parameters")
+
+end
+
     
 (* GET endpoints
    ============= *)
@@ -245,16 +297,12 @@ end
 
 module SGet = functor(A:GET_ARG) -> struct
 
-  let path = split A.path
-  let args_of_request = args_of_request (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
-
-  let logPath = "/" ^ A.path 
+  include SEndpointUtils(A) 
 
   let action req =
 
     match args_of_request req with 
-    | Bad more -> let! () = LogReq.trace "API parsing failed" in
-		  return (bad_request ~more logPath "Could not parse parameters") 
+    | Bad more -> on_bad_args more
     | Ok args -> let! () = LogReq.trace "API starting ..." in
 		 let! out = A.response req args in 
 		 let! () = LogReq.trace "API finished !" in
@@ -266,25 +314,19 @@ end
 
 module Get = functor(A:GET_ARG) -> struct
 
-  let path = split ("db/{-}/" ^ A.path) 
-  let args_of_request = args_of_request (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+  include EndpointUtils(A)
 
-  let logPath = "/db/{db}/" ^ A.path
-    
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
     match db with 
-    | None -> let! () = LogReq.trace "API parsing failed" in 
-	      return (bad_request logPath "Could not parse parameters") 
+    | None -> on_no_database_id () 
     | Some db ->
       match args_of_request req with 
-      | Bad more -> let! () = LogReq.trace "API parsing failed" in
-		    return (bad_request ~more logPath "Could not parse parameters") 
+      | Bad more -> on_bad_args more 
       | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
 	match ctx with 
-	| None -> let! () = LogReq.trace "API database not found" in 
-		  return (not_found logPath (!! "Database %s does not exist" db)) 
+	| None -> on_no_database db 
 	| Some ctx -> let! () = LogReq.trace "API database found" in
 		      run_checked req logPath ctx begin
 			let! () = LogReq.trace "API starting ..." in
@@ -305,25 +347,19 @@ end
 
 module RawGet = functor(A:RAW_GET_ARG) -> struct
 
-  let path = split ("db/{-}/" ^ A.path) 
-  let args_of_request = args_of_request (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
+  include EndpointUtils(A) 
 
-  let logPath = "/db/{db}/" ^ A.path
-    
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
     match db with 
-    | None -> let! () = LogReq.trace "API parsing failed" in 
-	      return (bad_request logPath "Could not parse parameters") 
+    | None -> on_no_database_id () 
     | Some db ->
       match args_of_request req with 
-      | Bad more -> let! () = LogReq.trace "API parsing failed" in
-		    return (bad_request ~more logPath "Could not parse parameters") 
+      | Bad more -> on_bad_args more
       | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
 	match ctx with 
-	| None -> let! () = LogReq.trace "API database not found" in 
-		  return (not_found logPath (!! "Database %s does not exist" db)) 
+	| None -> on_no_database db
 	| Some ctx -> let! () = LogReq.trace "API database found" in
 		      run_checked req logPath ctx begin
 			let! () = LogReq.trace "API starting ..." in
@@ -349,25 +385,19 @@ end
 
 module Delete = functor(A:DELETE_ARG) -> struct
 
-  let path = split ("db/{-}/" ^ A.path) 
-  let args_of_request = args_of_request (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
-    
-  let logPath = "/db/{db}/" ^ A.path 
+  include EndpointUtils(A) 
 
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
     match db with 
-    | None -> let! () = LogReq.trace "API parsing failed" in
-	      return (bad_request logPath "Could not parse parameters") 
+    | None -> on_no_database_id () 
     | Some db ->
       match args_of_request req with 
-      | Bad more -> let! () = LogReq.trace "API parsing failed" in
-		    return (bad_request ~more logPath "Could not parse parameters") 
+      | Bad more -> on_bad_args more
       | Ok args ->
 	let! ctx = Db.ctx (Id.of_string db) in
 	match ctx with 
-	| None -> let! () = LogReq.trace "API database missing" in 
-		  return (not_found logPath (!! "Database %s does not exist" db)) 
+	| None -> on_no_database db
 	| Some ctx -> let! () = LogReq.trace "API database found" in
 		      run_checked req logPath ctx begin
 			let! () = LogReq.trace "API starting ..." in
@@ -401,19 +431,14 @@ let parse_body of_json req =
 
 module SPost = functor(A:POST_ARG) -> struct
 
-  let path = split A.path
-  let args_of_request = args_of_request (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
-
-  let logPath = "/" ^ A.path
+  include SEndpointUtils(A)
 
   let action req =    
     match args_of_request req with 
-    | Bad more -> let! () = LogReq.trace "API parsing failed" in 
-		  return (bad_request ~more logPath "Could not parse parameters") 
+    | Bad more -> on_bad_args more 
     | Ok args ->
       match parse_body A.Post.of_json req with 
-      | Bad more -> let! () = LogReq.trace "API parsing failed" in 
-		    return (bad_request ?more logPath "Could not parse body") 
+      | Bad more -> on_bad_body more 
       | Ok post -> let! () = LogReq.trace "API starting ..." in
 		   let! out = A.response req args post in
 		   let! () = LogReq.trace "API finished !" in 
@@ -425,29 +450,22 @@ end
 
 module Post = functor(A:POST_ARG) -> struct
 
-  let path = split ("db/{-}/" ^ A.path) 
-  let args_of_request = args_of_request (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
-
-  let logPath = "/db/{db}/" ^ A.path
+  include EndpointUtils(A)
     
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
     match db with 
-    | None -> let! () = LogReq.trace "API parsing failed" in
-	      return (bad_request logPath "Could not parse parameters") 
+    | None -> on_no_database_id () 
     | Some db ->
       match args_of_request req with 
-      | Bad more -> let! () = LogReq.trace "API parsing failed" in 
-		    return (bad_request ~more logPath "Could not parse parameters") 
+      | Bad more -> on_bad_args more 
       | Ok args -> 
 	match parse_body A.Post.of_json req with 
-	| Bad more -> let! () = LogReq.trace "API parsing failed" in 
-		      return (bad_request ?more logPath "Could not parse body") 
+	| Bad more -> on_bad_body more 
 	| Ok post ->
 	  let! ctx = Db.ctx (Id.of_string db) in
 	  match ctx with 
-	  | None -> let! () = LogReq.trace "API database not found" in 
-		    return (not_found logPath (!! "Database %s does not exist" db)) 
+	  | None -> on_no_database db 
 	  | Some ctx -> let! () = LogReq.trace "API database found" in
 			run_checked req logPath ctx begin
 			  let! () = LogReq.trace "API starting ..." in
@@ -473,19 +491,14 @@ end
   
 module SPut = functor(A:PUT_ARG) -> struct
 
-  let path = split A.path
-  let args_of_request = args_of_request (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
-
-  let logPath = "/" ^ A.path
+  include SEndpointUtils(A) 
 
   let action req =    
     match args_of_request req with 
-    | Bad more -> let! () = LogReq.trace "API parsing failed" in
-		  return (bad_request ~more logPath "Could not parse parameters") 
-    | Ok args ->
+    | Bad more -> on_bad_args more 
+    | Ok args  ->
       match parse_body A.Put.of_json req with 
-      | Bad more -> let! () = LogReq.trace "API parsing failed" in
-		    return (bad_request ?more logPath "Could not parse body") 
+      | Bad more -> on_bad_body more 
       | Ok post -> let! () = LogReq.trace "API starting ..." in
 		   let! out = A.response req args post in 
 		   let! () = LogReq.trace "API finished !" in
@@ -497,29 +510,22 @@ end
 
 module Put = functor(A:PUT_ARG) -> struct
 
-  let path = split ("db/{-}/" ^ A.path) 
-  let args_of_request = args_of_request (module A.Arg : Fmt.FMT with type t = A.Arg.t) path
-
-  let logPath = "/db/{db}/" ^ A.path
+  include EndpointUtils(A) 
     
   let action req = 
     let db = match req # path with _ :: db :: _ -> Some db | _ -> None in
     match db with 
-    | None -> let! () = LogReq.trace "API parsing failed" in 
-	      return (bad_request logPath "Could not parse parameters") 
+    | None -> on_no_database_id () 
     | Some db -> 
       match args_of_request req with 
-      | Bad more -> let! () = LogReq.trace "API parsing failed" in
-		    return (bad_request ~more logPath "Could not parse parameters") 
+      | Bad more -> on_bad_args more
       | Ok args -> 
 	match parse_body A.Put.of_json req with 
-	| Bad more -> let! () = LogReq.trace "API parsing failed" in
-		      return (bad_request ?more logPath "Could not parse body") 
+	| Bad more -> on_bad_body more 
 	| Ok post ->
 	  let! ctx = Db.ctx (Id.of_string db) in
 	  match ctx with 
-	  | None -> let! () = LogReq.trace "API database not found" in 
-		    return (not_found logPath (!! "Database %s does not exist" db)) 
+	  | None -> on_no_database db 
 	  | Some ctx ->let! () = LogReq.trace "API database found" in
 		       run_checked req logPath ctx begin
 			 let! () = LogReq.trace "API starting ..." in
