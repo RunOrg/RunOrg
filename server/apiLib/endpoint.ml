@@ -219,6 +219,10 @@ end) -> struct
   (* The original path, but split into a list of segments. *)
   let path = split A.path
   
+  (* Register the endpoint action. *)
+  let register lens action = 
+    Dictionary.add (snd lens action) path
+    
   (* Argument parser. Parses the request according to the provided path and 
      formatter. 
      
@@ -315,14 +319,12 @@ module SGet = functor(A:GET_ARG) -> struct
 
   include SEndpointUtils(A) 
 
-  let action req =
-    parse req (fun args -> 
-      let! () = LogReq.trace "API starting ..." in
-      let! out = A.response req args in 
-      let! () = LogReq.trace "API finished !" in
-      return (respond logPath A.Out.to_json out))
-
-  let () = Dictionary.add (snd Dictionary.get action) path
+    register Dictionary.get (fun req ->
+      parse req (fun args -> 
+	let! () = LogReq.trace "API starting ..." in
+	let! out = A.response req args in 
+	let! () = LogReq.trace "API finished !" in
+	return (respond logPath A.Out.to_json out)))
 
 end
 
@@ -330,14 +332,12 @@ module Get = functor(A:GET_ARG) -> struct
 
   include EndpointUtils(A)
 
-  let action req = 
-    parse req (fun args -> 
-      let! () = LogReq.trace "API starting ..." in
-      let! out = A.response req args in
-      let! () = LogReq.trace "API finished !" in
-      return (respond logPath A.Out.to_json out))
-
-  let () = Dictionary.add (snd Dictionary.get action) path
+    register Dictionary.get (fun req -> 
+      parse req (fun args -> 
+	let! () = LogReq.trace "API starting ..." in
+	let! out = A.response req args in
+	let! () = LogReq.trace "API finished !" in
+	return (respond logPath A.Out.to_json out)))
 
 end
 
@@ -351,14 +351,12 @@ module RawGet = functor(A:RAW_GET_ARG) -> struct
 
   include EndpointUtils(A) 
 
-  let action req = 
-    parse req (fun args -> 
-      let! () = LogReq.trace "API starting ..." in
-      let! out = A.response req args in
-      let! () = LogReq.trace "API finished !" in
-      return out)
-
-  let () = Dictionary.add (snd Dictionary.get action) path
+    register Dictionary.get (fun req -> 
+      parse req (fun args -> 
+	let! () = LogReq.trace "API starting ..." in
+	let! out = A.response req args in
+	let! () = LogReq.trace "API finished !" in
+	return out))
 
 end
 
@@ -377,14 +375,12 @@ module Delete = functor(A:DELETE_ARG) -> struct
 
   include EndpointUtils(A) 
 
-  let action req = 
-    parse req (fun args -> 
-      let! () = LogReq.trace "API starting ..." in
-      let! out = A.response req args in
-      let! () = LogReq.trace "API finished !" in
-      return (respond logPath A.Out.to_json out))	       
-
-  let () = Dictionary.add (snd Dictionary.delete action) path
+    register Dictionary.delete (fun req -> 
+      parse req (fun args -> 
+	let! () = LogReq.trace "API starting ..." in
+	let! out = A.response req args in
+	let! () = LogReq.trace "API finished !" in
+	return (respond logPath A.Out.to_json out)))	       
 
 end
 
@@ -403,15 +399,13 @@ module SPost = functor(A:POST_ARG) -> struct
 
   include SEndpointUtils(A)
 
-  let action req =  
-    parse req (fun args -> 
-      parse_body A.Post.of_json req (fun post -> 
-	let! () = LogReq.trace "API starting ..." in
-	let! out = A.response req args post in
-	let! () = LogReq.trace "API finished !" in 
-	return (respond logPath A.Out.to_json out)))
-
-  let () = Dictionary.add (snd Dictionary.post action) path
+    register Dictionary.post (fun req -> 
+      parse req (fun args -> 
+	parse_body A.Post.of_json req (fun post -> 
+	  let! () = LogReq.trace "API starting ..." in
+	  let! out = A.response req args post in
+	  let! () = LogReq.trace "API finished !" in 
+	  return (respond logPath A.Out.to_json out))))
 
 end
 
@@ -419,15 +413,13 @@ module Post = functor(A:POST_ARG) -> struct
 
   include EndpointUtils(A)
     
-  let action req = 
-    parse req (fun args -> 
-      parse_body A.Post.of_json req (fun post ->
-	let! () = LogReq.trace "API starting ..." in
-	let! out = A.response req args post in
-	let! () = LogReq.trace "API finished !" in
-	return (respond logPath A.Out.to_json out)))
-
-  let () = Dictionary.add (snd Dictionary.post action) path
+    register Dictionary.post (fun req -> 
+      parse req (fun args -> 
+	parse_body A.Post.of_json req (fun post ->
+	  let! () = LogReq.trace "API starting ..." in
+	  let! out = A.response req args post in
+	  let! () = LogReq.trace "API finished !" in
+	  return (respond logPath A.Out.to_json out))))
 
 end
 
@@ -446,31 +438,27 @@ module SPut = functor(A:PUT_ARG) -> struct
 
   include SEndpointUtils(A) 
 
-  let action req =    
-    parse req (fun args -> 
-      parse_body A.Put.of_json req (fun put -> 
-	let! () = LogReq.trace "API starting ..." in
-	let! out = A.response req args put in 
-	let! () = LogReq.trace "API finished !" in
-	return (respond logPath A.Out.to_json out)))
-	
-  let () = Dictionary.add (snd Dictionary.put action) path
+    register Dictionary.put (fun req -> 
+      parse req (fun args -> 
+	parse_body A.Put.of_json req (fun put -> 
+	  let! () = LogReq.trace "API starting ..." in
+	  let! out = A.response req args put in 
+	  let! () = LogReq.trace "API finished !" in
+	  return (respond logPath A.Out.to_json out))))
 
 end
 
 module Put = functor(A:PUT_ARG) -> struct
 
   include EndpointUtils(A) 
-    
-  let action req = 
-    parse req (fun args -> 
-      parse_body A.Put.of_json req (fun put -> 
-	let! () = LogReq.trace "API starting ..." in
-	let! out = A.response req args put in
-	let! () = LogReq.trace "API finished !" in
-	return (respond logPath A.Out.to_json out)))		    
-
-  let () = Dictionary.add (snd Dictionary.put action) path
+  
+    register Dictionary.put (fun req ->
+      parse req (fun args -> 
+	parse_body A.Put.of_json req (fun put -> 
+	  let! () = LogReq.trace "API starting ..." in
+	  let! out = A.response req args put in
+	  let! () = LogReq.trace "API finished !" in
+	  return (respond logPath A.Out.to_json out))))
 
 end
 
