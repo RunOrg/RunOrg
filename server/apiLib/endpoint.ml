@@ -62,14 +62,6 @@ let respond_error ?headers more path what =
   let list = match more with None -> list | Some json -> ( "details", json ) :: list in
   Httpd.json ~status (Json.Object list) 
 
-let method_not_allowed path allowed = 
-  Httpd.json 
-    ~headers:[ "Allowed", String.concat ", " allowed] 
-    ~status:`MethodNotAllowed
-    (Json.Object [ 
-      "error", Json.String "Method not allowed" ;
-      "path",  Json.String path ])
-
 let bad_request ?(more=[]) path error = 
   Httpd.json 
     ~status:`BadRequest 
@@ -168,6 +160,15 @@ module Dictionary = struct
     in
     let n = List.length segs in     
     if n >= maximum_path_size then [] else find [] dictionary.(n) segs
+
+  (* The HTTP response sent when the requested method is not allowed. *)
+  let method_not_allowed path allowed = 
+    Httpd.json 
+      ~headers:[ "Allowed", String.concat ", " allowed] 
+      ~status:`MethodNotAllowed
+      (Json.Object [ 
+	"error", Json.String "Method not allowed" ;
+	"path",  Json.String path ])
 
   (* Dispatches a request, returns a response. *)
   let dispatch req = 
