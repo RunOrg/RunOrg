@@ -5,9 +5,6 @@ open Std
 (* Canonical splitting: all non-empty segments. *)
 let split path = 
   List.filter (fun s -> s <> "") (String.nsplit path "/") 
-
-let without_wildcards path_segs = 
-  List.map (fun seg -> if seg.[0] = '{' then None else Some seg) path_segs
   
 (* General response types
    ====================== *)
@@ -96,6 +93,9 @@ module Dictionary = struct
 
   let dictionary = Array.make maximum_path_size empty 
   let () = dictionary.(0) <- Resource (empty_resource "/")
+
+  let without_wildcards path_segs = 
+    List.map (fun seg -> if seg.[0] = '{' then None else Some seg) path_segs
 
   let add set spath = 
     let path = without_wildcards spath in 
@@ -222,7 +222,7 @@ end) -> struct
   (* Register the endpoint action. *)
   let register lens action = 
     Dictionary.add (snd lens action) path
-    
+
   (* Argument parser. Parses the request according to the provided path and 
      formatter. 
      
