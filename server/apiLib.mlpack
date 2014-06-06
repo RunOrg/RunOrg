@@ -1,5 +1,7 @@
 ChatAPI
 Endpoint
+EndpointCommon
+EndpointDictionary
 FormAPI
 GroupAPI
 KeyAPI
