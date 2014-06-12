@@ -4,6 +4,7 @@ module OpenHack = struct
   (* Open a few modules because they are only used by internal libraries, 
      and the ocamlbuild depencency solver does not build them. *)
   open Seq
+  open Sql
   open Token
   open Persona
   open ServerAdmin
