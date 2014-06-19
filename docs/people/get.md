@@ -1,0 +1,64 @@
+<page title="Fetch basic information for a person"
+      api="GET /db/{db}/people/{id}"
+      js="method RunOrg.Person.Load" 
+      tags="methods:person" />
+
+<doc for="js">
+  If `person` is an instance of [`RunOrg.Person`](/people/person.md), 
+  then `person.Load()` fills (or replaces) its non-`id` fields with 
+  data retrieved from the API.
+
+  Returns a [promise](/concepts/promise.md) that will resolve to the
+  `person` object if it could be filled.  
+</doc>
+
+<example type="js" caption="Example usage">
+  new RunOrg.Person("1ax69bfa335").Load().then(function(person) {     
+    console.log("Fetched data for %s.", person.label)
+  })
+</example>
+
+<example type="js" caption="Example usage, with error handling">
+  var person = new RunOrg.Person("1ax69bfa335");
+
+  person.Load().then(function() {     
+    console.log("Fetched data for %s.", person.label)
+  }, function(error) {
+    if (error.HTTP == 404) 
+      console.log("Person %s not found.", person.id)
+    else 
+      console.log("An error happened: %o", error)
+  })
+</example>
+
+<see for="js" ref="concepts/errors.md" />
+
+<doc for="api">
+  Returns a [`<person>`](/people/person.md) representation of the person with
+  identifier `{id}` in database `{db}`. 
+</doc> 
+<example type="api" caption="Example request">
+  GET /db/0Et4X0016om/people/0Et9j0026rO
+</example>
+<example type="api" caption="Example response">
+  200 OK 
+  Content-Type: application/json
+
+  { "id" : "0Et9j0026rO",
+    "label" : "Victor Nicollet",
+    "gender" : "M", 
+    "pic" : "https://www.gravatar.com/avatar/648e25e4372728b2d3e0c0b2b6e26f4e" }
+</example>
+<doc>
+
+  # Errors
+
+  ## Returns `404 Not Found`
+  - if the database does not exist,
+  - if person `{id}` does not exist in the database.
+
+  # Access restrictions
+
+  Anyone can view any person's basic information, if they have their identifier.
+
+</doc>
