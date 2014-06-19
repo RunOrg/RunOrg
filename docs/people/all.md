@@ -26,7 +26,7 @@
   order, with [pagination](/concepts/pagination.md). 
 </doc>
 
-<fields caption="response fields" for="api">
+<fields caption="Response fields" for="api">
   | list  | <person> array | A list of people on the requested page.
   | count | integer        | The total number of people in the database.                          
 </fields>
