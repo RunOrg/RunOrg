@@ -1,14 +1,15 @@
 <page title="Fetch basic information for a person"
       api="GET /db/{db}/people/{id}"
       js="method RunOrg.Person.Load" 
-      tags="methods:person" />
+      tags="methods:person" 
+      parent="people.htm" />
 
 <doc for="js">
-  If `person` is an instance of [`RunOrg.Person`](/people/person.md), 
+  If `person` is an instance of [`RunOrg.Person`](/people/person.htm), 
   then `person.Load()` fills (or replaces) its non-`id` fields with 
   data retrieved from the API.
 
-  Returns a [promise](/concepts/promise.md) that will resolve to the
+  Returns a [promise](/concepts/promise.htm) that will resolve to the
   `person` object if it could be filled.  
 </doc>
 
@@ -34,7 +35,7 @@
 <see for="js" ref="concepts/errors.md" />
 
 <doc for="api">
-  Returns a [`<person>`](/people/person.md) representation of the person with
+  Returns a [`<person>`](/people/person.htm) representation of the person with
   identifier `{id}` in database `{db}`. 
 </doc> 
 <example type="api" caption="Example request">

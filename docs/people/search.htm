@@ -1,0 +1,60 @@
+<page title="Find people by name"
+      api="GET /db/{db}/people/search" 
+      tags="methods:person"
+      parent="people.htm" />
+<doc for="api">
+  Returns a set of people that match the search query. 
+
+  # Request
+
+  The request takes the following GET parameters:
+</doc>
+<fields for="api">
+  q     | <string> | The search query. 
+  limit | <int>    | The maximum number of results to be returned. If omitted, 
+                     reverts to an implementation-defined default value. 
+</field>
+<doc for="api">
+  # Response
+
+  Always `200 OK`: this is a [read-only](/concepts/read-only.htm) endpoint.
+
+  The response contains a single field: 
+</doc>
+<fields for="api">
+  list | <person> array | A list of [short profiles](/people/person.htm) matching the 
+                          query, in order of decreasing relevance. 
+</fields>
+<doc for="api">
+  # Examples
+</doc>
+<example type="api" caption="Example request">
+  GET /db/0SNQc00211H/people?limit=3&q=vic
+</example>
+<example type="api" caption="Example response">
+  200 OK
+  Content-Type: application/json
+  
+  { "list" : [ 
+    { "id" : "0SNQg00511H",
+      "label" : "Victor Nicollet",
+      "gender" : "M",
+      "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28060" } ] }
+</example>
+<doc for="api">
+  # Errors
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not allow acting as `{as}`
+ 
+  ## Returns `403 Forbidden` 
+  - if `{as}` is not a database administrator
+
+  ## Returns `404 Not Found`  
+  - if database `{db}` does not exist
+
+  # Access restrictions
+
+  Only [database administrators](/groups/admin.htm) may search for
+  people by name.
+</doc>

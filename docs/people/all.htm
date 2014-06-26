@@ -1,14 +1,15 @@
 <page title="List all people in the database"
       api="GET /db/{db}/people"
       js="static RunOrg.Person.List" 
-      tags="methods:person" />
+      tags="methods:person" 
+      parent="people.htm" />
 
 <doc for="js">
   `RunOrg.Person.List(limit, offset)` reads `limit` people from the 
   database, starting at `offset`. The order is unspecified but 
   consistent. 
 
-  Returns a [promise](/concepts/promise.md) that will resolve to a 
+  Returns a [promise](/concepts/promise.htm) that will resolve to a 
   list of filled `RunOrg.Person` instances. 
 </doc>
 <example type="js" caption="Example usage">
@@ -23,7 +24,7 @@
 
 <doc for="api">
   Returns all the people in the database, in an unspecified but consistent
-  order, with [pagination](/concepts/pagination.md). 
+  order, with [pagination](/concepts/pagination.htm). 
 </doc>
 
 <fields caption="Response fields" for="api">
@@ -65,9 +66,9 @@
 
 # Access restrictions
 
-Only [database administrators](/groups/admin.md) may list all people
+Only [database administrators](/groups/admin.htm) may list all people
 in the database. 
 
-Note that [viewing individuals](/people/get.js) is open to anyone.
+Note that [viewing individuals](/people/get.htm) is open to anyone.
 
 </doc>

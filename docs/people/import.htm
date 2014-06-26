@@ -1,0 +1,106 @@
+<page title="Import people by e-mail"
+      api="POST /db/{db}/people/import"
+      tags="methods:profile" 
+      parent="people.htm" />
+
+<doc for="api">
+  Allows you to post an array of people to be imported, returns the identifiers
+  assigned to every one of them. 
+
+  This is the recommended way of adding multiple people to the database.
+
+  # Request
+
+  Each imported profile may contain the following fields: 
+
+</doc> 
+<fields for="api">
+  email | <label>       | The only mandatory field, should contain a valid e-mail 
+                          address for the person.
+  name  | <label>, null | Optional, but recommended nonetheless, as it will be 
+                          used as the display name of the person (that is, it will
+                          become field `label` of the [<short>](/people/short.htm) 
+	                  values returned by the API). 
+  givenName  | <label>, null  | A given name, optional.
+  familyName | <label>, null  | A family name, optional.
+  gender     | "M", "F", null | The person's gender, optional.
+</fields>
+<doc for="api">
+
+  You may skip the `givenName` and `familyName` fields safely. This will be the
+  case for people in a culture that does not have such naming conventions, or simply 
+  because the data is unavailable (it may be provided later).
+
+  There is no limit on the number of people to be provided, though the request
+  may bounce due to the [global limit on request body sizes](/config/httpd.htm). 
+
+  # Response
+
+  When successful, `202 Accepted`: this is a [delayed](/concepts/delayed.htm),
+  [sync-idempotent](/doncepts/sync-idempotent.md) request.
+
+  The response contains two fields: 
+
+</doc>
+<fields for="api">
+  at | <clock> | The [clock position](/concepts/delayed.htm) when all the 
+                 imported people will be available.
+  imported | <id> array | The identifiers associated to the imported people, 
+                          in the same order as the array of people in the request.
+</fields>
+<doc for="api">
+  # Examples 
+</doc>
+<example type="api" caption="Example request">
+  POST /db/0Et4X0016om/people/import?as=0Et9j0026rO
+  Authorization: RUNORG token=9dF3M1wEma4
+  Content-Type: application/json 
+ 
+  [ {"email":"vnicollet@runorg.com","fullname":"Victor Nicollet","gender":"M"}, 
+    {"email":"test@example.com"} ]
+</example>
+
+<example type="api" caption="Example response">
+  202 Accepted 
+  Content-Type: application/json
+
+  { "imported": [ "0Et9j0026rO", "0SMXP00G0ON" ],
+    "at": {"2":87} }
+</example>
+
+<doc for="api">
+
+  # Duplicate entries
+ 
+  Duplicate entries (that is, entries for which a person already exists with
+  the same email address) will be silently ignored, and the identifier for the 
+  old person will be returned. 
+
+  Please note that the `email` field is not a strict uniqueness constraint: 
+  there are normal situations under which two or more people may share an
+  email address. The import procedure will avoid creating such duplicates for 
+  your convenience, but does not guarantee uniqueness. In particular, if two 
+  imports run in parallel with duplicate data, then duplicate email addresses 
+  may appear.
+
+  # Errors
+
+  If you sent this request but did not receive a response (network timeouts, 
+   internal server errors...), use the fact that it is 
+  [sync-idempotent](/concepts/sync-idempotent.htm).
+
+  ## Returns `401 Unauthorized`
+  - if the provided token does not allow importing new people, or no token was provided
+
+  ## Returns `403 Forbidden`
+  - if person `{as}` is not allowed to import people.
+
+  ## Returns `404 Not Found`
+  - if database `{db}` does not exist
+
+  # Access restrictions
+  
+  Only [database administrators](/groups/admin.htm) may list all people
+  in the database. 
+
+</doc>
