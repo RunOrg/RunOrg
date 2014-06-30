@@ -1,0 +1,79 @@
+<page title="Remove members from a group"
+      api="POST /db/{db}/groups/{id}/remove"
+      js="method RunOrg.Group.RemoveMany"
+      tags="methods:group" 
+      parent="groups.htm" />
+
+<doc for="js">
+  `group.RemoveMany([person,person])` removes the provided array of people frpù 
+  `group`. It returns a [promise](/concepts/promise.htm) which resolves once
+  the server has acknowledged the request. 
+
+  The people must be provided as identifiers. 
+
+  This method silently ignores people who do not exist or are not members of 
+  the group.
+</doc>
+<see for="js" ref="groups/add-one.htm" />
+<doc for="api">
+  Removes the provided people from the specified group. People not in the group
+  (or in the database) are silently ignored. 
+
+  # Request
+
+  The request body should be an array of [people](/people.md) identifiers. 
+
+  # Response
+
+  Always returns `202 Accepted`: this is a [delayed](/concepts/delayed.htm),
+  [idempotent](/doncepts/idempotent.md) request.
+
+  The response contains a single field: 
+</doc>
+<fields for="api">
+  at | <clock> | The [clock position](/concepts/delayed.htm) when all the 
+                 removed people will disappear in the group.
+</fields>
+<doc>
+  # Examples 
+</doc>
+<example type="js" caption="Example request">
+  var group = new RunOrg.Group("0SNQe0032JZ");
+  group.RemoveMany(["0SNQe00311H", "0SNQg00511H"]).then(function() {
+    console.log("Members removed!");
+  });
+</example>
+<example type="api" caption="Example request">
+  POST /db/0SNQc00211H/groups/0SNQe0032JZ/remove
+  Content-Type: application/json
+
+  [ "0SNQe00311H", "0SNQg00511H" ]
+</example>
+<example type="api" caption="Example response">
+  202 Accepted
+  Content-Type: application/json
+
+  { "at": {"1":113} }
+</example>
+<doc>
+  # Errors 
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not allow acting as `{as}`
+
+  ## Returns `403 Forbidden`
+  - if person `{as}` does not have at least **moderate** access to 
+    group `{id}`
+
+  ## Returns `404 Not Found` 
+  - if database `{db}` does not exist
+  - if group `{id}` does not exist in database `{db}`
+  - if person `{as}` does not have at least **view** access to 
+    group `{id}`, to ensure [absence equivalence](/concepts/absence-equivalence.htm)
+
+  # Access restrictions
+
+  The **moderate** [access level](/groups/audience.htm) is required
+  to remove members from a group.
+
+</doc>

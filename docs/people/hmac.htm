@@ -1,5 +1,5 @@
 <page title="Authenticate with HMAC proof"
-      api="GET /db/{db}/people/auth/hmac" 
+      api="POST /db/{db}/people/auth/hmac" 
       tags="methods:person methods:auth"
       parent="people.htm" />
 <doc for="api">
@@ -80,16 +80,16 @@
   # Errors
 
   ## Returns `400 Bad Request`
-  - ... if `proof` was not correctly hex-encoded
-  - ... if `expires` has already passed
+  - if `proof` was not correctly hex-encoded
+  - if `expires` has already passed
 
   ## Returns `401 Forbidden` 
-  - ... if the proof is invalid. 
+  - if the proof is invalid. 
  
   ## Returns `404 Not Found`
-  - ... if database `{db}` does not exist
-  - ... if key `{key}` does not exist in database `{db}`
-  - ... if person `{id}` does not exist in database `{db}`
+  - if database `{db}` does not exist
+  - if key `{key}` does not exist in database `{db}`
+  - if person `{id}` does not exist in database `{db}`
  
   Debugging a `401` status code when HMACs and secret keys are involved can be 
   very annoying ; the RunOrg API includes some helpful information to help you 

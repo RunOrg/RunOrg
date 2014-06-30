@@ -1,0 +1,77 @@
+<page title="Add members to a group"
+      api="POST /db/{db}/groups/{id}/add"
+      js="method RunOrg.Group.AddMany"
+      tags="methods:group" 
+      parent="groups.htm" />
+
+<doc for="js">
+  `group.AddMany([person,person])` adds the provided array of people to 
+  `group`. It returns a [promise](/concepts/promise.htm) which resolves once
+  the server has acknowledged the request. 
+
+  The people must be added as identifiers. 
+</doc>
+<see for="js" ref="groups/add-one.htm" />
+<doc for="api">
+  Adds the provided people to the specified group. People already in the group
+  are silently ignored. 
+
+  # Request
+
+  The request body should be an array of [people](/people.md) identifiers. 
+
+  # Response
+
+  Always returns `202 Accepted`: this is a [delayed](/concepts/delayed.htm),
+  [idempotent](/concepts/idempotent.md) request.
+
+  The response contains a single field: 
+</doc>
+<fields for="api">
+  at | <clock> | The [clock position](/concepts/delayed.htm) when all the 
+                 added people will appear in the group.
+</fields>
+<doc>
+  # Examples 
+</doc>
+<example type="js" caption="Example request">
+  var group = new RunOrg.Group("0SNQe0032JZ");
+  group.AddMany(["0SNQe00311H", "0SNQg00511H"]).then(function() {
+    console.log("Members added!");
+  });
+</example>
+<example type="api" caption="Example request">
+  POST /db/0SNQc00211H/groups/0SNQe0032JZ/add
+  Content-Type: application/json
+
+  [ "0SNQe00311H", "0SNQg00511H" ]
+</example>
+<example type="api" caption="Example response">
+  202 Accepted
+  Content-Type: application/json
+
+  { "at": {"1":113} }
+</example>
+<doc>
+  # Errors 
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not allow acting as `{as}`
+
+  ## Returns `403 Forbidden`
+  - if person `{as}` does not have at least **moderate** access to 
+    group `{id}`
+
+  ## Returns `404 Not Found` 
+  - if database `{db}` does not exist
+  - if group `{id}` does not exist in database `{db}`
+  - if person `{as}` does not have at least **view** access to 
+    group `{id}`, to ensure [absence equivalence](/concepts/absence-equivalence.htm)
+  - if one of the added people does not exist in database `{db}`
+
+  # Access restrictions
+
+  The **moderate** [access level](/groups/audience.htm) is required
+  to add members to a group.
+
+</doc>

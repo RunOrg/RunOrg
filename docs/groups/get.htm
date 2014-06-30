@@ -1,0 +1,85 @@
+<page title="List all group members"
+      api="GET /db/{db}/groups/{id}"
+      js="method RunOrg.Group.List" 
+      tags="methods:group" 
+      parent="groups.htm" />
+
+<doc for="js">
+  If `group` is an instance of [`RunOrg.Group`](/people/group.htm), 
+  then `group.List(limit,offset)` returns all the [people](/people.htm)
+  in the specified group, in arbitrary order. Supports `limit` and `offset`
+  pagination.
+
+  Returns a [promise](/concepts/promise.htm) that will resolve to an 
+  array of [short profiles](/people/person.htm).
+</doc>
+
+<example type="js" caption="Example usage">
+  new RunOrg.Group("1ax69bfa335").List(10,0).then(function(list) { 
+    for (var i = 0; i < list.length; ++i)     
+      console.log("Found person %s.", list[i].label)
+  })
+</example>
+
+<doc for="api">
+  Returns all the [people](/people.md) in the specified group, in 
+  arbitrary order. 
+
+  # Request
+
+  This is a GET request with the following parameters: 
+</doc> 
+<fields for="api">
+  limit  | <int> | The maximum number of people to be returned.
+  offset | <int> | The number of people to be skipped.
+</fields>
+<doc for="api">
+  # Response
+
+  This is a [read-only](/concepts/read-only.htm) request that always
+  responds `200 OK` and the following fields: 
+</doc>
+<fields for="api">
+  list  | <person> array | A list of [short profiles](/people/person.htm).
+  count | <int>          | The total number of members in the group. 
+</fields>
+<example type="api" caption="Example request">
+  GET /db/0Et4X0016om/groups/0Et9j0026rO?limit=3&offset=213
+</example>
+<example type="api" caption="Example response">
+  200 OK 
+  Content-Type: application/json
+
+  { "list" : [ 
+    { "id" : "0SNQe00311H",
+      "label" : "George Sand",
+      "gender" : "f",
+      "pic" : "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70" },
+    { "id" : "0SNQg00511H",
+      "label" : "Victor Hugo",
+      "gender" : "m",
+      "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28061"} ],
+    "count" : 215 }
+</example>
+<doc>
+
+  # Errors
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not allow acting as the viewer.
+
+  ## Returns `403 Forbidden`
+  - if the viewer does not have **list** access to the group.
+
+
+  ## Returns `404 Not Found`
+  - if the database does not exist,
+  - if group `{id}` does not exist in the database.
+  - if the viewer does not have at least **view** access to the 
+    group, to ensure [absence equivalence](/concepts/absence-equivalence.md).
+
+  # Access restrictions
+
+  Viewing group members requires **list** access to that group.
+
+</doc>

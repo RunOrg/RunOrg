@@ -1,0 +1,68 @@
+<page title="Delete a group"
+      api="DELETE /db/{db}/groups/{id}"
+      js="method RunOrg.Group.Delete"
+      tags="methods:group" 
+      parent="groups.htm" />
+
+<doc for="js">
+  `group.Delete()` removes `group` from the database forever. The people remain
+  in the database, but their membership (to the deleted group) is forgotten.
+</doc>
+<see for="js" ref="groups/remove-one.htm" />
+<doc for="api">
+  Deletes a group from the database forever. The people remain
+  in the database, but their membership (to the deleted group) is forgotten.
+
+  # Response
+
+  Always returns `202 Accepted`: this is a [delayed](/concepts/delayed.htm),
+  [idempotent](/concepts/idempotent.md) request.
+
+  The response contains a single field: 
+</doc>
+<fields for="api">
+  at | <clock> | The [clock position](/concepts/delayed.htm) when all the 
+                 removed people will disappear in the group.
+</fields>
+<doc>
+  # Examples 
+</doc>
+<example type="js" caption="Example request">
+  var group = new RunOrg.Group("0SNQe0032JZ");
+  group.Delete().then(function() {
+    console.log("Group deleted!");
+  });
+</example>
+<example type="api" caption="Example request">
+  DELETE /db/0SNQc00211H/groups/0SNQe0032JZ
+  Content-Type: application/json
+</example>
+<example type="api" caption="Example response">
+  202 Accepted
+  Content-Type: application/json
+
+  { "at": {"1":113} }
+</example>
+<doc>
+  # Errors 
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not allow acting as `{as}`
+
+  ## Returns `403 Forbidden`
+  - if person `{as}` does not have at least **admin** access to 
+    group `{id}`
+  - when attempting to delete group [`admin`](/groups/admin.htm)
+
+  ## Returns `404 Not Found` 
+  - if database `{db}` does not exist
+  - if group `{id}` does not exist in database `{db}`
+  - if person `{as}` does not have at least **view** access to 
+    group `{id}`, to ensure [absence equivalence](/concepts/absence-equivalence.htm)
+
+  # Access restrictions
+
+  The **admin** [access level](/groups/audience.htm) is required
+  to delete a group. The [`admin`](/groups/admin.htm) group may not be deleted.
+
+</doc>

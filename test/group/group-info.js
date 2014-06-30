@@ -1,23 +1,3 @@
-// JSON <group-info>
-// Groups / A short representation of a group's information
-//
-// [Viewer-dependent](/docs/#/concept/viewer-dependent.md). 
-//
-// Returned by most API methods that involve groups. It is intended to 
-// provide data relevant for displaying the group: its label and count.
-// 
-// Typical examples: [listing groups](/docs/#/group/list.js) or 
-// [groups participating in a chat](/docs/#/chat/get.js). 
-//
-// ### JSON format
-//     { id : <id>, 
-//       label : <label> | null, 
-//       access : [ <access>, .. ],
-//       count : <int> | null }
-// 
-// - `id` is the [unique 11-character identifier](/docs/#/types/id.js) for this 
-//   contact
-
 TEST("The groups's identifier is returned.", function(Query) {
 
     var example = {};
@@ -31,9 +11,6 @@ TEST("The groups's identifier is returned.", function(Query) {
     return Assert.areEqual(id,id2);
 
 });
-
-// - `label` is a [human-readable name](/docs/#/types/label.js). Not all groups
-//   have one, because it is not a mandatory property when creating a group.
 
 TEST("The group's label is returned if available.", function(Query) {
 
@@ -49,9 +26,6 @@ TEST("The group's label is returned if available.", function(Query) {
 
 });
 
-// - `access` is the list of [access levels](/docs/#/group/audience.js) available to 
-//  the viewer.
-
 TEST("The group's access levels are returned.", function(Query) {
 
     var example = { "audience" : { "moderate" : "anyone" } };
@@ -65,9 +39,6 @@ TEST("The group's access levels are returned.", function(Query) {
     return Assert.areEqual([ "view", "list", "moderate" ], access);
 
 });
-
-// - `count` is the number of group members (people currently in the group). This field is
-//   only available if the viewer has **list** access to the group.
 
 TEST("The group's member count is returned.", function(Query) {
 
@@ -102,9 +73,3 @@ TEST("The group's member count requires 'list' access.", function(Query) {
     });
 
 });
-
-// ### Example value
-//     { "id" : "0Et9j0026rO",
-//       "label" : "Team members",
-//       "access" : [ "list", "view" ],
-//       "count": 16 }

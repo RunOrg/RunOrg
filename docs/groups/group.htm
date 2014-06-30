@@ -1,0 +1,41 @@
+<page title="Short information about a group"
+      api="type <group>" 
+      js="class RunOrg.Group"
+      tags="types classes class:group"
+      parent="groups.htm" />
+<doc>
+  Returned by most API methods that involve groups. It is intended to 
+  provide data relevant for displaying the group: its label and count.
+
+  This object is [viewer-dependent](/concepts/viewer-dependent.htm): its 
+  contents depend on the identity of the viewer.
+</doc>
+<fields>
+  id     | <id>           | The identifier of the group in the database.
+  label  | <label>, null  | An optional human-readable label. Not all groups have one,
+                            and it is not a mandatory property when creating a group.
+  access | <access> array | The list of [access levels](/groups/audience.htm) available
+                            to the viewer.
+  count  | <int>, null    | The number of group members (people currently in the group).
+	                    This field is only available if the viewer has **list** 
+	                    access to the group.
+  audience | <audience>, null | The current audience of the group. See [audience and 
+	                        access](/docs/#/concept/audience.md) for more information.
+	                        This field is only available if the viewer has **admin**
+	                        access to the group.
+</fields>
+<example type="json">
+  { "id" : "0Et9j0026rO",
+    "label" : "Team members",
+    "access" : [ "list", "view" ],
+    "count": 16,
+    "audience": {} }
+</example>
+<doc for="js">
+  # Class methods
+</doc>
+<doc for="api">
+  # Related API endpoints
+</doc>
+<list tags="methods:group" />
+

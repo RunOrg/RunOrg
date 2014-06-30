@@ -1,0 +1,79 @@
+<page title="Read group meta-data"
+      api="GET /db/{db}/groups/{id}/info"
+      js="method RunOrg.Group.Load"
+      tags="methods:group" 
+      parent="groups.htm" />
+
+<doc for="js">
+  If `group` is an instance of [`RunOrg.Group`](/groups/group.htm), 
+  then `group.Load()` fills (or replaces) its non-`id` fields with 
+  data retrieved from the API.
+
+  Returns a [promise](/concepts/promise.htm) that will resolve to the
+  `group` object if it could be filled.  
+</doc>
+
+<example type="js" caption="Example usage">
+  new RunOrg.Group("1ax69bfa335").Load().then(function(group) {     
+    console.log("Fetched data for %s.", group.label)
+  })
+</example>
+
+<example type="js" caption="Example usage, with error handling">
+  var group = new RunOrg.Group("1ax69bfa335");
+
+  group.Load().then(function() {     
+    console.log("Fetched data for %s.", group.label)
+  }, function(error) {
+    if (error.HTTP == 404) 
+      console.log("Group %s not found.", group.id)
+    else 
+      console.log("An error happened: %o", error)
+  })
+</example>
+
+<see for="js" ref="concepts/errors.md" />
+
+<doc for="js">
+  Note: it is not necessary to `Load()` a group to call its other methods. 
+  You can, for example, run `new RunOrg.Group(id).Delete()` to delete a 
+  group without having to load it first. 
+</doc>
+
+<doc for="api">
+  Returns a [`<group>`](/groups/group.htm) representation of the group with
+  identifier `{id}` in database `{db}`. 
+</doc> 
+<example type="api" caption="Example request">
+  GET /db/0Et4X0016om/groups/0Et9j0026rO
+</example>
+<example type="api" caption="Example response">
+  200 OK 
+  Content-Type: application/json
+
+  { "id"       : "0SNQe0032JZ",
+    "label"    : "Team members",
+    "access"   : [ "view", "list", "moderate", "admin" ],
+    "count"    : 215,
+    "audience" : {} }
+</example>
+<doc>
+
+  # Errors
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not allow acting as `{as}`.
+
+  ## Returns `404 Not Found`
+  - if the database does not exist,
+  - if group `{id}` does not exist in the database,
+  - if person `{as}` does not have at least **view** access
+    to group `{id}`, to ensure [absence 
+    equivalence](/concepts/absence-equivalence.md).
+
+  # Access restrictions
+
+  An [access level](/docs/#/group/audience.js) of **view** is required 
+  to view group meta-data.
+
+</doc>
