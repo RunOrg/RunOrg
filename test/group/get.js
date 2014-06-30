@@ -1,22 +1,3 @@
-// GET /db/{db}/groups/{id}
-// Groups / List all group members
-// 
-// Beta @ 0.9.0
-//
-// `200 OK`, 
-// [Read-only](/docs/#/concept/read-only.md),
-// [Paginated](/docs/#/concept/paginated.md).
-//
-// Returns all the [people](/docs/#/person.md) in the specified group, in 
-// arbitrary order. Supports `limit` and `offset` pagination. 
-//
-// ### Response format
-//     { "list": [ <person>, ... ],
-//       "count": <int> }
-// - `list` is a list of contacts on the requested page, in 
-//   [short format](/docs/#/person/short.js)
-// - `count` is the total number of members in the group.
-
 TEST("The response has valid return code and content type.", function(Query) {
 
     var db = Query.mkdb();
@@ -26,26 +7,6 @@ TEST("The response has valid return code and content type.", function(Query) {
 	.assertStatus(200).assertIsJson();
 
 });
-
-// # Examples
-// 
-// ### Example request
-//     GET /db/0SNQc00211H/groups/0SNQe0032JZ?limit=3&offset=213
-// 
-// ### Example response
-//     200 OK
-//     Content-Type: application/json 
-//     
-//     { "list" : [ 
-//       { "id" : "0SNQe00311H",
-//         "label" : "George Sand",
-//         "gender" : "f",
-//         "pic" : "https://www.gravatar.com/avatar/1ed54d253636f5b33eff32c2d5573f70" },
-//       { "id" : "0SNQg00511H",
-//         "label" : "Victor Hugo",
-//         "gender" : "m",
-//         "pic" : "https://www.gravatar.com/avatar/5a31b00f649489a9a24d3dc3e8b28061"} ],
-//       "count" : 215 }
 
 TEST("Returns correct number of contacts in count.", function(Query) {
 
@@ -91,20 +52,11 @@ TEST("Returns data for all contacts.", function(Query) {
 
 });
 
-// # Errors
-//
-// ## Returns `401 Unauthorized` 
-// - ... if the provided token does not allow acting as `{as}`.
-
 TEST("Returns 401 when token is not valid.", function(Query) {
     var db = Query.mkdb();
     return Query.get(["db/",db,"/groups/admin"],{id:"01234567890",token:"01234567890"})
 	.assertStatus(401);
 });
-
-// 
-// ## Returns `403 Forbidden`
-// - ... if `{as}` does not have **list** access to the group.
 
 TEST("Returns 403 when no 'list' access.", function(Query) {
     var db = Query.mkdb();
@@ -115,23 +67,15 @@ TEST("Returns 403 when no 'list' access.", function(Query) {
 	.assertStatus(403);
 });
 
-// 
-// ## Returns `404 Not Found`
-// - ... if database `{db}` does not exist
-
 TEST("Returns 404 when database does not exist.", function(Query) {
     return Query.get(["db/00000000000/groups/admin"]).assertStatus(404);
 });
 
-// - ... if group `{id}` does not exist in database `{db}`
 TEST("Returns 404 when group does not exist.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);
     return Query.get(["db/",db,"/groups/00000000000"],auth).assertStatus(404);
 });
-
-// - ... if `{as}` does not have at least **view** access to the 
-//   group, to ensure [absence equivalence](/docs/#/concept/absence-equivalence.md)
 
 TEST("Returns 404 when no 'view' access.", function(Query) {
     var db = Query.mkdb();
@@ -142,7 +86,3 @@ TEST("Returns 404 when no 'view' access.", function(Query) {
     });
 });
 
-// # Access restrictions
-//
-// An [access level](/docs/#/group/audience.js) of **list** is 
-// required to view the members of a group.

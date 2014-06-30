@@ -1,0 +1,76 @@
+<page title="List all groups in the database"
+      api="GET /db/{db}/groups"
+      js="static RunOrg.Group.List" 
+      tags="methods:group" 
+      parent="groups.htm" />
+
+<doc for="js">
+  `RunOrg.Group.List(limit, offset)` reads `limit` groups from the 
+  database, starting at `offset`. The order is unspecified but 
+  consistent. 
+
+  Only groups for which the viewer has **view** access will be included
+  in the list.
+
+  Returns a [promise](/concepts/promise.htm) that will resolve to a 
+  list of filled [`RunOrg.Group`](/groups/group.htm) instances. 
+</doc>
+
+<example type="js" caption="Example usage">
+  RunOrg.Group.List(10, 0).then(function(list) {
+    for (var i = 0; i < list.length; ++i) 
+      console.log("Group %s is %s", list[i].id, list[i].label)    
+  })			 
+</example>
+
+<todo> Explain how to handle errors. </todo>
+<todo> Implement and document extracting "count" from the API in JS </todo>
+
+<doc for="api">
+  Returns all the groups in the database, in an unspecified but consistent
+  order, with [pagination](/concepts/pagination.htm).
+
+  Only groups for which the viewer has **view** access will be included
+  in the list.
+
+  Groups are returned in [short format](/groups/group.htm).
+</doc>
+
+<fields caption="Response fields" for="api">
+  | list  | <group> array | A list of groups on the requested page.
+  | count | integer       | The total number of groups in the database.                          
+</fields>
+
+<example type="api" caption="Example request">
+  GET /db/0SNQc00211H/groups?limit=3&offset=16
+</example>
+<example type="api" caption="Example response">
+  200 OK
+  Content-Type: application/json 
+
+  { "list" : [ 
+    { "id" : "0SNQe00311H",
+      "label" : null,
+      "access": [ "list", "view" ],
+      "count": 25 },
+    { "id" : "0SNQg00511H",
+      "label" : "Team members",
+      "access" : [ "view" ]
+      "count": null } ] }    
+</example>
+
+<doc>
+
+# Errors
+
+## Returns `401 Unauthorized` 
+- if the provided token and viewer do not match. 
+
+## Returns `404 Not Found`
+- if the database does not exist
+
+# Access restrictions
+
+Anyone can retrieve results from this API, though only groups that
+the viewer has **view** access to will be returned. 
+</doc>

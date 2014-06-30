@@ -1,0 +1,125 @@
+<page title="Create a group"
+      api="POST /db/{db}/groups"
+      js="method RunOrg.Group.Create" 
+      tags="methods:group" 
+      parent="groups.htm" />
+
+<doc for="js">
+  If `group` is an instance of `RunOrg.Group` that does not represent
+  a server-side group (that is, you created and set its fields locally),
+  then `group.Create()` will attempt to create a new server-side group
+  from thet data in this object. 
+
+  Returns a [promise](/concepts/promise.htm) that will resolve to a 
+  list of filled [`RunOrg.Group`](/groups/group.htm) instances. 
+
+  The following fields are used, if provided.
+</doc>
+
+<doc for="api">
+  Attempts to create a new group on the server-side. 
+
+  The following fields are used, if provided.
+</doc>
+
+<fields>
+  id     | <id>, null     | The identifier of the group in the database. If provided, the
+                            request is performed in **force-id** mode (see below), otherwise
+                            it is performed in **generate-id** mode.
+  label  | <label>, null  | An optional human-readable label. 
+  audience | <audience>, null | The initial audience of the group. See [audience and 
+	                        access](/groups/audience.htm) for more information.
+</fields>
+
+<doc>
+  The behaviour of the request depends on whether an identifier was provided: 
+  **force-id** mode or **generate-id** mode. 
+
+  # Force-id mode
+ 
+  RunOrg will attempt to create a group with that identifier, and do nothing if 
+  the group already exists ([idempotent](/concepts/idempotent.htm) 
+  request). 
+</doc>
+
+<example type="api" caption="Example request">
+  POST /db/0SNQc00211H/groups
+  Content-Type: application/json
+
+  { "id": "board", 
+    "label": "Board members" }
+</example>
+
+<example type="api" caption="Example response">
+  202 Accepted
+  Content-Type: application/json
+ 
+  { "id" : "board",
+    "at" : {"2":218} }
+</example>
+
+<example type="JS" caption="Example code">
+  var group = new RunOrg.Group({
+    "id": "board",
+    "label": "Board members"
+  });
+
+  group.Create().then(function() {
+    console.log("Group created!");
+  });
+</example>
+
+<doc>
+  # Generate-id mode
+ 
+  RunOrg will create brand new group, with a brand new identifier. Running the
+  request again with the same parameters will create two groups.
+</doc>
+<example type="api" caption="Example request">
+  POST /db/0SNQc00211H/groups
+  Content-Type: application/json
+
+  { "label": "Board members" }
+</example>
+
+<example type="api" caption="Example response">
+  202 Accepted
+  Content-Type: application/json
+ 
+  { "id" : "0SNQe0032JZ",
+    "at" : {"2":218} }
+</example>
+
+<example type="JS" caption="Example code">
+  var group = new RunOrg.Group({
+    "label": "Board members"
+  });
+
+  group.Create().then(function(g) {
+    console.log("Group created with id %s", g.id);
+  });
+</example>
+
+<doc>
+
+  # Errors
+
+  ## Returns `400 Bad Request`
+  - if the provided identifier is not a valid [custom identifier](/concepts/custom-id.htm)
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not match the requester.
+
+  ## Returns `403 Forbidden` 
+  - if the requester is not allowed to create groups.
+
+  ## Returns `404 Not Found`
+  - if the database does not exist
+
+  ## Returns `409 Conflict`
+  - if a group already exists with the provided identifier.
+
+  # Access restrictions
+
+  Only [database administrators](/groups/admin.htm) can create new groups.
+</doc>
