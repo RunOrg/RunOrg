@@ -1,0 +1,34 @@
+<page title="Forms" parent="index.htm" />
+<doc>
+  A **form** is a list of fields that can be filled by people. A
+  single form can be filled several times, with each instance being tied
+  to a separate **owner** (for instance, if a form is configured so that
+  its owners are people, then each person can fill their own instance
+  of the form).
+
+  A form contains one or more fields.
+</doc>  
+<list tags="type:form.field" />
+<doc for="js">
+  # Class `Form`
+
+  The class [`RunOrg.Form`](/forms/form.htm) describes an individual 
+  form in the database.
+</doc>
+<doc for="api">
+  The following endpoints are used to create and manipulate the forms
+  themselves.
+</doc>
+<list tags="class:form methods:form" />
+<doc for="js">
+  # Class "Form.Filled"
+
+  The class [`RunOrg.Form.Filled`](/forms/filled.htm) contains 
+  information about a filled instance of a form, including the actual
+  data.
+</doc>
+<doc for="api">
+  The following endpoints are intended to fill a form and retrieve the 
+  filled-in data.
+</doc>
+<list tags="class:form.filled methods:form.filled" />

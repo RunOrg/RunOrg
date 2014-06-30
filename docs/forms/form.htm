@@ -1,0 +1,62 @@
+<page title="An individual form and its fields"
+      api="type <form>" 
+      js="class RunOrg.Form"
+      tags="types classes class:form"
+      parent="forms.htm" />
+<doc>
+  Returned by most API methods that involve groups. It is intended to 
+  provide data relevant for displaying the group: its label and count.
+
+  This object is [viewer-dependent](/concepts/viewer-dependent.htm): its 
+  contents depend on the identity of the viewer.
+</doc>
+<fields>
+  id | <id> | The identifier of the form.
+  owner | "person" | The nature of the owner associated with each filled
+                     instance of the form. In the current version of the API, 
+                     this is always `"person"` (each instance is owned by a person).
+  label | <label>, null | An optional human-readable label.
+  fields | <field> array | An ordered list of [fields](/forms/field.htm) to be
+	                   filled.
+  custom | <json> | An arbitrary block of JSON provided by the creator of the
+	            form, and returned as-is by the API.
+  access | <access> array | The list of access levels the viewer has over the
+	                    form. See [audience and access](/concepts/audience.htm)
+	                    for more information. 
+  audience | <audience> | Only available to viewers with access level **admin**.
+	                  The [audience](/forms/audience.htm) of the form. 
+</fields>
+<example type="json">
+  { "id" : "0SNQe0032JZ",
+    "label" : "Personal information", 
+    "owner" : "person",
+    "custom" : null,
+    "fields" : [ {
+      "id" : "1",
+      "label" : "Why did you join our group ?",
+      "kind" : "text",
+      "required" : true
+    }, {
+      "id" : "2", 
+      "label" : "How often do you log in ?",
+      "kind" : "single",
+      "choices" : [
+        "Every day",
+        "Once a week",
+        "Once a month",
+        "Less than once a month" ],
+      "required" : false
+    } ],
+    "access" : [ "admin", "fill" ],
+    "audience" : {
+      "admin": {},
+      "fill": { groups: [ "0SNQe0032JZ" ] } } }
+</example>
+<doc for="js">
+  # Class methods
+</doc>
+<doc for="api">
+  # Related API endpoints
+</doc>
+<list tags="methods:form" />
+

@@ -1,0 +1,139 @@
+<page title="Create a form"
+      api="POST /db/{db}/forms"
+      js="method RunOrg.Form.Create" 
+      tags="methods:form" 
+      parent="forms.htm" />
+
+<doc for="js">
+  If `form` is an instance of `RunOrg.Form` that does not represent
+  a server-side form (that is, you created and set its fields locally),
+  then `form.Create()` will attempt to create a new server-side form
+  from the data in this object. 
+
+  Returns a [promise](/concepts/promise.htm) that will resolve to the
+  `form` instance.
+
+  The following fields are expected:
+</doc>
+
+<doc for="api">
+  Attempts to create a new form. The following fields are expected:
+</doc>
+
+<fields>
+  id     | <id>, null     | The identifier of the form in the database. If provided, the
+                            request is performed in **force-id** mode (see below), otherwise
+                            it is performed in **generate-id** mode.
+  label  | <label>, null  | An optional human-readable label. 
+  custom | <json> | An optional, arbitrary block of JSON that will be stored by 
+	            RunOrg and returned as-is by the API. 
+  owner | "person" | The nature of the owners associated with each filled instance. 
+	             In the current version of the API, this is always `"person"`.
+  fields | <field> array | An ordered list of [fields](/forms/field.htm) to be filled. 	                    
+  audience | <audience>, null | The initial audience of the form. See [audience and 
+	                        access](/forms/audience.htm) for more information.
+</fields>
+
+<doc>
+  The behaviour of the request depends on whether an identifier was provided: 
+  **force-id** mode or **generate-id** mode. 
+
+  # Force-id mode
+ 
+  RunOrg will attempt to create aform with that identifier, and do nothing if 
+  the form already exists ([idempotent](/concepts/idempotent.htm) 
+  request). 
+
+  # Generate-id mode
+ 
+  RunOrg will create brand new form, with a brand new identifier. Running the
+  request again with the same parameters will create another form.
+</doc>
+<example type="api" caption="Example request">
+  POST /db/0SNQc00211H/forms
+  Content-Type: application/json
+
+  { "label" : "Personal information", 
+    "owner" : "person",
+    "audience" : {
+      "admin": {},
+      "fill": { groups: [ "0SNQe0032JZ" ] } },
+    "fields" : [ {
+      "id" : "1",
+      "label" : "Why did you join our group ?",
+      "kind" : "text",
+      "required" : true
+    }, {
+      "id" : "2", 
+      "label" : "How often do you log in ?",
+      "kind" : "single",
+      "choices" : [
+        "Every day",
+        "Once a week",
+        "Once a month",
+        "Less than once a month" ],
+      "required" : false
+    } ] }
+</example>
+
+<example type="api" caption="Example response">
+  202 Accepted
+  Content-Type: application/json
+ 
+  { "id" : "0SNQe0032JZ",
+    "at" : {"2":218} }
+</example>
+
+<example type="JS" caption="Example code">
+  var form = new RunOrg.Form({
+    "label" : "Personal information", 
+    "owner" : "person",
+    "audience" : {
+      "admin": {},
+      "fill": { groups: [ "0SNQe0032JZ" ] } },
+    "fields" : [ {
+      "id" : "1",
+      "label" : "Why did you join our group ?",
+      "kind" : "text",
+      "required" : true
+    }, {
+      "id" : "2", 
+      "label" : "How often do you log in ?",
+      "kind" : "single",
+      "choices" : [
+        "Every day",
+        "Once a week",
+        "Once a month",
+        "Less than once a month" ],
+      "required" : false
+    } ]
+  });
+
+  form.Create().then(function(g) {
+    console.log("Form created with id %s", g.id);
+  });
+</example>
+
+<doc>
+
+  # Errors
+
+  ## Returns `400 Bad Request`
+  - if the provided identifier is not a valid [custom identifier](/concepts/custom-id.htm)
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not match the requester.
+
+  ## Returns `403 Forbidden` 
+  - if the requester is not allowed to create forms.
+
+  ## Returns `404 Not Found`
+  - if the database does not exist
+
+  ## Returns `409 Conflict`
+  - if a form already exists with the provided identifier.
+
+  # Access restrictions
+
+  Only [database administrators](/groups/admin.htm) can create new forms.
+</doc>

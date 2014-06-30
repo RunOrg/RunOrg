@@ -1,0 +1,159 @@
+<page title="A field in a form"
+      api="type <form.field>" 
+      js="type <form.field>"
+      tags="types type:form.field"
+      parent="forms.htm" />
+<doc>
+  RunOrg handles [forms](/forms.htm) as collections of fields. An individual
+  field carries meta-data that tells the client how it should be displayed, and 
+  tells the server how it should be validated (when a form is filled) and 
+  summarized (for generating form-level statistics).
+
+  A field is represented as a JSON dictionary with the following keys: 
+</doc>
+
+<fields>
+  id | <id> | An alphanumeric identifier, between 1 and 11 characters long. 
+              Two fields in the same form should have different identifiers.
+  label | <label> | A human-readable label to be displayed along with the field
+                    by the client application.
+  kind | <string> | Described the kind of field (text, date, single choice, etc).
+	            Read more about individual field kinds below. 
+  choices | <json> array | An optional list of choices (treated as empty if missing). 
+	                   Only used by fields of kind `"single"` and `"multiple"`.
+  custom | <json> | An optional, arbitrary chunk of JSON that is stored by RunOrg and
+	            returned as-is by the API. The client applications may use
+	            this to configure the display and behavior of the form. 
+  required | <bool> | An optional flag (default is false) that marks the field as
+	              mandatory. The meaning of this requirement depends on the 
+	              field kind (see below). 
+</fields>
+
+<doc>
+  Some kinds of fields (namely, the multiple-choice and single-choice fields) will use
+  a list of possible choices. These choices are numbered on their position (starting 
+  with zero). 
+  
+  A choice may be either a string representing a [human-readable label](/docs/#/types/label.js), 
+  or an arbitrary blob of JSON that will be stored and returned as-is by the API. 
+
+  # Text fields: `"text"`
+
+  A standard text field, designed to contain unformatted text. Usually rendered as
+  a `<input type="text"/>` or `<textarea></textarea>` in HTML. 
+</doc>
+
+<example type="json" caption="Example value">
+  "Hello, world!"
+</example>
+
+<doc>
+  Acceptable values are JSON strings and `null`. When marked as `required`, acceptable 
+  values are non-empty JSON strings.
+  
+  # Rich text fields: `"rich"`
+   
+  A rich text field, designed to contain HTML-formatted text (more specifically, a
+  RunOrg-specific [subset of HTML](/concepts/rich.htm)). Usually rendered as a 
+  WYSIWYG textarea.
+</doc>
+
+<example type="json" caption="Example value">
+  "<h1>This is a title</h1><p>This is a <strong>bold</strong> paragraph</p>" 
+</example>
+
+<doc>
+  Acceptable values are JSON strings (containing appropriately-formated rich text)
+  and `null`. When marked as `required`, acceptable values are non-empty JSON
+  strings. 
+ 
+  # Date/time fields: `"time"`
+
+  A date or date-time field. Usually rendered as a `<input type="date">` or 
+  `<input type="datetime">` in HTML5.    
+</doc>
+
+<example type="json" caption="Example value">
+  "2014-04-19T18:42:53Z"
+</example>
+
+<doc>
+  Acceptable values are [dates](/concepts/time.js): JSON strings containing 
+  an ISO-8601 formatted date (`yyyy-mm-dd`) or date-time (`yyyy-mm-ddThh:ii:ssZ`), 
+  or `null`. When marked as `required`, only dates are acceptable values.  
+
+  # Single choice field: `"single"`
+
+  A single-choice question. Uses the list of `choices` to determine what the 
+  possible choices are. Usually rendered as a list of `<input type="radio"/>` 
+  or a `<select></select>` field. 
+</doc>
+
+<example type="json" caption="Example value">
+  2
+</example>
+
+<doc>
+  Aceptable values are integers between `0` and `n-1` (with `n` being the 
+  number of possible choices), representing the picked choice. `null` is 
+  also a possible value, unless the field is marked as `required`.
+  
+  # Multiple choice field: `"multiple"`
+
+  A multiple choice question. Uses the list of `choices` to determine what the 
+  possible choices are. Usually rendered as a list of `<input type="checkbox"/>` 
+  fields.
+</doc>
+
+<example type="json" caption="Example value">
+  [2,4]
+</example>
+
+<doc>
+  Acceptable values are lists of integers between `0` and `n-1` (with `n` being
+  the number of possible choices), representing all the picked choices. There is
+  no restriction on how many times a given choice can appear, though when returned
+  by the API, each choice will appear no more than once. `null` is also a possible
+  value. 
+  
+  When marked as `required`, the field will accept neither `null` nor `[]`. 
+  
+  # Arbitrary JSON fields: `"json"`
+
+  A custom field, for your convenience. Stores arbitrary JSON data and returns it
+  as-is. No server-side processing will occur (including statistics). 
+</doc>
+
+<example type="json" caption="Example value"> 
+  { "PayerID" : 185530,
+    "BeneficiaryID" : 185530,
+    "Amount" : 2000,
+    "PayerWalletID" : 0,
+    "BeneficiaryWalletID" : 196902 }
+</example>
+
+<doc>
+  Any JSON value is acceptable. When the field is marked as `required`, however,
+  the following values are not acceptable: `null`, `""`, `[]` and `{}`. 
+  
+  # Person fields: `"person"`
+
+  A field that references a person in the current database, through its identifier. 
+  Usually displayed as an auto-completion component that uses the 
+  [search API](/docs/#/people/search.js) to find person identifiers. 
+</doc>
+
+<example type="json" caption="Example value">
+  "0SNQg00511H"
+</example>
+
+<doc>
+  Acceptable values are person identifiers that match a person in the 
+  current database. If the field is not marked as `required`, then `null` 
+  is also an acceptable value. 
+
+  # More field types
+  
+  Currently, there are plans for new field types to be implemented. More
+  will become available in time. 
+</doc>

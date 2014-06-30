@@ -1,0 +1,98 @@
+<page title="Read form meta-data"
+      api="GET /db/{db}/forms/{id}"
+      js="method RunOrg.Group.Load"
+      tags="methods:group" 
+      parent="groups.htm" />
+
+<doc for="js">
+  If `form` is an instance of [`RunOrg.Form`](/forms/form.htm), 
+  then `form.Load()` fills (or replaces) its non-`id` fields with 
+  data retrieved from the API.
+
+  Returns a [promise](/concepts/promise.htm) that will resolve to the
+  `form` object if it could be filled.  
+</doc>
+
+<example type="js" caption="Example usage">
+  new RunOrg.Form("1ax69bfa335").Load().then(function(form) {     
+    console.log("Fetched data for %s.", form.label)
+  })
+</example>
+
+<example type="js" caption="Example usage, with error handling">
+  var form = new RunOrg.Form("1ax69bfa335");
+
+  form.Load().then(function() {     
+    console.log("Fetched data for %s.", form.label)
+  }, function(error) {
+    if (error.HTTP == 404) 
+      console.log("Form %s not found.", form.id)
+    else 
+      console.log("An error happened: %o", error)
+  })
+</example>
+
+<see for="js" ref="concepts/errors.md" />
+
+<doc for="js">
+  Note: it is not necessary to `Load()` a form to call its other methods. 
+  You can, for example, run `new RunOrg.Form(id).Stats()` to get the 
+  fill statistics for a form without loading the form itself. 
+</doc>
+
+<doc for="api">
+  Returns a [`<form>`](/forms/form.htm) representation of the form with
+  identifier `{id}` in database `{db}`. 
+</doc> 
+<example type="api" caption="Example request">
+  GET /db/0Et4X0016om/forms/0Et9j0026rO
+</example>
+<example type="api" caption="Example response">
+  200 OK 
+  Content-Type: application/json
+
+  { "id" : "0SNQe0032JZ",
+    "label" : "Personal information", 
+    "owner" : "person",
+    "custom" : null,
+    "fields" : [ {
+      "id" : "1",
+      "label" : "Why did you join our group ?",
+      "kind" : "text",
+      "required" : true
+    }, {
+      "id" : "2", 
+      "label" : "How often do you log in ?",
+      "kind" : "single",
+      "choices" : [
+        "Every day",
+        "Once a week",
+        "Once a month",
+        "Less than once a month" ],
+      "required" : false
+    } ],
+    "access" : [ "admin", "fill" ],
+    "audience" : {
+      "admin": {},
+      "fill": { groups: [ "0SNQe0032JZ" ] } } }
+</example>
+<doc>
+
+  # Errors
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not allow acting as `{as}`.
+
+  ## Returns `404 Not Found`
+  - if the database does not exist,
+  - if form `{id}` does not exist in the database,
+  - if person `{as}` does not have at least **fill** access
+    to form `{id}`, to ensure [absence 
+    equivalence](/concepts/absence-equivalence.md).
+
+  # Access restrictions
+
+  An [access level](/forms/audience.htm) of **fill** is required 
+  to view form information.
+
+</doc>

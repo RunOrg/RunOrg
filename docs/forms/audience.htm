@@ -1,0 +1,36 @@
+<page title="Form audience and access levels"
+      api="type <form.audience>" 
+      js="type <form.audience>"
+      tags="types"
+      parent="forms.htm" />
+<doc>
+  This is an [audience](/concepts/audience.htm) that describes the
+  access levels supported by forms. 
+</doc>
+
+<example type="json" caption="Example audience">
+  "audience" : {
+    "admin": {},
+    "fill": "anyone"
+  }
+</example>
+
+<doc>
+  # Administrating the form: `"admin"`
+
+  The **admin** access allows any operations that can be performed on 
+  the form.
+
+  It includes **fill** access.
+
+  # Filling the form: `"fill"` 
+
+  The **fill** access allows:
+
+  - Reading a form's meta-data (but not all fields)
+  - Filling the form. Which instances can be filled depends on the
+    ownership of those instances. For `"contact"` ownership, for example,
+    a contact may only fill his own instance. 
+  - Viewing any filled form instance they can re-fill. 
+
+</doc>
