@@ -1,0 +1,103 @@
+<page title="Read form meta-data"
+      api="GET /db/{db}/forms/{id}"
+      js="method RunOrg.Form.Save"
+      tags="methods:form" 
+      parent="forms.htm" />
+
+<doc for="js">
+  If `form` is an instance of [`RunOrg.Form`](/forms/form.htm), 
+  then `form.Save()` uploads its non-`id` fields to the server.
+
+  Returns a [promise](/concepts/promise.htm) that will resolve to the
+  `form` object.  
+</doc>
+
+<example type="js" caption="Example usage">
+  new RunOrg.Form("1ax69bfa335").Load().then(function(form) {     
+    form.label = "This is my new label !";
+    return form.Save();
+  }).then(function(form) {  
+    console.log("Updated label to %s.", form.label)
+  })
+</example>
+<doc for="js">
+  **Note**: it is not necessary to `Load()` the form first. 
+
+  **Note**: if a form has already been filled (even if only once), the list
+  of fields may not be updated anymore (though other properties can).
+
+  The following properties are sent to the server: 
+</doc>
+<doc for="api">
+  Updates the properties of a form.  
+
+  **Note**: if a form has already been filled (even if only once), the list
+  of fields may not be updated anymore (though other properties can).
+
+  The following properties are expected by the server:   
+</doc> 
+<fields>
+  label | <label>, null | An optional human-readable name.
+  custom | <json>       | An arbitrary block of JSON that will be stored as-is by 
+                           RunOrg and returned as such by the API.
+  owner  | <owner>      | The nature of the owners associated with each filled instance
+	                   of the form. In the current version of the API, this is always `"person"`
+	                   (each instance is owned by a person). 
+  fields | <field> array | An ordered list of [fields](/forms/field.htm) to be filled.
+  audience | <audience> | The [audience](/forms/audience.htm) of the form.
+</fields>
+<example type="api" caption="Example request">
+  PUT /db/0Et4X0016om/forms/0Et9j0026rO
+</example>
+<example type="api" caption="Example response">
+  200 OK 
+  Content-Type: application/json
+
+  { "id" : "0SNQe0032JZ",
+    "label" : "Personal information", 
+    "owner" : "person",
+    "custom" : null,
+    "fields" : [ {
+      "id" : "1",
+      "label" : "Why did you join our group ?",
+      "kind" : "text",
+      "required" : true
+    }, {
+      "id" : "2", 
+      "label" : "How often do you log in ?",
+      "kind" : "single",
+      "choices" : [
+        "Every day",
+        "Once a week",
+        "Once a month",
+        "Less than once a month" ],
+      "required" : false
+    } ],
+    "access" : [ "admin", "fill" ],
+    "audience" : {
+      "admin": {},
+      "fill": { groups: [ "0SNQe0032JZ" ] } } }
+</example>
+<doc>
+
+  # Errors
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not allow acting as `{as}`.
+
+  ## Returns `403 Forbidden`
+  - if the requester does not have **admin** access to the form.
+
+  ## Returns `404 Not Found`
+  - if the database does not exist,
+  - if form `{id}` does not exist in the database,
+  - if person `{as}` does not have at least **fill** access
+    to form `{id}`, to ensure [absence 
+    equivalence](/concepts/absence-equivalence.md).
+
+  # Access restrictions
+
+  An [access level](/forms/audience.htm) of **admin** is required 
+  to update form information.
+
+</doc>

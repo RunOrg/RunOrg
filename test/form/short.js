@@ -1,28 +1,3 @@
-// JSON <short-form>
-// Forms / A short representation of a form
-// 
-// Returned by most API methods that involve multiple forms. It is intended to 
-// provide data relevant for displaying the form within a list.
-// 
-// Typical examples [listing all forms](/docs/#/forms/list.js).
-//
-// ### `ShortPerson` JSON format
-//     { id : <id>, 
-//       label : <label> | null, 
-//       fields : <int>,
-//       owner : <owner>,
-//       access : [ <access>, ... ] }
-// 
-// - `id` is the [unique identifier](/docs/#/types/id.js) for this 
-//   form.
-// - `label` is a [human-readable name](/docs/#/types/label.js). Not all forms
-//   have one, because it is not a mandatory property when creating a forms.
-// - `fields` is the number of fields in the form.
-// - `owner` is the owner of filled form instances, currently only `"person"` 
-//   is supported.
-// - `access` lists the [access levels](/docs/#/form/audience.js) of the viewer
-//   over this form.  
-
 TEST("The form's data is returned.", function(Query) {
 
     var example = {
@@ -71,13 +46,3 @@ TEST("The form's data is returned.", function(Query) {
 
 });
 
-//
-// ### Example value
-//     { "id" : "0Et9j0026rO",
-//       "label" : "Personal information",
-//       "owner" : "person",
-//       "fields" : 4,
-//       "access" : ["fill"] }
-//
-// To get more information about a specific form, use the [get single form](/docs/#/form/get.js)
-// endpoint.

@@ -1,0 +1,89 @@
+<page title="List all forms in the database"
+      api="GET /db/{db}/forms"
+      js="static RunOrg.Form.List" 
+      tags="methods:form" 
+      parent="formss.htm" />
+
+<doc for="js">
+  `RunOrg.Form.List(limit, offset)` reads `limit` groups from the 
+  database, starting at `offset`. The order is unspecified but 
+  consistent. 
+
+  Only groups for which the viewer has **view** access will be included
+  in the list.
+
+  Returns a [promise](/concepts/promise.htm) that will resolve to a 
+  list of filled [`RunOrg.Form`](/forms/form.htm) instances, with two 
+  major differences: 
+
+  - Members `custom` and `audience` are not returned.
+  - Member `fields` is replaced by the number of fields. 
+</doc>
+
+<example type="js" caption="Example usage">
+  RunOrg.Form.List(10, 0).then(function(list) {
+    for (var i = 0; i < list.length; ++i) 
+      console.log("Form %s has %d fields", list[i].id, list[i].fields)    
+  })			 
+</example>
+
+<todo> Explain how to handle errors. </todo>
+
+<doc for="api">
+  Returns all the forms in the database, in an unspecified but consistent
+  order, with [pagination](/concepts/pagination.htm).
+
+  Only forms for which the viewer has **fill** access will be included
+  in the list.
+
+  The response contains a single field: 
+</doc>
+
+<fields caption="Response fields" for="api">
+  | list  | <form> array  | A list of forms on the requested page.
+</fields>
+
+<doc for="api">
+  The array contains [`forms`](/forms/form.htm), with two 
+  major differences: 
+
+  - Members `custom` and `audience` are not returned.
+  - Member `fields` is replaced by the number of fields. 
+</doc>
+
+<example type="api" caption="Example request">
+  GET /db/0SNQc00211H/forms?limit=3&offset=16
+</example>
+
+<example type="api" caption="Example response">
+  200 OK
+  Content-Type: application/json 
+
+  { "list" : [ 
+    { "id" : "0SNQe00311H",
+      "owner" : "person",
+      "label" : "Why did you join our group ?", 
+      "fields" : 2,
+      "access" : ["fill"] },
+    { "id" : "0SNQg00511H",
+      "label" : null,
+      "owner" : "person", 
+      "fields" : 1,
+      "pic" : ["admin","fill"] }
+</example>
+
+<doc>
+
+# Errors
+
+## Returns `401 Unauthorized` 
+- if the provided token and viewer do not match. 
+
+## Returns `404 Not Found`
+- if the database does not exist
+
+# Access restrictions
+
+Anyone can retrieve results from this API, though only forms that
+the viewer has **fill** access to will be returned. 
+</doc>

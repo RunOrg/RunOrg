@@ -1,8 +1,8 @@
 <page title="Read form meta-data"
       api="GET /db/{db}/forms/{id}"
-      js="method RunOrg.Group.Load"
-      tags="methods:group" 
-      parent="groups.htm" />
+      js="method RunOrg.Form.Load"
+      tags="methods:form" 
+      parent="forms.htm" />
 
 <doc for="js">
   If `form` is an instance of [`RunOrg.Form`](/forms/form.htm), 
@@ -45,36 +45,19 @@
   identifier `{id}` in database `{db}`. 
 </doc> 
 <example type="api" caption="Example request">
-  GET /db/0Et4X0016om/forms/0Et9j0026rO
-</example>
-<example type="api" caption="Example response">
-  200 OK 
+  PUT /db/0SNQc00211H/forms/0SNQe0032JZ
   Content-Type: application/json
 
-  { "id" : "0SNQe0032JZ",
-    "label" : "Personal information", 
-    "owner" : "person",
-    "custom" : null,
-    "fields" : [ {
-      "id" : "1",
-      "label" : "Why did you join our group ?",
-      "kind" : "text",
-      "required" : true
-    }, {
-      "id" : "2", 
-      "label" : "How often do you log in ?",
-      "kind" : "single",
-      "choices" : [
-        "Every day",
-        "Once a week",
-        "Once a month",
-        "Less than once a month" ],
-      "required" : false
-    } ],
-    "access" : [ "admin", "fill" ],
+  { "label" : "Personal information", 
     "audience" : {
       "admin": {},
       "fill": { groups: [ "0SNQe0032JZ" ] } } }
+</example>
+<example type="api" caption="Example response">
+  202 Accepted
+  Content-Type: application/json
+ 
+  { "at" : {"2":219} }  
 </example>
 <doc>
 
