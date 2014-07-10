@@ -2,7 +2,7 @@
 
 open Std
 
-(** Chatrooms are sequences of messages. *)
+(** Chatrooms are sequences of posts. *)
 
 module I : sig
   include Id.PHANTOM
@@ -14,9 +14,6 @@ end
 
 (** Create a new chatroom. *)
 val create : ?subject:String.Label.t -> PId.t list -> GId.t list -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
-
-(** Create a new private chatroom between two persons. *)
-val createPM : PId.t -> PId.t -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 
 (** Create a new public chatroom with a label. *)
 val createPublic : String.Label.t option -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t

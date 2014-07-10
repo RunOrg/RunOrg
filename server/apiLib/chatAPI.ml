@@ -10,7 +10,6 @@ module Create = Endpoint.Post(struct
     ?people   : PId.t list     = [] ;
     ?groups   : GId.t list     = [] ;
     ?public   : bool           = false ; 
-    ?pm       : bool           = false ;
   >
 
   module Out = type module <
@@ -19,20 +18,6 @@ module Create = Endpoint.Post(struct
   >
 
   let path = "chat"
-
-  let create_pm post = 
-    if post # subject <> None then 
-      return (`BadRequest "No subject allowed for pm chatroom")
-    else if post # public then
-      return (`BadRequest "A pm chatroom may not be public")
-    else if post # groups <> [] then
-      return (`BadRequest "A pm chatroom may not involve groups")
-    else      
-      match post # people with 
-      | [ a ; b ] when a <> b -> 
-	let! id, at = Chat.createPM a b in
-	return (`Accepted (Out.make ~id ~at))
-      | _ -> return (`BadRequest "Invalid parameters for pm chatroom")
 
   let create_public post = 
     if post # groups <> [] then
@@ -51,8 +36,7 @@ module Create = Endpoint.Post(struct
       return (`Accepted (Out.make ~id ~at))
 
   let response req () post =
-    if post # pm then create_pm post
-    else if post # public then create_public post 
+    if post # public then create_public post 
     else create post 
 	
 end)

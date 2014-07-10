@@ -3,8 +3,7 @@
 open Std
 
 include type module 
-    [ `PrivateMessageCreated of < id : I.t ; who : PId.t * PId.t >
-    | `ChatCreated of < 
+    [ `ChatCreated of < 
 	id : I.t ; 
         people : PId.t list ; 
 	groups : GId.t list ; 

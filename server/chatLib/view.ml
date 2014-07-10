@@ -13,7 +13,6 @@ let exists =
     (module I : Fmt.FMT with type t = I.t) in
 
   let () = Store.track existsV begin function 
-    | `PrivateMessageCreated ev -> Cqrs.SetView.add exists [ev # id]
     | `ChatCreated ev -> Cqrs.SetView.add exists [ev # id]
     | `PublicChatCreated ev -> Cqrs.SetView.add exists [ev # id]
     | `ChatDeleted ev -> Cqrs.SetView.remove exists [ev # id] 
@@ -40,7 +39,6 @@ let items =
 
   let () = Store.track itemsV begin function 
 
-    | `PrivateMessageCreated _ 
     | `PublicChatCreated _ 
     | `ChatCreated _ -> return () 
 
@@ -101,14 +99,6 @@ let info =
 
   let () = Store.track infoV begin function 
 
-    | `PrivateMessageCreated ev -> 
-      let ida, idb = ev # who in
-      let! time = time () in 
-      Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:None ~count:0 ~people:[ida;idb] ~groups:[] ~public:false
-			  ~last:time)
-	| Some _ -> `Keep)
-
     | `ChatCreated ev ->
       let! time = time () in 
       Cqrs.MapView.update info (ev # id) (function 
@@ -148,11 +138,6 @@ let access =
     (module I : Fmt.FMT with type t = I.t) in
 
   let () = Store.track accessV begin function 
-
-    | `PrivateMessageCreated ev ->
-
-      let ida, idb = ev # who in 
-      Cqrs.ManyToManyView.add access Accessor.([ Person ida ; Person idb ]) [ev # id]
 
     | `ChatCreated ev ->
 
