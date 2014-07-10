@@ -8,7 +8,7 @@ module I : sig
   include Id.PHANTOM
 end
 
-module MI : sig
+module PostI : sig
   include Id.PHANTOM
 end
 
@@ -22,10 +22,10 @@ val createPublic : String.Label.t option -> (#O.ctx, I.t * Cqrs.Clock.t) Run.t
 val delete : I.t -> (#O.ctx, Cqrs.Clock.t) Run.t
 
 (** Post a new item to the chatroom. *)
-val post : I.t -> PId.t -> String.Rich.t -> (#O.ctx, MI.t * Cqrs.Clock.t) Run.t
+val createPost : I.t -> PId.t -> String.Rich.t -> (#O.ctx, PostI.t * Cqrs.Clock.t) Run.t
 
 (** Delete an item in a chatroom. *)
-val deleteItem : I.t -> MI.t -> (#O.ctx, Cqrs.Clock.t) Run.t
+val deletePost : I.t -> PostI.t -> (#O.ctx, Cqrs.Clock.t) Run.t
 
 (** Short information about a chatroom. *)
 type info = <
@@ -44,14 +44,14 @@ val get : I.t -> (#O.ctx, info option) Run.t
 (** Get all chatrooms that a given person participates in. *)
 val all_as : ?limit:int -> ?offset:int -> PId.t option -> (#O.ctx, info list) Run.t
 
-(** An item. *)
-type item = <
-  id : MI.t ;
+(** A post *)
+type post = <
+  id : PostI.t ;
   author : PId.t ;
   time : Time.t ;
   body : String.Rich.t ;
 >
 
-(** Get items from a chatroom, in reverse chronological order. *)
-val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, item list) Run.t
+(** Get posts from a chatroom, in reverse chronological order. *)
+val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, post list) Run.t
 

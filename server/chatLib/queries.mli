@@ -14,13 +14,13 @@ type info = <
 
 val get : I.t -> (#O.ctx, info option) Run.t
 
-type item = <
-  id     : MI.t ;
+type post = <
+  id     : PostI.t ;
   author : PId.t ;
   time   : Time.t ;
   body   : String.Rich.t ;
 >
 
-val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, item list) Run.t
+val list : ?limit:int -> ?offset:int -> I.t -> (#O.ctx, post list) Run.t
 
 val all_as : ?limit:int -> ?offset:int -> PId.t option -> (#O.ctx, info list) Run.t

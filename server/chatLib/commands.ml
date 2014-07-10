@@ -15,10 +15,10 @@ let createPublic subject =
 let delete id = 
   Store.append [ Events.chatDeleted ~id ]
 
-let post id author body = 
-  let  item = MI.gen () in 
-  let! clock = Store.append [ Events.itemPosted ~id ~item ~author ~body ] in
-  return (item, clock) 
+let createPost id author body = 
+  let  post = PostI.gen () in 
+  let! clock = Store.append [ Events.postCreated ~id ~post ~author ~body ] in
+  return (post, clock) 
 
-let deleteItem id item = 
-  Store.append [ Events.itemDeleted ~id ~item ]
+let deletePost id post = 
+  Store.append [ Events.postDeleted ~id ~post ]

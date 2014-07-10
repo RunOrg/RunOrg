@@ -54,7 +54,7 @@ module Delete = Endpoint.Delete(struct
 
 end)
 
-module Post = Endpoint.Post(struct
+module CreatePost = Endpoint.Post(struct
 
   module Arg  = type module < id : Chat.I.t >
   module Post = type module <
@@ -63,27 +63,27 @@ module Post = Endpoint.Post(struct
   >
 
   module Out = type module <
-    id : Chat.MI.t ;
+    id : Chat.PostI.t ;
     at : Cqrs.Clock.t ;
   >
 
-  let path = "chat/{id}"
+  let path = "chat/{id}/posts"
 
   let response req arg post = 
-    let! id, at = Chat.post (arg # id) (post # author) (post # body) in 
+    let! id, at = Chat.createPost (arg # id) (post # author) (post # body) in 
     return (`Accepted (Out.make ~id ~at))
 
 end)
 
-module DeleteItem = Endpoint.Delete(struct
+module DeletePost = Endpoint.Delete(struct
 
-  module Arg = type module < id : Chat.I.t ; item : Chat.MI.t >
+  module Arg = type module < id : Chat.I.t ; post : Chat.PostI.t >
   module Out = type module < at : Cqrs.Clock.t >
       
-  let path = "chat/{id}/items/{item}"
+  let path = "chat/{id}/posts/{item}"
 
   let response req arg = 
-    let! at = Chat.deleteItem (arg # id) (arg # item) in
+    let! at = Chat.deletePost (arg # id) (arg # post) in
     return (`Accepted (Out.make ~at))
 
 end)
@@ -149,8 +149,8 @@ end)
 (* Obtaining chat contents 
    ======================= *)
 
-module Item = type module <
-  id     : Chat.MI.t ;
+module Post= type module <
+  id     : Chat.PostI.t ;
   author : PId.t ;
   time   : Time.t ; 
   body   : String.Rich.t ;
@@ -160,12 +160,12 @@ module Items = Endpoint.Get(struct
 
   module Arg = type module < id : Chat.I.t >
   module Out = type module <
-    items  : Item.t list ;
+    items  : Post.t list ;
     people : PersonAPI.Short.t list ;
     count  : int 
   >
 
-  let path = "chat/{id}/items"
+  let path = "chat/{id}/posts"
 
   let response req arg = 
     let! info = Chat.get (arg # id) in

@@ -16,8 +16,8 @@ let exists =
     | `ChatCreated ev -> Cqrs.SetView.add exists [ev # id]
     | `PublicChatCreated ev -> Cqrs.SetView.add exists [ev # id]
     | `ChatDeleted ev -> Cqrs.SetView.remove exists [ev # id] 
-    | `ItemPosted _ 
-    | `ItemDeleted _ -> return () 
+    | `PostCreated _ 
+    | `PostDeleted _ -> return () 
   end in 
 
   exists
@@ -30,35 +30,35 @@ module Item = type module <
   body   : String.Rich.t ;
 >
 
-let items = 
+let posts = 
 
-  let itemsV, items = Cqrs.FeedMapView.make projection "items" 0 
+  let postsV, posts = Cqrs.FeedMapView.make projection "posts" 0 
     (module I  : Fmt.FMT with type t = I.t)
-    (module MI : Fmt.FMT with type t = MI.t)
+    (module PostI : Fmt.FMT with type t = PostI.t)
     (module Item : Fmt.FMT with type t = Item.t) in
 
-  let () = Store.track itemsV begin function 
+  let () = Store.track postsV begin function 
 
     | `PublicChatCreated _ 
     | `ChatCreated _ -> return () 
 
-    | `ChatDeleted ev -> Cqrs.FeedMapView.delete items (ev # id)
+    | `ChatDeleted ev -> Cqrs.FeedMapView.delete posts (ev # id)
 
-    | `ItemDeleted ev -> 
-      Cqrs.FeedMapView.update items (ev # id) (ev # item)
+    | `PostDeleted ev -> 
+      Cqrs.FeedMapView.update posts (ev # id) (ev # post)
 	(function Some _ -> `Delete | None -> `Keep)
 
-    | `ItemPosted ev ->
+    | `PostCreated ev ->
       let! exists = Cqrs.SetView.exists exists (ev # id) in
       let! ctx = Run.context in 
       if not exists then return () else 
-	Cqrs.FeedMapView.update items (ev # id) (ev # item) (function 
+	Cqrs.FeedMapView.update posts (ev # id) (ev # post) (function 
 	| None -> `Put (ctx # time, Item.make ~author:(ev # author) ~body:(ev # body))
 	| Some _ -> `Keep)
 
   end in 
 
-  items
+  posts
 
 (* Chat information 
    ================ *)
@@ -85,7 +85,7 @@ let info =
 
   let recount id = 
     let! time = time () in
-    let! stats = Cqrs.FeedMapView.stats items id in
+    let! stats = Cqrs.FeedMapView.stats posts id in
     Cqrs.MapView.update info id (function None -> `Keep | Some info ->
       if info # count = stats # count then `Keep else `Put
 	(Info.make 
@@ -116,8 +116,8 @@ let info =
     | `ChatDeleted ev -> 
       Cqrs.MapView.update info (ev # id) (function None -> `Keep | Some _ -> `Delete) 
 
-    | `ItemPosted ev -> recount (ev # id)
-    | `ItemDeleted ev -> recount (ev # id)
+    | `PostCreated ev -> recount (ev # id)
+    | `PostDeleted ev -> recount (ev # id)
 
   end in 
 
@@ -153,8 +153,8 @@ let access =
       
       Cqrs.ManyToManyView.(delete (flip access) (ev # id))
 
-    | `ItemPosted _ 
-    | `ItemDeleted _ -> return ()
+    | `PostCreated _ 
+    | `PostDeleted _ -> return ()
 
   end in
   

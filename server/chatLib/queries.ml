@@ -58,15 +58,15 @@ let all_as ?(limit=100) ?(offset=0) pid =
 (* Reading items 
    ============= *)
 
-type item = <
-  id     : MI.t ;
+type post = <
+  id     : PostI.t ;
   author : PId.t ;
   time   : Time.t ;
   body   : String.Rich.t ;
 >
 
 let list ?(limit=1000) ?(offset=0) id = 
-  let! list = Cqrs.FeedMapView.list View.items ~limit ~offset id in 
+  let! list = Cqrs.FeedMapView.list View.posts ~limit ~offset id in 
   return (List.map (fun (id,t,value) -> (object
     method id = id
     method time = t
