@@ -5,6 +5,7 @@ open Std
 val create : 
    PId.t option -> 
   ?subject:String.Label.t ->   
+  ?custom:Json.t ->
    ChatAccess.Audience.t -> (#O.ctx, [ `OK of I.t * Cqrs.Clock.t
 				     | `NeedAccess of Id.t ]) Run.t
 

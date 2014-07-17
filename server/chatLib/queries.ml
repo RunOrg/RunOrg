@@ -12,6 +12,7 @@ type info = <
    audience : ChatAccess.Audience.t option ;
    subject  : String.Label.t option ;
    access   : ChatAccess.Set.t ;
+   custom   : Json.t ; 
 >
 
 let format_info id access info = object
@@ -21,6 +22,7 @@ let format_info id access info = object
   method subject  = info # subject
   method audience = if Set.mem `Admin access then Some (info # audience) else None   
   method access   = access
+  method custom   = info # custom
 end
 
 

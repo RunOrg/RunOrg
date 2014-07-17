@@ -9,6 +9,7 @@ type info = <
   subject  : String.Label.t option ; 
   access   : ChatAccess.Set.t ;
   audience : ChatAccess.Audience.t option ; 
+  custom   : Json.t ; 
 >
 
 val get : PId.t option -> I.t -> (#O.ctx, info option) Run.t

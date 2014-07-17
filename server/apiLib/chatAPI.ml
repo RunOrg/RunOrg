@@ -19,6 +19,7 @@ module Create = Endpoint.Post(struct
   module Arg = type module unit
   module Post = type module <
     ?subject  : String.Label.t option ; 
+    ?custom   : Json.t = Json.Null ; 
      audience : Chat.Access.Audience.t ; 
   >
 
@@ -33,7 +34,13 @@ module Create = Endpoint.Post(struct
     `Forbidden (!! "Not allowed to create chatrooms in database %S." (Id.to_string id)) 
 
   let response req () post =
-    let! result = Chat.create (req # as_) ?subject:(post # subject) (post # audience) in 
+
+    let! result = Chat.create 
+      (req # as_) 
+      ?subject:(post # subject) 
+      ~custom:(post # custom) 
+      (post # audience) in 
+
     return (match result with
     | `NeedAccess id  -> needAccess id 
     | `OK    (id, at) -> `Accepted (Out.make ~id ~at))
@@ -119,6 +126,7 @@ module ChatInfo = type module <
   last     : Time.t option ; 
   access   : Chat.Access.Set.t ; 
   audience : Chat.Access.Audience.t option ;  
+  custom   : Json.t ; 
 >
 
 module Get = Endpoint.Get(struct

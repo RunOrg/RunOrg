@@ -8,7 +8,7 @@ open Std
 (* Who is allowed to create new chatrooms ? *)
 let create_audience = Audience.admin 
 
-let create pid ?subject audience = 
+let create pid ?subject ?(custom=Json.Null) audience = 
 
   let! allowed = Audience.is_member pid create_audience in
   
@@ -18,7 +18,7 @@ let create pid ?subject audience =
   else
 
     let  id = I.gen () in 
-    let! clock = Store.append [ Events.chatCreated ~id ~pid ~subject ~audience ] in
+    let! clock = Store.append [ Events.chatCreated ~id ~pid ~subject ~audience ~custom ] in
     return (`OK (id, clock)) 
 
 (* Deleting a chatroom 

@@ -24,6 +24,7 @@ end
 val create : 
    PId.t option -> 
   ?subject:String.Label.t -> 
+  ?custom:Json.t ->
    Access.Audience.t -> (#O.ctx, [ `OK of I.t * Cqrs.Clock.t
 				 | `NeedAccess of Id.t ]) Run.t
 
@@ -57,6 +58,7 @@ type info = <
   subject  : String.Label.t option ; 
   access   : Access.Set.t ;
   audience : Access.Audience.t option ; 
+  custom   : Json.t ; 
 >
 
 (** Get short information about a chatroom. *)

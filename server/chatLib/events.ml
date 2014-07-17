@@ -7,6 +7,7 @@ include type module
 	id       : I.t ; 
         pid      : PId.t option ; 
 	subject  : String.Label.t option ;
+	custom   : Json.t ;
 	audience : ChatAccess.Audience.t ; 
       >
     | `ChatDeleted of < 

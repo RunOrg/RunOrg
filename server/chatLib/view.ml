@@ -66,6 +66,7 @@ module Info = type module <
   last     : Time.t ; 
   subject  : String.Label.t option ; 
   audience : ChatAccess.Audience.t ; 
+  custom   : Json.t ; 
 >
 
 let info = 
@@ -88,6 +89,7 @@ let info =
 	   ~subject:(info#subject) 
 	   ~count:(stats#count) 
 	   ~audience:(info#audience)
+	   ~custom:(info#custom)
 	   ~last:(max (info#last) time)))
   in
 
@@ -96,7 +98,8 @@ let info =
     | `ChatCreated ev ->
       let! time = time () in 
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~audience:(ev#audience) ~last:time)
+        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~audience:(ev#audience) ~last:time
+			  ~custom:(ev#custom))
 	| Some _ -> `Keep)
 
     | `ChatDeleted ev -> 
