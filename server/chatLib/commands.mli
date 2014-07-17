@@ -9,6 +9,15 @@ val create :
    ChatAccess.Audience.t -> (#O.ctx, [ `OK of I.t * Cqrs.Clock.t
 				     | `NeedAccess of Id.t ]) Run.t
 
+val update : 
+  PId.t option ->
+  subject:String.Label.t option Change.t ->
+  custom:Json.t Change.t -> 
+  audience:ChatAccess.Audience.t Change.t ->
+  I.t -> (#O.ctx, [ `OK of Cqrs.Clock.t
+		  | `NotFound of I.t
+		  | `NeedAdmin of I.t ]) Run.t
+
 val delete : 
   PId.t option -> I.t -> (#O.ctx, [ `OK of Cqrs.Clock.t
 				  | `NeedAdmin of I.t 

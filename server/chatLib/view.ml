@@ -15,6 +15,7 @@ let exists =
   let () = Store.track existsV begin function 
     | `ChatCreated ev -> Cqrs.SetView.add exists [ev # id]
     | `ChatDeleted ev -> Cqrs.SetView.remove exists [ev # id] 
+    | `ChatUpdated _
     | `PostCreated _ 
     | `PostDeleted _ -> return () 
   end in 
@@ -38,7 +39,8 @@ let posts =
 
   let () = Store.track postsV begin function 
 
-    | `ChatCreated _ -> return () 
+    | `ChatCreated _  
+    | `ChatUpdated _ -> return ()
 
     | `ChatDeleted ev -> Cqrs.FeedMapView.delete posts (ev # id)
 
@@ -102,6 +104,16 @@ let info =
 			  ~custom:(ev#custom))
 	| Some _ -> `Keep)
 
+    | `ChatUpdated ev ->
+      Cqrs.MapView.update info (ev # id) (function 
+        | None -> `Keep 
+        | Some old -> `Put (Info.make 
+			      ~subject:(Change.apply (ev # subject) (old # subject))
+			      ~audience:(Change.apply (ev # audience) (old # audience))
+			      ~custom:(Change.apply (ev # custom) (old # custom))
+			      ~last:(old # last)
+			      ~count:(old # count)))
+
     | `ChatDeleted ev -> 
       Cqrs.MapView.update info (ev # id) (function None -> `Keep | Some _ -> `Delete) 
 
@@ -125,6 +137,12 @@ let byAccess =
     | `ChatCreated ev ->
 
       ChatAccess.Map.update byAccess (ev # id) (ev # audience)
+
+    | `ChatUpdated ev ->
+      
+      (match ev # audience with 
+      | `Keep  -> return ()
+      | `Set a -> ChatAccess.Map.update byAccess (ev # id) a)
 
     | `ChatDeleted ev ->
       

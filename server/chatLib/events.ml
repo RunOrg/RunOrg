@@ -10,6 +10,13 @@ include type module
 	custom   : Json.t ;
 	audience : ChatAccess.Audience.t ; 
       >
+    | `ChatUpdated of <
+	id       : I.t ;
+        pid      : PId.t option ;
+	subject  : [ `Keep | `Set of String.Label.t option ] ;
+	custom   : [ `Keep | `Set of Json.t ] ;
+	audience : [ `Keep | `Set of ChatAccess.Audience.t ] ;
+      >
     | `ChatDeleted of < 
 	id  : I.t ;
         pid : PId.t option ; 

@@ -21,6 +21,25 @@ let create pid ?subject ?(custom=Json.Null) audience =
     let! clock = Store.append [ Events.chatCreated ~id ~pid ~subject ~audience ~custom ] in
     return (`OK (id, clock)) 
 
+(* Updating a chatroom 
+   =================== *)
+
+let update pid ~subject ~custom ~audience id = 
+  
+  let! info = Cqrs.MapView.get View.info id in
+  match info with None -> return (`NotFound id) | Some info -> 
+
+    let! access = ChatAccess.compute pid (info # audience) in
+    if not (Set.mem `View access) then return (`NotFound id) else
+      if not (Set.mem `Admin access) then return (`NeedAdmin id) else
+
+	if subject = `Keep && custom = `Keep && audience = `Keep then
+	  return (`OK Cqrs.Clock.empty)
+	else
+
+	  let! clock = Store.append [ Events.chatUpdated ~id ~pid ~subject ~custom ~audience ] in
+	  return (`OK clock) 
+
 (* Deleting a chatroom 
    =================== *)
 
@@ -32,7 +51,7 @@ let delete pid id =
     let! access = ChatAccess.compute pid (info # audience) in
     if not (Set.mem `View access) then return (`NotFound id) else
       if not (Set.mem `Admin access) then return (`NeedAdmin id) else
-	
+
 	let! clock = Store.append [ Events.chatDeleted ~id ~pid ] in
 	return (`OK clock) 
 
