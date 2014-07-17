@@ -14,7 +14,6 @@ let exists =
 
   let () = Store.track existsV begin function 
     | `ChatCreated ev -> Cqrs.SetView.add exists [ev # id]
-    | `PublicChatCreated ev -> Cqrs.SetView.add exists [ev # id]
     | `ChatDeleted ev -> Cqrs.SetView.remove exists [ev # id] 
     | `PostCreated _ 
     | `PostDeleted _ -> return () 
@@ -39,7 +38,6 @@ let posts =
 
   let () = Store.track postsV begin function 
 
-    | `PublicChatCreated _ 
     | `ChatCreated _ -> return () 
 
     | `ChatDeleted ev -> Cqrs.FeedMapView.delete posts (ev # id)
@@ -64,12 +62,10 @@ let posts =
    ================ *)
 
 module Info = type module <
-  count   : int ;
-  last    : Time.t ; 
-  subject : String.Label.t option ; 
-  people  : PId.t list ;
-  groups  : GId.t list ;
-  public  : bool ; 
+  count    : int ;
+  last     : Time.t ; 
+  subject  : String.Label.t option ; 
+  audience : ChatAccess.Audience.t ; 
 >
 
 let info = 
@@ -91,9 +87,7 @@ let info =
 	(Info.make 
 	   ~subject:(info#subject) 
 	   ~count:(stats#count) 
-	   ~people:(info#people) 
-	   ~groups:(info#groups)
-	   ~public:(info#public)
+	   ~audience:(info#audience)
 	   ~last:(max (info#last) time)))
   in
 
@@ -102,15 +96,7 @@ let info =
     | `ChatCreated ev ->
       let! time = time () in 
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~people:(ev#people) ~groups:(ev#groups) 
-			  ~public:false ~last:time)
-	| Some _ -> `Keep)
-
-    | `PublicChatCreated ev -> 
-      let! time = time () in
-      Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~people:[] ~groups:[] ~public:true
-			  ~last:time)
+        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~audience:(ev#audience) ~last:time)
 	| Some _ -> `Keep)
 
     | `ChatDeleted ev -> 
@@ -126,36 +112,24 @@ let info =
 (* Chat access 
    =========== *)
 
-module Accessor = type module 
-  | Group of GId.t 
-  | Person of PId.t
-  | Public
+let byAccess = 
 
-let access = 
+  let byAccessV, byAccess = ChatAccess.Map.make projection "byAccess" 0 
+    ~only:[`View] (module I : Fmt.FMT with type t = I.t) in 
 
-  let accessV, access = Cqrs.ManyToManyView.make projection "access" 1
-    (module Accessor : Fmt.FMT with type t = Accessor.t)
-    (module I : Fmt.FMT with type t = I.t) in
-
-  let () = Store.track accessV begin function 
+  let () = Store.track byAccessV begin function 
 
     | `ChatCreated ev ->
 
-      let accessors = 
-	List.map (fun cid -> Accessor.Person cid) (ev # people)
-	@ List.map (fun gid -> Accessor.Group gid) (ev # groups) in
-      Cqrs.ManyToManyView.add access accessors [ev # id]
-
-    | `PublicChatCreated ev ->
-      Cqrs.ManyToManyView.add access [Accessor.Public] [ev # id]
+      ChatAccess.Map.update byAccess (ev # id) (ev # audience)
 
     | `ChatDeleted ev ->
       
-      Cqrs.ManyToManyView.(delete (flip access) (ev # id))
+      ChatAccess.Map.remove byAccess (ev # id)
 
     | `PostCreated _ 
     | `PostDeleted _ -> return ()
 
   end in
   
-  access
+  byAccess

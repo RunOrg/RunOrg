@@ -2,14 +2,24 @@
 
 open Std
 
+let notFound id = `NotFound (!! "Chatroom '%s' does not exist." (Chat.I.to_string id)) 
+let needAdmin id = `Forbidden (!! "You need 'admin' access to chatroom '%s'." (Chat.I.to_string id)) 
+let needModerate id = `Forbidden (!! "You need 'moderate' access to chatroom '%s'." (Chat.I.to_string id)) 
+let needPost id = `Forbidden (!! "You need 'post' access to chatroom '%s'." (Chat.I.to_string id)) 
+let needRead id = `Forbidden (!! "You need 'read' access to chatroom '%s'." (Chat.I.to_string id)) 
+
+let postNotFound id pid = 
+  `NotFound (!! "Post %S does not exist in chatroom %S." (Chat.PostI.to_string pid) (Chat.I.to_string id)) 
+
+(* Creating a chatroom
+   =================== *)
+
 module Create = Endpoint.Post(struct
     
   module Arg = type module unit
   module Post = type module <
     ?subject  : String.Label.t option ; 
-    ?people   : PId.t list     = [] ;
-    ?groups   : GId.t list     = [] ;
-    ?public   : bool           = false ; 
+     audience : Chat.Access.Audience.t ; 
   >
 
   module Out = type module <
@@ -19,27 +29,19 @@ module Create = Endpoint.Post(struct
 
   let path = "chat"
 
-  let create_public post = 
-    if post # groups <> [] then
-      return (`BadRequest "A public chatroom may not involve groups")
-    else if post # people <> [] then
-      return (`BadRequest "A private chatroom may not involve people")
-    else 
-      let! id, at = Chat.createPublic (post # subject) in
-      return (`Accepted (Out.make ~id ~at))
-
-  let create post = 
-    if post # people = [] && post # groups = [] then
-      return (`BadRequest "Please provide at least one person or group")
-    else
-      let! id, at = Chat.create ?subject:(post # subject) (post # people) (post # groups) in 
-      return (`Accepted (Out.make ~id ~at))
+  let needAccess id = 
+    `Forbidden (!! "Not allowed to create chatrooms in database %S." (Id.to_string id)) 
 
   let response req () post =
-    if post # public then create_public post 
-    else create post 
+    let! result = Chat.create (req # as_) ?subject:(post # subject) (post # audience) in 
+    return (match result with
+    | `NeedAccess id  -> needAccess id 
+    | `OK    (id, at) -> `Accepted (Out.make ~id ~at))
 	
 end)
+
+(* Deleting a chatroom
+   =================== *)
 
 module Delete = Endpoint.Delete(struct
 
@@ -49,16 +51,21 @@ module Delete = Endpoint.Delete(struct
   let path = "chat/{id}"
 
   let response req arg = 
-    let! at = Chat.delete (arg # id) in
-    return (`Accepted (Out.make ~at))
+    let! result = Chat.delete (req # as_) (arg # id) in
+    return (match result with 
+    | `NotFound  id -> notFound id
+    | `NeedAdmin id -> needAdmin id
+    | `OK        at -> `Accepted (Out.make ~at))
 
 end)
+
+(* Adding a post to a chatroom
+   =========================== *)
 
 module CreatePost = Endpoint.Post(struct
 
   module Arg  = type module < id : Chat.I.t >
   module Post = type module <
-    author : PId.t ;
     body : String.Rich.t ;
   >
 
@@ -69,11 +76,21 @@ module CreatePost = Endpoint.Post(struct
 
   let path = "chat/{id}/posts"
 
-  let response req arg post = 
-    let! id, at = Chat.createPost (arg # id) (post # author) (post # body) in 
-    return (`Accepted (Out.make ~id ~at))
+  let needAuthor = 
+    `BadRequest "'as' parameter required to create a post."
+
+  let response req arg post =
+    match req # as_ with None -> return needAuthor | Some author -> 
+      let! result = Chat.createPost (arg # id) author (post # body) in 
+      return (match result with
+      | `NotFound  id  -> notFound id
+      | `NeedPost  id  -> needPost id
+      | `OK   (id, at) -> `Accepted (Out.make ~id ~at))
 
 end)
+
+(* Deleting a post from a chatroom
+   =============================== *)
 
 module DeletePost = Endpoint.Delete(struct
 
@@ -83,44 +100,43 @@ module DeletePost = Endpoint.Delete(struct
   let path = "chat/{id}/posts/{item}"
 
   let response req arg = 
-    let! at = Chat.deletePost (arg # id) (arg # post) in
-    return (`Accepted (Out.make ~at))
+    let! result = Chat.deletePost (req # as_) (arg # id) (arg # post) in
+    return (match result with 
+    | `NotFound           id  -> notFound id
+    | `PostNotFound (id, pid) -> postNotFound id pid
+    | `NeedModerate       id  -> needModerate id 
+    | `OK                 at  ->`Accepted (Out.make ~at))
 
 end)
 
 (* Obtaining chat information 
    ========================== *)
 
-let not_found id = 
-  `NotFound (!! "Chat '%s' does not exist" (Chat.I.to_string id))
-
 module ChatInfo = type module <
-  id      : Chat.I.t ;
-  subject : String.Label.t option ;
-  people  : PId.t list ;
-  groups  : GId.t list ;
-  count   : int ;
-  last    : Time.t ; 
-  public  : bool ; 
+  id       : Chat.I.t ;
+  subject  : String.Label.t option ;
+  count    : int option ;
+  last     : Time.t option ; 
+  access   : Chat.Access.Set.t ; 
+  audience : Chat.Access.Audience.t option ;  
 >
 
 module Get = Endpoint.Get(struct
 
-  module Arg = type module < id : Chat.I.t >
+  module Arg = type module < 
+    id    : Chat.I.t ;
+  >
+
   module Out = type module <
-    people : PersonAPI.Short.t list ;
-    groups : GroupAPI.Short.t list ;
-    info   : ChatInfo.t ;
+    info     : ChatInfo.t ;
   >
 
   let path = "chat/{id}"
 
   let response req arg = 
-    let! info = Chat.get (arg # id) in 
-    match info with None -> return (not_found (arg # id)) | Some info -> 
-      let! people = List.M.filter_map Person.get (info # people) in 
-      let! groups = Group.get_many (req # as_) (info # groups) in 
-      return (`OK (Out.make ~people ~groups:(groups :> Group.short list) ~info))
+    let! info = Chat.get (req # as_) (arg # id) in 
+    match info with None -> return (notFound (arg # id)) | Some (info : ChatInfo.t) -> 
+      return (`OK (Out.make ~info))
 
 end)
 
@@ -128,8 +144,6 @@ module GetAllAs = Endpoint.Get(struct
 
   module Arg = type module unit
   module Out = type module <
-    people : PersonAPI.Short.t list ;
-    groups : GroupAPI.Short.t list ;
     list   : ChatInfo.t list ;
   >
 
@@ -139,17 +153,14 @@ module GetAllAs = Endpoint.Get(struct
     let  limit  = Option.default 100 (req # limit) in
     let  offset = Option.default 0 (req # offset) in
     let! list = Chat.all_as ~limit ~offset (req # as_) in
-    let! groups = Group.get_many (req # as_) List.(unique (flatten (map (#groups) list))) in
-    let! people = List.(M.filter_map Person.get
-			    (unique (flatten (map (#people) list)))) in
-    return (`OK (Out.make ~people ~groups:(groups :> Group.short list) ~list))
+    return (`OK (Out.make ~list))
 
 end)
 
 (* Obtaining chat contents 
    ======================= *)
 
-module Post= type module <
+module Post = type module <
   id     : Chat.PostI.t ;
   author : PId.t ;
   time   : Time.t ; 
@@ -160,7 +171,7 @@ module Items = Endpoint.Get(struct
 
   module Arg = type module < id : Chat.I.t >
   module Out = type module <
-    items  : Post.t list ;
+    posts  : Post.t list ;
     people : PersonAPI.Short.t list ;
     count  : int 
   >
@@ -168,12 +179,14 @@ module Items = Endpoint.Get(struct
   let path = "chat/{id}/posts"
 
   let response req arg = 
-    let! info = Chat.get (arg # id) in
-    match info with None -> return (not_found (arg # id)) | Some info -> 
-      let  count = info # count in 
-      let! items = Chat.list ?limit:(req # limit) ?offset:(req # offset) (arg # id) in
-      let  cids  = List.unique (List.map (#author) items) in
+    let! result = Chat.list (req # as_) ?limit:(req # limit) ?offset:(req # offset) (arg # id) in
+    match result with 
+    | `NeedRead info -> return (needRead (info # id))
+    | `NotFound id -> return (notFound id)
+    | `OK (info, posts) -> 
+      let  count  = match info # count with Some c -> c | None -> List.length posts in 
+      let  cids   = List.unique (List.map (#author) posts) in
       let! people = List.M.filter_map Person.get cids in
-      return (`OK (Out.make ~items ~people ~count))
+      return (`OK (Out.make ~posts ~people ~count))
 
 end)
