@@ -47,6 +47,44 @@ module Create = Endpoint.Post(struct
 	
 end)
 
+(* Updating a chatroom
+   =================== *)
+
+module Update = Endpoint.Put(struct
+    
+  module Arg = type module <
+    id : Chat.I.t
+  >
+
+  module Put = type module <
+    ?subject  : String.Label.t option ; 
+    ?custom   : Json.t option ; 
+    ?audience : Chat.Access.Audience.t option ; 
+  >
+
+  module Out = type module <
+    at : Cqrs.Clock.t ;
+  >
+
+  let path = "chat/{id}"
+
+  let response req arg put =
+
+    let! result = Chat.update
+      (req # as_) 
+      ~subject:(Change.of_field "subject" (req # body) (put # subject))
+      ~custom:(Change.of_option (put # custom))
+      ~audience:(Change.of_option (put # audience))
+      (arg # id) 
+    in 
+
+    return (match result with
+    | `NotFound  id -> notFound id
+    | `NeedAdmin id -> needAdmin id
+    | `OK        at -> `Accepted (Out.make ~at))
+	
+end)
+
 (* Deleting a chatroom
    =================== *)
 
