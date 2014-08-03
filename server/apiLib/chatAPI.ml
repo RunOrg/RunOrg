@@ -14,6 +14,7 @@ let postNotFound id pid =
 (* Creating a chatroom
    =================== *)
 
+(* UNTESTED *)
 module Create = Endpoint.Post(struct
     
   module Arg = type module unit
@@ -50,6 +51,7 @@ end)
 (* Updating a chatroom
    =================== *)
 
+(* UNTESTED *)
 module Update = Endpoint.Put(struct
     
   module Arg = type module <
@@ -88,6 +90,7 @@ end)
 (* Deleting a chatroom
    =================== *)
 
+(* UNTESTED *)
 module Delete = Endpoint.Delete(struct
 
   module Arg = type module < id : Chat.I.t >
@@ -107,6 +110,7 @@ end)
 (* Adding a post to a chatroom
    =========================== *)
 
+(* UNTESTED *)
 module CreatePost = Endpoint.Post(struct
 
   module Arg  = type module < id : Chat.I.t >
@@ -137,6 +141,7 @@ end)
 (* Deleting a post from a chatroom
    =============================== *)
 
+(* UNTESTED *)
 module DeletePost = Endpoint.Delete(struct
 
   module Arg = type module < id : Chat.I.t ; post : Chat.PostI.t >
@@ -167,6 +172,7 @@ module ChatInfo = type module <
   custom   : Json.t ; 
 >
 
+(* UNTESTED *)
 module Get = Endpoint.Get(struct
 
   module Arg = type module < 
@@ -186,6 +192,7 @@ module Get = Endpoint.Get(struct
 
 end)
 
+(* UNTESTED *)
 module GetAllAs = Endpoint.Get(struct
 
   module Arg = type module unit
@@ -213,6 +220,7 @@ module Post = type module <
   body   : String.Rich.t ;
 >
 
+(* UNTESTED *)
 module Items = Endpoint.Get(struct
 
   module Arg = type module < id : Chat.I.t >
