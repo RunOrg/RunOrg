@@ -75,3 +75,13 @@ let describe id =
   match owner with 
   | Some (`Person (db,pid)) when db = ctx # db -> return (Some pid) 
   | _ -> return None
+
+(* Deleting sessions 
+   ================= *)
+
+let delete id =
+  let! found = load id in 
+  if found = None then return (`NotFound id) else
+    let! () = Cqrs.Sql.command ("DELETE FROM \"" ^ dbname ^ "\" WHERE \"token\" = $1")
+      [ `String (I.to_string id) ] in
+    return (`OK id) 
