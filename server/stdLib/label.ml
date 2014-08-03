@@ -40,7 +40,7 @@ let of_string_detailed str =
 
   try let n = cleanup 0 0 true false 0 in
       if n = 0 then `Empty else
-	if n >= 80 then `TooLong n else
+	if n >= 200 then `TooLong n else
 	  `Ok (Buffer.contents buffer) 
   with BadUTF8 i -> `UTF8 i
 
