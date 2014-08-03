@@ -61,7 +61,7 @@ include Fmt.Make(struct
     | `Ok s -> s
     | `Empty -> raise (Json.error "Empty label")
     | `UTF8 n -> raise (Json.error "Invalid UTF-8 at byte %d") 
-    | `TooLong n -> raise (Json.error (Printf.sprintf "Label is %d code points long, only 80 allowed." n))
+    | `TooLong n -> raise (Json.error (Printf.sprintf "Label is %d code points long, only 200 allowed." n))
 
 end)
 
