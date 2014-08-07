@@ -1,3 +1,5 @@
+// POST /people/import
+
 TEST("The response has valid return code and content type.", function(Query) {
 
     var example = { "email" : "vnicollet@runorg.com" };

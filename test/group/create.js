@@ -1,3 +1,5 @@
+// POST /groups
+
 var example = { "label" : "Board members" };
 
 TEST("The response has valid return code and content type.", function(Query) {

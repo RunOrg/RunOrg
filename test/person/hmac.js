@@ -1,3 +1,5 @@
+// POST /people/auth/hmac
+
 TEST("Correctly authenticates user.", function(Query) {
 
     var example = { "email" : "vnicollet@runorg.com",

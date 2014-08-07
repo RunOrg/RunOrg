@@ -1,3 +1,5 @@
+// GET /forms
+
 TEST("The response has valid return code and content type.", function(Query) {
 
     var db = Query.mkdb();

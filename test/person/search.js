@@ -1,8 +1,10 @@
+// GET /people/search
+
 TEST("The response has valid return code and content type.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    return Query.get(["db/",db,"/people?q="],auth)
+    return Query.get(["db/",db,"/people/search?q="],auth)
 	.assertStatus(200).assertIsJson();
 
 });

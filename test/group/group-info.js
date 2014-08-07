@@ -1,3 +1,5 @@
+// TYPE <groups/info>
+
 TEST("The groups's identifier is returned.", function(Query) {
 
     var example = {};

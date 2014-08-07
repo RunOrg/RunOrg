@@ -1,3 +1,5 @@
+// POST /groups/{id}/remove
+
 TEST("The response has valid return code and content type.", function(Query) {
     var db = Query.mkdb();
     var auth = Query.auth(db);

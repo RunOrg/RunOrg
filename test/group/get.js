@@ -1,3 +1,5 @@
+// GET /groups/{id}
+
 TEST("The response has valid return code and content type.", function(Query) {
 
     var db = Query.mkdb();

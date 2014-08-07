@@ -1,3 +1,5 @@
+// POST /people/auth/persona
+
 TODO("Returns 404 when database does not exist.", function(next) {
     Test.query("POST","/db/00000000001/people/auth/persona",{assertion:'x'}).error(404).then(next);
 });

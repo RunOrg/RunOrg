@@ -1,3 +1,5 @@
+// TYPE <form/short>
+
 TEST("The form's data is returned.", function(Query) {
 
     var example = {
