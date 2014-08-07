@@ -28,12 +28,13 @@ let exists =
 module Item = type module <
   author : PId.t ;
   body   : String.Rich.t ;
+  custom : Json.t ; 
 >
 
 let posts = 
 
-  let postsV, posts = Cqrs.FeedMapView.make projection "posts" 0 
-    (module I  : Fmt.FMT with type t = I.t)
+  let postsV, posts = Cqrs.TreeMapView.make projection "posts" 1 
+    (module I : Fmt.FMT with type t = I.t)
     (module PostI : Fmt.FMT with type t = PostI.t)
     (module Item : Fmt.FMT with type t = Item.t) in
 
@@ -42,18 +43,27 @@ let posts =
     | `ChatCreated _  
     | `ChatUpdated _ -> return ()
 
-    | `ChatDeleted ev -> Cqrs.FeedMapView.delete posts (ev # id)
+    | `ChatDeleted ev -> 
+
+      Cqrs.TreeMapView.delete posts (ev # id)
 
     | `PostDeleted ev -> 
-      Cqrs.FeedMapView.update posts (ev # id) (ev # post)
+
+      Cqrs.TreeMapView.update posts (ev # id) (ev # post)
 	(function Some _ -> `Delete | None -> `Keep)
 
     | `PostCreated ev ->
-      let! exists = Cqrs.SetView.exists exists (ev # id) in
+
+      let! chat_exists = Cqrs.SetView.exists exists (ev # id) in
+      let! parent_exists = match ev # parent with 
+	| None -> return true
+	| Some p -> Cqrs.TreeMapView.exists posts (ev # id) p in
+
       let! ctx = Run.context in 
-      if not exists then return () else 
-	Cqrs.FeedMapView.update posts (ev # id) (ev # post) (function 
-	| None -> `Put (ctx # time, Item.make ~author:(ev # author) ~body:(ev # body))
+      if not chat_exists || not parent_exists then return () else 
+	Cqrs.TreeMapView.update posts (ev # id) (ev # post) (function 
+	| None -> `Put (ctx # time, ev # parent, 
+			Item.make ~author:(ev # author) ~body:(ev # body) ~custom: (ev # custom))
 	| Some _ -> `Keep)
 
   end in 
@@ -84,7 +94,7 @@ let info =
 
   let recount id = 
     let! time = time () in
-    let! stats = Cqrs.FeedMapView.stats posts id in
+    let! stats = Cqrs.TreeMapView.stats posts id in
     Cqrs.MapView.update info id (function None -> `Keep | Some info ->
       if info # count = stats # count then `Keep else `Put
 	(Info.make 

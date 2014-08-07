@@ -110,12 +110,15 @@ end)
 (* Adding a post to a chatroom
    =========================== *)
 
+
 (* UNTESTED *)
 module CreatePost = Endpoint.Post(struct
 
   module Arg  = type module < id : Chat.I.t >
   module Post = type module <
-    body : String.Rich.t ;
+    body   : String.Rich.t ;
+   ?custom : Json.t = Json.Null ;
+   ?reply  : Chat.PostI.t option ; 
   >
 
   module Out = type module <
@@ -128,13 +131,17 @@ module CreatePost = Endpoint.Post(struct
   let needAuthor = 
     `BadRequest "'as' parameter required to create a post."
 
+  let postNotFound pid = 
+    `NotFound (!! "The post '%s' you are replying to does not exist." (Chat.PostI.to_string pid))
+
   let response req arg post =
     match req # as_ with None -> return needAuthor | Some author -> 
-      let! result = Chat.createPost (arg # id) author (post # body) in 
+      let! result = Chat.createPost (arg # id) author (post # body) (post # custom) (post # reply) in 
       return (match result with
-      | `NotFound  id  -> notFound id
-      | `NeedPost  id  -> needPost id
-      | `OK   (id, at) -> `Accepted (Out.make ~id ~at))
+      | `NotFound       id  -> notFound id
+      | `PostNotFound (_,p) -> postNotFound p 
+      | `NeedPost       id  -> needPost id
+      | `OK        (id, at) -> `Accepted (Out.make ~id ~at))
 
 end)
 
@@ -218,7 +225,19 @@ module Post = type module <
   author : PId.t ;
   time   : Time.t ; 
   body   : String.Rich.t ;
+  tree   : < count : int ; top : t list > ;
 >
+
+let rec load_tree post = object
+  method id     = post # id
+  method author = post # author
+  method time   = post # time
+  method body   = post # body 
+  method tree   = object
+    method count = post # count
+    method top   = List.map load_tree (post # sub) 
+  end
+end
 
 (* UNTESTED *)
 module Items = Endpoint.Get(struct
@@ -238,6 +257,7 @@ module Items = Endpoint.Get(struct
     | `NeedRead info -> return (needRead (info # id))
     | `NotFound id -> return (notFound id)
     | `OK (info, posts) -> 
+      let  posts  = List.map load_tree  posts in
       let  count  = match info # count with Some c -> c | None -> List.length posts in 
       let  cids   = List.unique (List.map (#author) posts) in
       let! people = List.M.filter_map Person.get cids in

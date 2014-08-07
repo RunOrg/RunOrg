@@ -60,20 +60,39 @@ type post = <
   author : PId.t ;
   time   : Time.t ;
   body   : String.Rich.t ;
+  custom : Json.t ; 
+  count  : int ; 
+  sub    : post list ;
 >
 
-let list pid ?(limit=1000) ?(offset=0) cid = 
+let rec transform node = (object
+
+  val id = node # id
+  method id = id
+
+  val time = node # time
+  method time = time
+
+  val data = node # value
+  method author = data # author
+  method body = data # body
+  method custom = data # custom 
+
+  val count = node # count
+  method count = count 
+
+  val sub = List.map transform (node # subtree)
+  method sub = sub
+
+end : post)
+
+let list pid ?(depth=1) ?(limit=1000) ?(offset=0) ?parent cid = 
   let! info = get pid cid in
   match info with None -> return (`NotFound cid) | Some info ->
     
     if not (Set.mem `Read (info # access)) then return (`NeedRead info) else
 
-      let! list = Cqrs.FeedMapView.list View.posts ~limit ~offset cid in 
-      let  list = List.map (fun (id,t,value) -> (object
-	method id = id
-	method time = t
-	method author = value # author
-	method body = value # body
-      end)) list in
+      let! list = Cqrs.TreeMapView.list View.posts ~depth ~limit ~offset ?parent cid in 
+      let  list = List.map transform list in 
 
       return (`OK (info, list))

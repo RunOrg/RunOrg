@@ -230,12 +230,80 @@ module FeedMapView : sig
       last  : Time.t option ;
     >) Run.t
 
-  (** List elements in a feed, in reverse chronological order (latest 
+  (** List elements in a tree, in reverse chronological order (latest 
       first). *)
   val list : ('key, 'id, 'value) t -> ?limit:int -> ?offset:int -> 'key ->
     (#ctx, ('id * Time.t * 'value) list) Run.t
       
 end
+
+(** Tree-maps bind time-sorted lists of values to keys in a tree structure. *)
+module TreeMapView : sig
+
+  (** A map of trees, bound to type ['key], with each tree node of type ['value]
+      having an identifier of type ['id]. *)
+  type ('key, 'id, 'value) t
+
+  (** A (recursive) snapshot of a node and its descendants. 'count' is the true
+      count of children, while 'subtree' is a subset of those children. *)
+  type ('id,'value) node = <
+    time    : Time.t ;
+    id      : 'id ;
+    count   : int ;
+    value   : 'value ;
+    subtree : ('id, 'value) node list 
+  >
+
+  (** Create a tree map. All types must support packing. A tree map always has a
+      name and is placed inside a projection. *)
+  val make : Projection.t -> string -> int ->
+    (module Fmt.FMT with type t = 'key) ->
+    (module Fmt.FMT with type t = 'id) ->
+    (module Fmt.FMT with type t = 'value) ->
+    Projection.view * ('key, 'id, 'value) t
+
+  (** Update a map value. Data bound to an identifier includes: 
+     - The time (for sorting the feed)
+     - The parent node (optional)
+     - The actual data 
+  *)
+  val update : ('key, 'id, 'value) t -> 'key -> 'id -> 
+    ((Time.t * 'id option * 'value) option -> [ `Keep | `Put of (Time.t * 'id option * 'value) | `Delete]) ->
+    # ctx Run.effect
+
+  (** Delete a tree. *)
+  val delete : ('key, 'id, 'value) t -> 'key -> # ctx Run.effect
+
+  (** Does an item exist in the specified feed ? *)
+  val exists : ('key, 'id, 'value) t -> 'key -> 'id -> (#ctx, bool) Run.t
+
+  (** Get a value from the feed, if it exists. *)
+  val get : ('key, 'id, 'value) t -> 'key -> 'id -> (#ctx, (Time.t * 'value) option) Run.t
+
+  (** How many items in a feed, and when are the first and last elements ? *)
+  val stats : ('key, 'id, 'value) t -> 'key -> (#ctx, <
+      count : int ;
+      first : Time.t option ;
+      last  : Time.t option ;
+    >) Run.t
+
+
+  (** List elements in a tree, in reverse chronological order (latest first). 
+      Retrieves an additional 'depth' layers, where each layer consists of the
+      latest 'limit' nodes that have any node in the previous layer as a parent
+      Default depth is zero. 
+  *)
+  val list : 
+    ('key, 'id, 'value) t -> 
+    ?depth:int -> 
+    ?limit:int -> 
+    ?offset:int -> 
+    ?parent:'id -> 
+    'key ->
+    (#ctx, ('id,'value) node list) Run.t
+      
+end
+
 
 (** Maps bind values to keys. *)
 module MapView : sig

@@ -26,9 +26,12 @@ val delete :
 val createPost : 
   I.t -> 
   PId.t -> 
-  String.Rich.t -> (#O.ctx, [ `OK of PostI.t * Cqrs.Clock.t
-			    | `NeedPost of I.t
-			    | `NotFound of I.t ]) Run.t
+  String.Rich.t -> 
+  Json.t ->
+  PostI.t option -> (#O.ctx, [ `OK of PostI.t * Cqrs.Clock.t
+			     | `NeedPost of I.t
+			     | `PostNotFound of (I.t * PostI.t)
+			     | `NotFound of I.t ]) Run.t
 
 val deletePost : 
   PId.t option ->

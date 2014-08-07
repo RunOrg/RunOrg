@@ -21,12 +21,17 @@ type post = <
   author : PId.t ;
   time   : Time.t ;
   body   : String.Rich.t ;
+  custom : Json.t ; 
+  count  : int ; 
+  sub    : post list ; 
 >
 
 val list : 
   PId.t option -> 
+  ?depth:int ->
   ?limit:int -> 
-  ?offset:int -> 
+  ?offset:int ->
+  ?parent:PostI.t -> 
   I.t -> (#O.ctx, [ `NeedRead of info 
 		  | `NotFound of I.t 
 		  | `OK of info * post list ]) Run.t

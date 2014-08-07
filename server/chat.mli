@@ -47,9 +47,12 @@ val delete : PId.t option -> I.t -> (#O.ctx, [ `OK of Cqrs.Clock.t
 val createPost : 
   I.t -> 
   PId.t -> 
-  String.Rich.t -> (#O.ctx, [ `OK of PostI.t * Cqrs.Clock.t
-			    | `NeedPost of I.t
-			    | `NotFound of I.t ]) Run.t
+  String.Rich.t -> 
+  Json.t -> 
+  PostI.t option -> (#O.ctx, [ `OK of PostI.t * Cqrs.Clock.t
+			     | `NeedPost of I.t
+			     | `PostNotFound of (I.t * PostI.t)
+			     | `NotFound of I.t ]) Run.t
 
 (** Delete an item in a chatroom. *)
 val deletePost : 
@@ -83,13 +86,18 @@ type post = <
   author : PId.t ;
   time : Time.t ;
   body : String.Rich.t ;
+  custom : Json.t ;
+  count : int ; 
+  sub : post list ; 
 >
 
 (** Get posts from a chatroom, in reverse chronological order. *)
 val list :
    PId.t option -> 
+  ?depth:int -> 
   ?limit:int -> 
   ?offset:int -> 
+  ?parent:PostI.t -> 
    I.t -> (#O.ctx, [ `OK of info * (post list)
 		   | `NeedRead of info
 		   | `NotFound of I.t ]) Run.t

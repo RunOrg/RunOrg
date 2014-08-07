@@ -58,7 +58,7 @@ let delete pid id =
 (* Posting to a chatroom 
    ===================== *)
 
-let createPost id author body = 
+let createPost id author body custom parent = 
 
   let! info = Cqrs.MapView.get View.info id in 
   match info with None -> return (`NotFound id) | Some info -> 
@@ -68,7 +68,7 @@ let createPost id author body =
       if not (Set.mem `Write access) then return (`NeedPost id) else
 
       let  post = PostI.gen () in 
-      let! clock = Store.append [ Events.postCreated ~id ~post ~author ~body ] in
+      let! clock = Store.append [ Events.postCreated ~id ~post ~author ~parent ~custom ~body ] in
       return (`OK (post, clock))
 
 (* Deleting an item from a chatroom
@@ -79,7 +79,7 @@ let deletePost pid id post =
   let! info = Cqrs.MapView.get View.info id in 
   match info with None -> return (`NotFound id) | Some info -> 
 
-    let! item = Cqrs.FeedMapView.get View.posts id post in
+    let! item = Cqrs.TreeMapView.get View.posts id post in
     match item with None -> return (`PostNotFound (id, post)) | Some (_,item) ->
 
       let required = if Some (item # author) = pid then `View else `Moderate in

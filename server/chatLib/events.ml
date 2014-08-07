@@ -26,6 +26,8 @@ include type module
         post   : PostI.t ; 
 	author : PId.t ; 
 	body   : String.Rich.t ;
+	custom : Json.t ; 
+	parent : PostI.t option ; 
       >
     | `PostDeleted of < 
 	id   : I.t ; 
