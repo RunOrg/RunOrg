@@ -70,6 +70,7 @@
 
 	    // Test buttons
 
+	    $sidebar.off();
 	    $sidebar.on('click','button.test',function(ev){
 		var file = $(ev.target).closest('button')[0].dataset.file;
 		Fixture.root.then(function(root) {
