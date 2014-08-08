@@ -1,9 +1,6 @@
 .sidebar {
 
-    margin: 110px 30px 0;
-    float: left;
     overflow: hidden;
-    width: 300px;
 
     ul {
 	list-style-type: none;
@@ -52,35 +49,31 @@
     .node {
 
 	height: 26px;
-	&.verb { height: 40px; }
-	
+
+	&.title { 
+	    height: 40px;
+	    h1 {
+		font-size: 24px;
+		text-align: center;
+		line-height: 40px;
+		margin: 0;
+	    }
+	    > .test { margin-top: 10px; }
+	}
+
 	padding: 4px;
 	
 	> .test {
-	    float: right; 
-	    margin-left: 8px;
+	    float: left; 
+	    margin-right: 8px;
 	}
 
-	&.verb > .test,
-	&.verb > .test.running {
-	    margin-top: 8px;
-	}
-
-	> a {
+	code {
+	    font-weight: normal;
 	    display: block;
-	    white-space: nowrap;
-	    overflow: hidden;
-	    text-overflow: ellipsis;
-	    font-size: 13px;
 	    color: #333;
+	    font-size: 11px;
 	    line-height: 26px;
-	    code {
-		font-weight: normal;
-		display: block;
-		color: #888;
-		font-size: 11px;
-		margin-top: -7px;
-	    }
 	}
 
 	.test.running {
@@ -99,21 +92,6 @@
 		background-color: #48E;
 		float: left;
 	    }
-	}
-
-
-	&.verb > a {
-	    line-height: 24px;
-	}
-
-	&.active {
-	    > a {
-		font-weight: bold;
-	    }
-	}
-
-	&.current {	    
-	    background-color: #CCC;
 	}
     }
 }

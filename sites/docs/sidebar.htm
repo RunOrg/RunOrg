@@ -1,30 +1,40 @@
-<div class="node{< if verb} verb{>}{< if active } active{>}{< if current} current{>}">
+<div class="node title">
 
-   {< if count}
-      {< if running }
-	 <span class="test {{status}}">
-	    <span style="width:{{ done }}%"></span>
-	 </span>
-      {else}
-	 <button class="test {{status}}" data-catPath="{{ catPath }}">
-	    <span>{{ count }}</span>
-	 </button>
-      {>}      
-   {>}
+  {< if running }
+     <span class="test {{status}}">
+       <span style="width:{{ done }}%"></span>
+     </span>
+   {else}
+     <button class="test {{status}}">
+       <span>{{ count }}</span>
+     </button>
+   {>}      
 
-   <a href="{{url}}">
-      {{ name }}
-      {< if verb }<code>{{ verb }} {{ path }}</code>{>}	
-   </a>
+   <h1>
+     RunOrg API unit tests
+   </h1>
 
 </div>
 
-{< if sub.length }
-   <ul>
-      {< each sub }
-	 <li>
-            {< sidebar >}
-	 </li>
-      {>}
-   </ul>
-{>}
+<ul>
+  {< each fixtures }
+    <li>
+      <div class="node verb">
+	
+	{< if running }
+	   <span class="test {{status}}">
+	     <span style="width:{{ done }}%"></span>
+	   </span>
+	{else}
+	   <button class="test {{status}}" data-file="{{ file }}">
+	     <span>{{ count }}</span>
+	   </button>
+	{>}      	
+	  
+	<code>{{ verb }} {{ path }}</code>	
+
+      </div>
+    </li>
+  {>}
+</ul>
+
