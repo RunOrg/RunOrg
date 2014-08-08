@@ -30,7 +30,13 @@
 	    // - done: the percentage of tests not running
 	    function prepare(fixture) {
 
-		var stats     = fixture.stats();
+		var stats = fixture.stats();
+		var failed = fixture.failed().map(function(test) {
+		    return {
+			name: test.name,
+			failure: test.failure()
+		    };
+		});
 
 		return {
 		    verb: fixture.verb,
@@ -39,7 +45,9 @@
 		    status: statusOfStats(stats),
 		    count: stats.tests,
 		    running: stats.running,
-		    done: ((stats.tests - stats.running) / stats.tests * 100).toFixed(2)
+		    done: ((stats.tests - stats.running) / stats.tests * 100).toFixed(2),
+		    failed: failed.length > 0,
+		    tests: failed
 		};
 	    }
 

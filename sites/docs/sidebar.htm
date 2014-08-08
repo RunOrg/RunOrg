@@ -11,7 +11,7 @@
    {>}      
 
    <h1>
-     RunOrg API unit tests
+     RunOrg API integration tests
    </h1>
 
 </div>
@@ -32,6 +32,17 @@
 	{>}      	
 	  
 	<code>{{ verb }} {{ path }}</code>	
+
+	{< if failed }
+
+	   <dl>
+	     {< each tests }
+		<dt>{{ name }}</dt>
+		<dd>{{ failure }}</dd>
+             {>}
+	   </dl>
+        
+	{>}
 
       </div>
     </li>
