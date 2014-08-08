@@ -222,7 +222,7 @@ module Unpack = struct
       else if c = 0xC0 then
 	(match null with None -> fail "Unexpected null" | Some v -> fwd i 1 ; v)
       else if c = 0xC2 || c = 0xC3 then
-	apply "boolean" bool (c == 0xC3)
+	(fwd i 1 ; apply "boolean" bool (c == 0xC3))
       else if c >= 0x80 && c <= 0x8F || c = 0xDE || c = 0xDF then
 	apply "map" map (_map aux aux i)  
       else if c >= 0x90 && c <= 0x9F || c = 0xDD || c = 0xDE then
