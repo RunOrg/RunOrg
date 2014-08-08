@@ -129,7 +129,8 @@ let get_all_files path =
 let parse_all_files path = 
   let files = get_all_files path in
   let parsed =  List.map readjs files in
-  List.sort (fun a b -> compare a.path b.path) parsed
+  let printed = List.filter (fun f -> f.tests > 0) parsed in 
+  List.sort (fun a b -> compare a.path b.path) printed
 
 (* Read, then write
    ================ *)
