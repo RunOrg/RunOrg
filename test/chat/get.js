@@ -25,12 +25,12 @@ TEST("Returns correct data as admin.", function(Query) {
 	var expected = $.extend({
 	    id: id,
 	    count: 0,
-	    access: [ "admin", "view" ]	   
+	    access: [ "view","read","admin","moderate","write" ]	   
 	}, created);
 	
-	delete value.last;
+	delete value.info.last;
 	
-	return Assert.areEqual(expected, value);
+	return Assert.areEqual(expected, value.info);
 
     });
 
