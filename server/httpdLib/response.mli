@@ -54,4 +54,7 @@ module Make : sig
   (** A 'try later' response. *)
   val tryLater : time -> int -> (string * Json.t) list -> t
 
+  (** Disconnect without sending anything. *)
+  val disconnect : t
+
 end

@@ -39,7 +39,7 @@ let handle_request_failure config time = function
 	      (!! "Body may not exceed %d bytes" config.max_body_size)) ;
 
   | Request.Timeout -> 
-    return (Response.Make.error time `BadRequest "Timed out while waiting for input")
+    return Response.Make.disconnect
     
   | Request.SyntaxError reason ->
     return (Response.Make.error time `BadRequest 

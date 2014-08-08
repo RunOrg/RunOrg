@@ -34,13 +34,15 @@ type status =
   | `NoContent 
   | `InternalServerError ]
 
-type t = {
+type data = {
   headers : (string * string) list ;
   body : string ; 
   status : status ;
   request : Request.t option ; 
   started : time option ; 
 }
+
+type t = Response of data | Disconnect
 
 (* Sending a response 
    ================== *)
@@ -64,7 +66,7 @@ let status = function
   | `ServiceUnavailable -> "503 Service Unavailable"
 
 (* Raw response function, merely formats the individual lines for output. *)
-let send ssl_socket config response = 
+let send_data ssl_socket config response =
 
   let body = if response.status = `NoContent then "" else response.body in 
 
@@ -123,6 +125,14 @@ let send ssl_socket config response =
   let () = Unix.shutdown (Ssl.file_descr_of_socket ssl_socket) Unix.SHUTDOWN_ALL in
   
   return () 
+
+let disconnect ssl_socket =
+  let () = Unix.shutdown (Ssl.file_descr_of_socket ssl_socket) Unix.SHUTDOWN_ALL in  
+  return () 
+  
+let send ssl_socket config = function
+  | Response d -> send_data ssl_socket config d
+  | Disconnect -> disconnect ssl_socket
     
 (* Response function that adds a content-type header and formats the output as
    JSON. *)
@@ -135,24 +145,26 @@ let json headers status body = {
   started = None ;
 }
 
-let with_CORS cors response = 
-  match cors with None -> response | Some (origin,reqheaders) ->
-
-    let headers = 
-      ( "Access-Control-Allow-Origin", origin ) 
-      :: ( "Access-Control-Allow-Credentials", "true" )
-      :: ( "Access-Control-Allow-Methods", "POST, PUT, GET, DELETE, OPTIONS" )
-      :: response.headers in
-
-    let headers = 
-      try ("Access-Control-Allow-Headers", 
-	   Map.find "ACCESS-CONTROL-REQUEST-HEADERS" reqheaders) :: headers
-      with Not_found -> headers in
-
-    { response with headers }
+let with_CORS cors r = 
+  match cors with None -> r | Some (origin,reqheaders) ->
+    match r with Disconnect -> Disconnect | Response response -> 
+      
+      let headers = 
+	( "Access-Control-Allow-Origin", origin ) 
+	:: ( "Access-Control-Allow-Credentials", "true" )
+	:: ( "Access-Control-Allow-Methods", "POST, PUT, GET, DELETE, OPTIONS" )
+	:: response.headers in
+      
+      let headers = 
+	try ("Access-Control-Allow-Headers", 
+	     Map.find "ACCESS-CONTROL-REQUEST-HEADERS" reqheaders) :: headers
+	with Not_found -> headers in
+      
+      Response { response with headers }
 		    
-let for_request time request response = 
-  { response with request = Some request ; started = Some time }
+let for_request time request = function
+  | Disconnect -> Disconnect
+  | Response response -> Response { response with request = Some request ; started = Some time }
 
 (* Response builders
    ================= *)
@@ -160,21 +172,23 @@ let for_request time request response =
 module Make = struct
 
   let error time status error = 
-    { json [] status (Json.Object [ "error", Json.String error ]) with started = Some time }
+    Response { json [] status (Json.Object [ "error", Json.String error ]) with started = Some time }
 
   let tryLater time delay reason = 
-    { json [ "Retry-After", string_of_int delay ] `ServiceUnavailable (Json.Object reason) 
+    Response { json [ "Retry-After", string_of_int delay ] `ServiceUnavailable (Json.Object reason) 
       with started = Some time }
 
   let json ?(headers=[]) ?(status=`OK) body = 
-    json headers status body 
+    Response (json headers status body) 
 
-  let raw ?(headers=[]) ?(status=`OK) body = {
+  let raw ?(headers=[]) ?(status=`OK) body = Response {
     status ;
     request = None ;
     body ;
     headers ; 
     started = None ;
   }
+
+  let disconnect = Disconnect
 
 end
