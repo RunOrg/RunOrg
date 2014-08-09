@@ -120,3 +120,46 @@ TEST("Returns correct data when no access.", function(Query) {
     });
 
 });
+
+TEST("Returns data in correct order.", function(Query) {
+
+    var created1 = {
+	subject: "Hello, world!",
+	custom: { a: true },
+	audience: {}
+    };
+
+    var created2 = {
+	subject: "Later!",
+	custom: { b: false },
+	audience: {}
+    };
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    return Query.post(["db/",db,"/chat"],created1,auth).id().then(function(id1) {
+	return Query.post(["db/",db,"/chat"],created2,auth).id().then(function(id2) {
+	    return $.when(
+		Query.get(["db/",db,"/chat"],auth).then(function(value) {	    
+ 		    return $.when(
+			Assert.areEqual(id1, value.list[0].id),
+			Assert.areEqual(id2, value.list[1].id)
+		    );	    
+		}),
+		Query.get(["db/",db,"/chat?limit=1"],auth).then(function(value) {	    
+ 		    return $.when(
+			Assert.areEqual(id1, value.list[0].id),
+			Assert.areEqual(1, value.list.length)
+		    );	    
+		}),
+		Query.get(["db/",db,"/chat?offset=1"],auth).then(function(value) {	    
+ 		    return $.when(
+			Assert.areEqual(id2, value.list[0].id),
+			Assert.areEqual(1, value.list.length)
+		    );	    
+		})
+	    );
+	});
+    });
+});
+
