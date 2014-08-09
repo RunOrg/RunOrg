@@ -4,7 +4,7 @@ TEST("The response has valid return code and content type.", function(Query) {
 
     var db = Query.mkdb();
     var auth = Query.auth(db);
-    var id = Query.post(["db/",db,"/chat"],{},auth).id();
+    var id = Query.post(["db/",db,"/chat"],{ audience: {} },auth).id();
     return Query.get(["db/",db,"/chat/",id],auth)
 	.assertStatus(200).assertIsJson();
 });
