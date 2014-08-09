@@ -14,7 +14,6 @@ let postNotFound id pid =
 (* Creating a chatroom
    =================== *)
 
-(* UNTESTED *)
 module Create = Endpoint.Post(struct
     
   module Arg = type module unit
@@ -110,8 +109,6 @@ end)
 (* Adding a post to a chatroom
    =========================== *)
 
-
-(* UNTESTED *)
 module CreatePost = Endpoint.Post(struct
 
   module Arg  = type module < id : Chat.I.t >
@@ -179,7 +176,6 @@ module ChatInfo = type module <
   custom   : Json.t ; 
 >
 
-(* UNTESTED *)
 module Get = Endpoint.Get(struct
 
   module Arg = type module < 
@@ -199,7 +195,6 @@ module Get = Endpoint.Get(struct
 
 end)
 
-(* UNTESTED *)
 module GetAllAs = Endpoint.Get(struct
 
   module Arg = type module unit
