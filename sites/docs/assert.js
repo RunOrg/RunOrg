@@ -2,13 +2,13 @@ var Assert = (function(){
 
     function equal(a,b) {
 	if (typeof a != typeof b) return false;
-	if (typeof a == "object" && Array.isArray(a)) {
+	if (typeof a == "object" && a !== null && Array.isArray(a)) {
 	    if (a.length != b.length) return false;
 	    for (var i = 0; i < a.length; ++i)
 		if (!equal(a[i],b[i])) return false;
 	    return true;
 	}
-	if (typeof a == "object") {
+	if (typeof a == "object" && a !== null && b !== null) {
 	    for (var k in b) 
 		if (b.hasOwnProperty(k) && !a.hasOwnProperty(k)) return false;
 	    for (k in a) {
