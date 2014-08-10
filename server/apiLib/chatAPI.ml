@@ -50,7 +50,6 @@ end)
 (* Updating a chatroom
    =================== *)
 
-(* UNTESTED *)
 module Update = Endpoint.Put(struct
     
   module Arg = type module <
@@ -89,7 +88,6 @@ end)
 (* Deleting a chatroom
    =================== *)
 
-(* UNTESTED *)
 module Delete = Endpoint.Delete(struct
 
   module Arg = type module < id : Chat.I.t >
