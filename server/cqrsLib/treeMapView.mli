@@ -24,7 +24,7 @@ val delete : ('key, 'id, 'value) t -> 'key -> # Common.ctx Run.effect
 
 val exists : ('key, 'id, 'value) t -> 'key -> 'id -> (#Common.ctx, bool) Run.t
 
-val get : ('key, 'id, 'value) t -> 'key -> 'id -> (# Common.ctx, (Time.t * 'value) option) Run.t
+val get : ('key, 'id, 'value) t -> 'key -> 'id -> (# Common.ctx, ('id,'value) node option) Run.t
 
 val stats : ('key, 'id, 'value) t -> 'key -> (#Common.ctx, <
   count : int ;

@@ -79,9 +79,10 @@ let deletePost pid id post =
   let! info = Cqrs.MapView.get View.info id in 
   match info with None -> return (`NotFound id) | Some info -> 
 
-    let! item = Cqrs.TreeMapView.get View.posts id post in
-    match item with None -> return (`PostNotFound (id, post)) | Some (_,item) ->
-
+    let! node = Cqrs.TreeMapView.get View.posts id post in
+    match node with None -> return (`PostNotFound (id, post)) | Some node ->
+      
+      let item = node # value in 
       let required = if Some (item # author) = pid then `View else `Moderate in
       let! access = ChatAccess.compute pid (info # audience) in
       if not (Set.mem `View access) then return (`NotFound id) else

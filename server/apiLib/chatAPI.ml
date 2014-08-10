@@ -233,7 +233,11 @@ end
 
 module Items = Endpoint.Get(struct
 
-  module Arg = type module < id : Chat.I.t >
+  module Arg = type module < 
+    id    : Chat.I.t ; 
+   ?under : Chat.PostI.t option ;   
+  >
+
   module Out = type module <
     posts  : Post.t list ;
     people : PersonAPI.Short.t list ;
@@ -243,13 +247,17 @@ module Items = Endpoint.Get(struct
   let path = "chat/{id}/posts"
 
   let response req arg = 
-    let! result = Chat.list (req # as_) ?limit:(req # limit) ?offset:(req # offset) (arg # id) in
+    let! result = Chat.list 
+      (req # as_) 
+      ?limit:(req # limit) 
+      ?offset:(req # offset) 
+      ?parent:(arg # under) 
+      (arg # id) in
     match result with 
     | `NeedRead info -> return (needRead (info # id))
     | `NotFound id -> return (notFound id)
-    | `OK (info, posts) -> 
+    | `OK (count, posts) -> 
       let  posts  = List.map load_tree  posts in
-      let  count  = match info # root with Some c -> c | None -> List.length posts in 
       let  cids   = List.unique (List.map (#author) posts) in
       let! people = List.M.filter_map Person.get cids in
       return (`OK (Out.make ~posts ~people ~count))

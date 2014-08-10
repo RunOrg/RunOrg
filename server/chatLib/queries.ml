@@ -97,4 +97,13 @@ let list pid ?(depth=1) ?(limit=1000) ?(offset=0) ?parent cid =
       let! list = Cqrs.TreeMapView.list View.posts ~depth ~limit ~offset ?parent cid in 
       let  list = List.map transform list in 
 
-      return (`OK (info, list))
+      let! count = match parent with 
+	| None -> return (Option.default 0 (info # count))
+	| Some id -> 
+
+	  let! node = Cqrs.TreeMapView.get View.posts cid id in
+	  return (match node with None -> 0 | Some node -> node # count) 
+
+      in
+
+      return (`OK (count, list))

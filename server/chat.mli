@@ -99,7 +99,7 @@ val list :
   ?limit:int -> 
   ?offset:int -> 
   ?parent:PostI.t -> 
-   I.t -> (#O.ctx, [ `OK of info * (post list)
+   I.t -> (#O.ctx, [ `OK of int * (post list)
 		   | `NeedRead of info
 		   | `NotFound of I.t ]) Run.t
 

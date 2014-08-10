@@ -68,7 +68,7 @@ let full_get map k i =
   let! ()  = Run.with_context (ctx :> ctx) map.wait in 
   let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
   let! result = Sql.query 
-    ("SELECT \"t\", \"value\", \"p\" FROM \"" 
+    ("SELECT \"t\", \"value\", \"p\", \"count\" FROM \"" 
      ^ dbname 
      ^ "\" WHERE \"db\" = $1 AND \"key\" = $2 AND \"id\" = $3")
     [ `Id (ctx # db) ; `Binary k ; `Binary i ]
@@ -77,15 +77,22 @@ let full_get map k i =
   let found = if Array.length result = 0 then None else
       let parent = Postgresql.unescape_bytea result.(0).(2) in
       let value  = Pack.of_string map.vupack (Postgresql.unescape_bytea result.(0).(1)) in
+      let count  = int_of_string result.(0).(3) in
       match Time.of_compact result.(0).(0) with None -> None | Some time -> 
-	Some (time, parent, value)
+	Some (time, parent, count, value)
   in
   
   Run.return (k, i, ctx # db, dbname, found)
 
 let get map k i = 
   let! _, _, _, _, r = full_get map k i in 
-  return (match r with None -> None | Some (t, _, v) -> Some (t, v))
+  return (match r with None -> None | Some (t, _, c, v) -> Some (object
+    method time    = t 
+    method id      = i
+    method count   = c
+    method value   = v
+    method subtree = []
+  end))
 
 let exists map k i = 
   
@@ -141,12 +148,12 @@ let mupdate map k i f =
   
   let! k, i, db, dbname, found = full_get map k i in 
 
-  let oldp = match found with Some (_,p,_) -> p | None -> "" in
+  let oldp = match found with Some (_,p,_,_) -> p | None -> "" in
 
   let! r = f (match found with 
     | None -> None
-    | Some (a,"",b) -> Some (a,None,b)
-    | Some (a,p,b) -> Some (a,Some (Pack.of_string map.iupack p),b)) in 
+    | Some (a,"",_,b) -> Some (a,None,b)
+    | Some (a,p,_,b) -> Some (a,Some (Pack.of_string map.iupack p),b)) in 
 
   match r with 
   | `Keep -> return () 

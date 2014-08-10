@@ -277,8 +277,8 @@ module TreeMapView : sig
   (** Does an item exist in the specified feed ? *)
   val exists : ('key, 'id, 'value) t -> 'key -> 'id -> (#ctx, bool) Run.t
 
-  (** Get a value from the feed, if it exists. *)
-  val get : ('key, 'id, 'value) t -> 'key -> 'id -> (#ctx, (Time.t * 'value) option) Run.t
+  (** Get a value from the feed, if it exists, not including children. *)
+  val get : ('key, 'id, 'value) t -> 'key -> 'id -> (#ctx, ('id, 'value) node option) Run.t
 
   (** How many items in a tree (both total and root), and when are the first and last elements ? *)
   val stats : ('key, 'id, 'value) t -> 'key -> (#ctx, <

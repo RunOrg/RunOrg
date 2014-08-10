@@ -35,5 +35,5 @@ val list :
   ?parent:PostI.t -> 
   I.t -> (#O.ctx, [ `NeedRead of info 
 		  | `NotFound of I.t 
-		  | `OK of info * post list ]) Run.t
+		  | `OK of int * post list ]) Run.t
 
