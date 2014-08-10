@@ -91,3 +91,14 @@ let deletePost pid id post =
 	  let! clock = Store.append [ Events.postDeleted ~id ~pid ~post ] in
 	  return (`OK clock) 
 	  
+(* Tracking posts 
+   ============== *)
+
+let track pid ?(unsubscribe=false) ?under id = 
+  assert false
+
+let markAsRead pid id posts = 
+  assert false
+
+let garbageCollectTracker pid id = 
+  assert false

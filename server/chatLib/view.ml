@@ -16,6 +16,10 @@ let exists =
     | `ChatCreated ev -> Cqrs.SetView.add exists [ev # id]
     | `ChatDeleted ev -> Cqrs.SetView.remove exists [ev # id] 
     | `ChatUpdated _
+    | `TrackEnabled _
+    | `TrackDisabled _
+    | `MarkedAsRead _
+    | `TrackerGarbageCollected _ 
     | `PostCreated _ 
     | `PostDeleted _ -> return () 
   end in 
@@ -65,6 +69,11 @@ let posts =
 	| None -> `Put (ctx # time, ev # parent, 
 			Item.make ~author:(ev # author) ~body:(ev # body) ~custom: (ev # custom))
 	| Some _ -> `Keep)
+
+    | `TrackEnabled _
+    | `TrackDisabled _
+    | `TrackerGarbageCollected _
+    | `MarkedAsRead _ -> return () 
 
   end in 
 
@@ -133,6 +142,11 @@ let info =
     | `PostCreated ev -> recount (ev # id)
     | `PostDeleted ev -> recount (ev # id)
 
+    | `TrackEnabled _
+    | `TrackDisabled _
+    | `MarkedAsRead _
+    | `TrackerGarbageCollected _ -> return ()
+
   end in 
 
   info
@@ -161,6 +175,10 @@ let byAccess =
       
       ChatAccess.Map.remove byAccess (ev # id)
 
+    | `TrackEnabled _
+    | `TrackDisabled _
+    | `MarkedAsRead _
+    | `TrackerGarbageCollected _ 
     | `PostCreated _ 
     | `PostDeleted _ -> return ()
 

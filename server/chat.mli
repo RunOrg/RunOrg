@@ -73,6 +73,7 @@ type info = <
   access   : Access.Set.t ;
   audience : Access.Audience.t option ; 
   custom   : Json.t ; 
+  track    : bool ; 
 >
 
 (** Get short information about a chatroom. *)
@@ -83,13 +84,14 @@ val all_as : ?limit:int -> ?offset:int -> PId.t option -> (#O.ctx, info list) Ru
 
 (** A post *)
 type post = <
-  id : PostI.t ;
-  author : PId.t ;
-  time : Time.t ;
-  body : String.Rich.t ;
-  custom : Json.t ;
-  count : int ; 
-  sub : post list ; 
+  id       : PostI.t ;
+  author   : PId.t ;
+  time     : Time.t ;
+  body     : String.Rich.t ;
+  custom   : Json.t ;
+  count    : int ; 
+  track    : bool ; 
+  sub      : post list ; 
 >
 
 (** Get posts from a chatroom, in reverse chronological order. *)
@@ -103,3 +105,28 @@ val list :
 		   | `NeedRead of info
 		   | `NotFound of I.t ]) Run.t
 
+(** Subscribe or unsubscribe to a chatroom (or one of its posts). *)
+val track : 
+   PId.t -> 
+  ?unsubscribe:bool -> 
+  ?under:PostI.t -> 
+  I.t -> (#O.ctx, [ `OK 
+		  | `NeedRead of info 
+		  | `PostNotFound of I.t * PostI.t
+		  | `NotFound of I.t ]) Run.t
+
+(** List all unread posts for the specified user. *)
+val unread : PId.t option -> ?limit:int -> ?offset:int -> PId.t -> (#O.ctx, (I.t * PostI.t) list) Run.t
+
+(** Mark a set of posts as read within the specified chatroom.
+    Does nothing for posts that are not currently "unread" or do not exist. *)
+val markAsRead : 
+  PId.t -> 
+  I.t -> 
+  PostI.t list -> (#O.ctx, [ `OK 
+			   | `NotFound of I.t ]) Run.t
+
+(** For internal use: drops all trackers on a chat and all unread posts on that chat.
+    To be used as a last resort to clean up unread posts from a chat that is not visible to 
+    the contact anymore. *)
+val garbageCollectTracker : PId.t -> I.t -> #O.ctx Run.effect

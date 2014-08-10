@@ -14,6 +14,7 @@ type info = <
    subject  : String.Label.t option ;
    access   : ChatAccess.Set.t ;
    custom   : Json.t ; 
+   track    : bool ;
 >
 
 let format_info id access info = object
@@ -25,6 +26,7 @@ let format_info id access info = object
   method audience = if Set.mem `Admin access then Some (info # audience) else None   
   method access   = access
   method custom   = info # custom
+  method track    = false
 end
 
 
@@ -65,6 +67,7 @@ type post = <
   custom : Json.t ; 
   count  : int ; 
   sub    : post list ;
+  track  : bool ; 
 >
 
 let rec transform node = (object
@@ -85,6 +88,8 @@ let rec transform node = (object
 
   val sub = List.map transform (node # subtree)
   method sub = sub
+
+  method track = false
 
 end : post)
 
@@ -107,3 +112,6 @@ let list pid ?(depth=1) ?(limit=1000) ?(offset=0) ?parent cid =
       in
 
       return (`OK (count, list))
+
+let unread pid ?limit ?offset who = 
+  assert false

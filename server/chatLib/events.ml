@@ -34,4 +34,23 @@ include type module
         pid  : PId.t option ; 
         post : PostI.t ; 
       > 
+    | `TrackEnabled of <
+	id   : I.t ;
+        post : PostI.t option ;
+        pid  : PId.t ;
+      >
+    | `TrackDisabled of <
+	id   : I.t ;
+	post : PostI.t option ;
+	pid  : PId.t ; 
+      > 
+    | `MarkedAsRead of <
+	id    : I.t ;
+        posts : PostI.t list ;
+        pid   : PId.t ;    
+      >
+    | `TrackerGarbageCollected of < 
+	id  : I.t ; 
+        pid : PId.t ;
+      >
     ]

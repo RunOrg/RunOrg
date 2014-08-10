@@ -41,3 +41,21 @@ val deletePost :
 		      | `NotFound of I.t 
 		      | `PostNotFound of (I.t * PostI.t) ]) Run.t
 
+val track : 
+   PId.t -> 
+  ?unsubscribe:bool -> 
+  ?under:PostI.t -> 
+  I.t -> (#O.ctx, [ `OK 
+		  | `NeedRead of info 
+		  | `PostNotFound of I.t * PostI.t
+		  | `NotFound of I.t ]) Run.t
+
+val unread : PId.t option -> ?limit:int -> ?offset:int -> PId.t -> (#O.ctx, (I.t * PostI.t) list) Run.t
+
+val markAsRead : 
+  PId.t -> 
+  I.t -> 
+  PostI.t list -> (#O.ctx, [ `OK 
+			   | `NotFound of I.t ]) Run.t
+
+val garbageCollectTracker : PId.t -> I.t -> #O.ctx Run.effect
