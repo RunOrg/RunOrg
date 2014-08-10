@@ -34,11 +34,11 @@ rule block pos = parse
   | "&lt;" { pos ++ "&lt;" ; Text "<" }
   | "&gt;" { pos ++ "&gt;" ; Text ">" }
   | "&quot;" { pos ++ "&quot;" ; Text "\"" }
-  | "</" (['a' - 'z' 'A' - 'Z'] ['a' - 'z' 'A' - 'Z' '0' - '9'] *) as tag '>' 
+  | "</" (['a' - 'z' 'A' - 'Z'] ['a' - 'z' 'A' - 'Z' '0' - '9'] * as tag) '>' 
       { pos ++ ("</" ^ tag ^ ">") ; Close (String.lowercase tag) }
-  | '<'(['a' - 'z' 'A' - 'Z'] ['a' - 'z' 'A' - 'Z' '0' - '9'] *) as tag 
+  | '<'(['a' - 'z' 'A' - 'Z'] ['a' - 'z' 'A' - 'Z' '0' - '9'] * as tag) 
       { pos ++ ("<" ^ tag) ; Open (String.lowercase tag, attrs pos lexbuf) }
-  | '&' ('#' ? ['a' - 'z' 'A' - 'Z' '0' - '9'] *) as entity 
+  | '&' ('#' ? ['a' - 'z' 'A' - 'Z' '0' - '9'] * as entity) 
       { if entity = "" then raise (ParseError (!pos,"Unescaped & found")) 
 	else raise (ParseError (!pos, "Unsupported entity code &" ^ entity ^ ";")) }
   | '<' { raise (ParseError (!pos, "Unescaped < found")) }
@@ -63,7 +63,7 @@ and content buf pos = parse
   | "&lt;" { pos ++ "&lt;" ; Buffer.add_char buf '<' ; content buf pos lexbuf }
   | "&gt;" { pos ++ "&gt;" ; Buffer.add_char buf '>' ; content buf pos lexbuf }
   | "&quot;" { pos ++ "&quot;" ; Buffer.add_char buf '"' ; content buf pos lexbuf }
-  | '&' ('#' ? ['a' - 'z' 'A' - 'Z' '0' - '9'] *) as entity 
+  | '&' ('#' ? ['a' - 'z' 'A' - 'Z' '0' - '9'] * as entity) 
       { if entity = "" then raise (ParseError (!pos, "Unescaped & found")) 
 	else raise (ParseError (!pos, "Unsupported entity code &" ^ entity ^ ";")) }
   | '"' { pos ++ "\"" }
