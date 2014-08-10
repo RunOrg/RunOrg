@@ -11,6 +11,30 @@ TEST("The response has valid return code and content type.", function(Query) {
 
 });
 
+TEST("Delete as (non-moderator) author.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/chat"],{ audience: { write: "anyone" } },auth).id();
+    var peon = Query.auth(db,false,"test+peon@runorg.com");
+    var pid = Query.post(["db/",db,"/chat/",id,"/posts"],{ body: "" }, peon).id();
+    return Query.del(["db/",db,"/chat/",id,"/posts/",pid],peon)
+	.assertStatus(202).assertIsJson();
+
+});
+
+TEST("Delete as moderator.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var id = Query.post(["db/",db,"/chat"],{ audience: { moderate: "anyone" } },auth).id();
+    var pid = Query.post(["db/",db,"/chat/",id,"/posts"],{ body: "" }, auth).id();
+    return Query.del(["db/",db,"/chat/",id,"/posts/",pid])
+	.assertStatus(202).assertIsJson();
+
+});
+
+
 TEST("With single post.", function(Query) {
 
     var db = Query.mkdb();
