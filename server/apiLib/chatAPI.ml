@@ -231,6 +231,17 @@ let rec load_tree post = object
   end
 end
 
+let all_people list = 
+  
+  let rec aux set list = 
+    List.fold_left 
+      (fun set node -> 
+	aux (Set.add (node # author) set) (node # tree # top))
+      set list
+  in
+
+  Set.to_list (aux Set.empty list)
+
 module Items = Endpoint.Get(struct
 
   module Arg = type module < 
@@ -258,7 +269,7 @@ module Items = Endpoint.Get(struct
     | `NotFound id -> return (notFound id)
     | `OK (count, posts) -> 
       let  posts  = List.map load_tree  posts in
-      let  cids   = List.unique (List.map (#author) posts) in
+      let  cids   = all_people posts in
       let! people = List.M.filter_map Person.get cids in
       return (`OK (Out.make ~posts ~people ~count))
 

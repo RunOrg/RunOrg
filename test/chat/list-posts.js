@@ -209,6 +209,60 @@ TEST("With nested posts.", function(Query) {
 
 });
 
+TEST("With nested posts, reading child.", function(Query) {
+
+    var db = Query.mkdb();
+    var auth = Query.auth(db);
+    var auth2 = Query.auth(db,true,"test+2@runorg.com");
+    var id = Query.post(["db/",db,"/chat"],{audience:{}},auth).id();
+    var url = ["db/",db,"/chat/",id,"/posts"];
+
+    var pid1 = Query.post(url,{ body: "Hi" },auth).id();
+
+    var pid2 = pid1.then(function() {
+	return Async.sleep(1000).then(function() { 
+	    return Query.post(url,{ body: "<strong>Hello</strong>" },auth2).id();
+	});
+    });
+
+    var pid3 = pid2.then(function() {
+	return Query.post(url,{ body: "Child", reply: pid1 },auth2).id();
+    });
+
+    return $.when(pid1,pid2,pid3).then(function() {	
+
+	var all = Query.get(url.concat("?under=",pid1),auth).then(function(data) {
+
+	    delete data.posts[0].time;
+	    data.people.sort(function(a,b) { return a.label < b.label ? -1 : 1 });
+
+	    return Assert.areEqual({ 
+		posts: [{
+		    id: pid3,
+		    author: auth2.id,
+		    body: '<p>Child</p>',
+		    tree: { count: 0, top: [] }		    
+		}], 
+		people: [{
+		    id: auth2.id,
+		    label: "test+2@…",
+		    gender: null,
+		    pic: "https://www.gravatar.com/avatar/fcf1ec969e2da183f88f5a6dca0c1d65?d=identicon"
+		}], 
+		count: 1 
+	    }, data);
+	});
+
+	var missing = Query.get(url.concat("?under=",pid2),auth).then(function(data) {
+	    return Assert.areEqual({ posts: [], people: [], count: 0 }, data);
+	});
+
+	return $.when(all, missing);
+
+    });
+
+});
+
 TEST("Returns 404 when database does not exist.", function(Query) {
     return Query.get(["db/00000000000/chat/00000000001/posts"]).assertStatus(404);
 });
