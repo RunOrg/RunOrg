@@ -143,13 +143,12 @@ end)
 (* Deleting a post from a chatroom
    =============================== *)
 
-(* UNTESTED *)
 module DeletePost = Endpoint.Delete(struct
 
   module Arg = type module < id : Chat.I.t ; post : Chat.PostI.t >
   module Out = type module < at : Cqrs.Clock.t >
       
-  let path = "chat/{id}/posts/{item}"
+  let path = "chat/{id}/posts/{post}"
 
   let response req arg = 
     let! result = Chat.deletePost (req # as_) (arg # id) (arg # post) in
