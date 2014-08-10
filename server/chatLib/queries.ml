@@ -8,6 +8,7 @@ open Std
 type info = <
    id       : I.t ; 
    count    : int option ;
+   root     : int option ; 
    last     : Time.t option ;
    audience : ChatAccess.Audience.t option ;
    subject  : String.Label.t option ;
@@ -18,6 +19,7 @@ type info = <
 let format_info id access info = object
   method id       = id 
   method count    = if Set.mem `Read access then Some (info # count) else None
+  method root     = if Set.mem `Read access then Some (info # root) else None
   method last     = if Set.mem `Read access then Some (info # last) else None
   method subject  = info # subject
   method audience = if Set.mem `Admin access then Some (info # audience) else None   

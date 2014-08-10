@@ -190,8 +190,8 @@ module Get = Endpoint.Get(struct
 
   let response req arg = 
     let! info = Chat.get (req # as_) (arg # id) in 
-    match info with None -> return (notFound (arg # id)) | Some (info : ChatInfo.t) -> 
-      return (`OK (Out.make ~info))
+    match info with None -> return (notFound (arg # id)) | Some info -> 
+      return (`OK (Out.make ~info:(info :> ChatInfo.t)))
 
 end)
 
@@ -208,7 +208,7 @@ module GetAllAs = Endpoint.Get(struct
     let  limit  = Option.default 100 (req # limit) in
     let  offset = Option.default 0 (req # offset) in
     let! list = Chat.all_as ~limit ~offset (req # as_) in
-    return (`OK (Out.make ~list))
+    return (`OK (Out.make ~list:(list :> ChatInfo.t list)))
 
 end)
 
@@ -234,7 +234,6 @@ let rec load_tree post = object
   end
 end
 
-(* UNTESTED *)
 module Items = Endpoint.Get(struct
 
   module Arg = type module < id : Chat.I.t >
@@ -253,7 +252,7 @@ module Items = Endpoint.Get(struct
     | `NotFound id -> return (notFound id)
     | `OK (info, posts) -> 
       let  posts  = List.map load_tree  posts in
-      let  count  = match info # count with Some c -> c | None -> List.length posts in 
+      let  count  = match info # root with Some c -> c | None -> List.length posts in 
       let  cids   = List.unique (List.map (#author) posts) in
       let! people = List.M.filter_map Person.get cids in
       return (`OK (Out.make ~posts ~people ~count))

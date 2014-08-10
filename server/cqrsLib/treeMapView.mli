@@ -28,6 +28,7 @@ val get : ('key, 'id, 'value) t -> 'key -> 'id -> (# Common.ctx, (Time.t * 'valu
 
 val stats : ('key, 'id, 'value) t -> 'key -> (#Common.ctx, <
   count : int ;
+  root  : int ;
   first : Time.t option ;
   last  : Time.t option ;
 >) Run.t

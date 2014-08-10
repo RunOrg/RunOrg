@@ -280,13 +280,13 @@ module TreeMapView : sig
   (** Get a value from the feed, if it exists. *)
   val get : ('key, 'id, 'value) t -> 'key -> 'id -> (#ctx, (Time.t * 'value) option) Run.t
 
-  (** How many items in a feed, and when are the first and last elements ? *)
+  (** How many items in a tree (both total and root), and when are the first and last elements ? *)
   val stats : ('key, 'id, 'value) t -> 'key -> (#ctx, <
       count : int ;
+      root  : int ;
       first : Time.t option ;
       last  : Time.t option ;
     >) Run.t
-
 
   (** List elements in a tree, in reverse chronological order (latest first). 
       Retrieves an additional 'depth' layers, where each layer consists of the

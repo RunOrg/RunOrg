@@ -75,6 +75,7 @@ let posts =
 
 module Info = type module <
   count    : int ;
+  root     : int ; 
   last     : Time.t ; 
   subject  : String.Label.t option ; 
   audience : ChatAccess.Audience.t ; 
@@ -100,6 +101,7 @@ let info =
 	(Info.make 
 	   ~subject:(info#subject) 
 	   ~count:(stats#count) 
+	   ~root:(stats#root)
 	   ~audience:(info#audience)
 	   ~custom:(info#custom)
 	   ~last:(max (info#last) time)))
@@ -110,8 +112,8 @@ let info =
     | `ChatCreated ev ->
       let! time = time () in 
       Cqrs.MapView.update info (ev # id) (function 
-        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~audience:(ev#audience) ~last:time
-			  ~custom:(ev#custom))
+        | None -> `Put (Info.make ~subject:(ev#subject) ~count:0 ~root:0
+			  ~audience:(ev#audience) ~last:time ~custom:(ev#custom))
 	| Some _ -> `Keep)
 
     | `ChatUpdated ev ->
@@ -122,7 +124,8 @@ let info =
 			      ~audience:(Change.apply (ev # audience) (old # audience))
 			      ~custom:(Change.apply (ev # custom) (old # custom))
 			      ~last:(old # last)
-			      ~count:(old # count)))
+			      ~count:(old # count)
+			      ~root:(old # root)))
 
     | `ChatDeleted ev -> 
       Cqrs.MapView.update info (ev # id) (function None -> `Keep | Some _ -> `Delete) 

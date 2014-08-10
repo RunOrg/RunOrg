@@ -67,6 +67,7 @@ val deletePost :
 type info = <
   id       : I.t ; 
   count    : int option ;
+  root     : int option ; 
   last     : Time.t option ; 
   subject  : String.Label.t option ; 
   access   : Access.Set.t ;

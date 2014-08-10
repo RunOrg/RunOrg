@@ -222,8 +222,16 @@ let stats map k =
       Time.of_compact result.(0).(1), Time.of_compact result.(0).(2)
   in
 
+  let! result = Sql.query 
+    ("SELECT COUNT(*) FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1 AND \"key\" = $2 AND \"p\" = $3")
+    [ `Id (ctx # db) ; `Binary k ; `Binary "" ]
+  in
+  
+  let root = int_of_string result.(0).(0) in
+
   return (object
     method count = count
+    method root  = root
     method first = first
     method last  = last 
   end)
