@@ -194,6 +194,36 @@ module SetView : sig
 
 end
 
+(** A map of sets of keys. *)
+module SetMapView : sig
+
+  (** A persistent set. *)
+  type ('key,'value) t
+
+  (** Create a set from a key type and value type, which must both support packing. 
+      A map always has a name and is placed inside a projection. *)
+  val make : Projection.t -> string -> int ->
+    (module Fmt.FMT with type t = 'key) ->
+    (module Fmt.FMT with type t = 'value) ->
+    Projection.view * ('key,'value) t
+      
+  (** Add elements to a set. Nothing happens to elements already in the set. *)
+  val add : ('key,'value) t -> 'key -> 'value list -> # ctx Run.effect
+
+  (** Removes elements from a set. Nothing happens to elements not in the set. *)
+  val remove : ('key,'value) t -> 'key -> 'value list -> # ctx Run.effect
+
+  (** Removes all elements with a certain key. *)
+  val delete : ('key,'value) t -> 'key -> # ctx Run.effect
+
+  (** Determines whether an element exists in the set. *)
+  val exists : ('key,'value) t -> 'key -> 'value -> (#ctx, bool) Run.t
+
+  (** Determines which values within the specified list appear in the set. *)
+  val intersect: ('key,'value) t -> 'key -> 'value list -> (#ctx, 'value list) Run.t
+
+end
+
 (** Feed-maps bind time-sorted lists of values to keys. *)
 module FeedMapView : sig
 

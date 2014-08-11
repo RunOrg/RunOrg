@@ -11,6 +11,7 @@ module Projection = CqrsLib.Projection
 module Result = CqrsLib.Result
 module Running = CqrsLib.Running
 module SearchView = CqrsLib.SearchView
+module SetMapView = CqrsLib.SetMapView
 module SetView = CqrsLib.SetView
 module Sql = CqrsLib.Sql
 module StatusView = CqrsLib.StatusView
