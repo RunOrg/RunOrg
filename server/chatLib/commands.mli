@@ -46,11 +46,9 @@ val track :
   ?unsubscribe:bool -> 
   ?under:PostI.t -> 
   I.t -> (#O.ctx, [ `OK 
-		  | `NeedRead of info 
+		  | `NeedRead of I.t 
 		  | `PostNotFound of I.t * PostI.t
 		  | `NotFound of I.t ]) Run.t
-
-val unread : PId.t option -> ?limit:int -> ?offset:int -> PId.t -> (#O.ctx, (I.t * PostI.t) list) Run.t
 
 val markAsRead : 
   PId.t -> 

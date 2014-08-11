@@ -111,7 +111,7 @@ val track :
   ?unsubscribe:bool -> 
   ?under:PostI.t -> 
   I.t -> (#O.ctx, [ `OK 
-		  | `NeedRead of info 
+		  | `NeedRead of I.t 
 		  | `PostNotFound of I.t * PostI.t
 		  | `NotFound of I.t ]) Run.t
 
