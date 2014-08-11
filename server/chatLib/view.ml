@@ -185,3 +185,67 @@ let byAccess =
   end in
   
   byAccess
+
+(* Tracking 
+   ======== *)
+
+module PostOpt = type module (PostI.t option) 
+
+let trackers =
+ 
+  let trackersV, trackers = Cqrs.TripleSetView.make projection "trackers" 0 
+    (module I : Fmt.FMT with type t = I.t)
+    (module PostOpt : Fmt.FMT with type t = PostOpt.t)
+    (module PId : Fmt.FMT with type t = PId.t)
+  in 
+
+  let () = Store.track trackersV begin function
+
+    | `ChatCreated _
+    | `ChatUpdated _ 
+    | `PostCreated _ 
+    | `MarkedAsRead _ -> return () 
+
+    | `ChatDeleted ev -> Cqrs.TripleSetView.delete trackers (ev # id)
+    | `PostDeleted ev -> Cqrs.TripleSetView.delete2 trackers (ev # id) (Some (ev # post))
+
+    | `TrackEnabled ev -> Cqrs.TripleSetView.add trackers (ev # id) (ev # post) [ev # pid]
+    | `TrackDisabled ev -> Cqrs.TripleSetView.remove trackers (ev # id) (ev # post) [ev # pid]
+
+    | `TrackerGarbageCollected ev -> 
+
+      Cqrs.TripleSetView.(delete2 (flipBC trackers) (ev # id) (ev # pid))
+      
+  end in
+  
+  trackers
+
+
+let unread = 
+  
+  let unreadV, unread = Cqrs.TripleSetView.make projection "unread" 0
+    (module I : Fmt.FMT with type t = I.t)
+    (module PostI : Fmt.FMT with type t = PostI.t) 
+    (module PId : Fmt.FMT with type t = PId.t)
+  in
+
+  let () = Store.track unreadV begin function 
+
+    | `ChatCreated _ 
+    | `ChatUpdated _ -> return () 
+
+    | `PostCreated ev -> 
+
+      let! people = Cqrs.TripleSetView.all2 trackers (ev # id) (ev # parent) in
+      Cqrs.TripleSetView.add unread (ev # id) (ev # post) people
+      
+    | `ChatDeleted  ev -> Cqrs.TripleSetView.delete unread (ev # id) 
+    | `PostDeleted  ev -> Cqrs.TripleSetView.delete2 unread (ev # id) (ev # post)
+    | `MarkedAsRead ev -> Cqrs.TripleSetView.(remove (flipBC unread) (ev # id) (ev # pid) (ev # posts))
+    | `TrackDisabled ev -> return ()
+    | `TrackEnabled  ev -> return ()
+    | `TrackerGarbageCollected ev -> Cqrs.TripleSetView.(delete2 (flipBC unread) (ev # id) (ev # pid))
+
+  end in 
+
+  unread 

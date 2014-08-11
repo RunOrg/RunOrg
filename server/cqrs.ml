@@ -16,6 +16,7 @@ module SetView = CqrsLib.SetView
 module Sql = CqrsLib.Sql
 module StatusView = CqrsLib.StatusView
 module TreeMapView = CqrsLib.TreeMapView
+module TripleSetView = CqrsLib.TripleSetView
 
 let using config mkctx thread = 
   Sql.using config mkctx thread

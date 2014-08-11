@@ -224,6 +224,50 @@ module SetMapView : sig
 
 end
 
+(** A set of triples. *)
+module TripleSetView : sig
+
+  (** A persistent set of triples. *)
+  type ('a,'b,'c) t
+
+  (** Create a 3-set from three types which must all support packing. 
+      A map always has a name and is placed inside a projection. *)
+  val make : Projection.t -> string -> int ->
+    (module Fmt.FMT with type t = 'a) ->
+    (module Fmt.FMT with type t = 'b) ->
+    (module Fmt.FMT with type t = 'c) ->
+    Projection.view * ('a,'b,'c) t
+      
+  (** Flips the 'B' and 'C' coordinates of the set. *)
+  val flipBC : ('a,'b,'c) t -> ('a,'c,'b) t
+
+  (** Flips the 'A' and 'B' coordinates of the set. *)
+  val flipAB : ('a,'b,'c) t -> ('b,'a,'c) t
+
+  (** Add elements to a 3-set. Nothing happens to elements already in the set. *)
+  val add : ('a,'b,'c) t -> 'a -> 'b -> 'c list -> # ctx Run.effect
+
+  (** Removes elements from a 3-set. Nothing happens to elements not in the set. *)
+  val remove : ('a,'b,'c) t -> 'a -> 'b -> 'c list -> # ctx Run.effect
+
+  (** Removes all elements with a certain 'A' key. *)
+  val delete : ('a,'b,'c) t -> 'a -> # ctx Run.effect
+
+  (** Removes all elements with a certain 'A' and 'B' key pair. *)
+  val delete2 : ('a,'b,'c) t -> 'a -> 'b -> # ctx Run.effect
+
+  (** Returns all 'C' values for the provided 'A' and 'B' key pair *)
+  val all2 : ('a,'b,'c) t -> ?limit:int -> ?offset:int -> 'a -> 'b -> (#ctx, 'c list) Run.t
+
+  (** Returns all 'B' and 'C' value pairs for the provided 'A' key. *)
+  val all : ('a,'b,'c) t -> ?limit:int -> ?offset:int -> 'a -> (#ctx, ('b * 'c) list) Run.t
+
+  (** Returns all triples in the input list that are members of the 3-set. *)
+  val intersect : ('a,'b,'c) t -> 'a -> 'b -> 'c list -> (#ctx, 'c list) Run.t
+
+end
+
+
 (** Feed-maps bind time-sorted lists of values to keys. *)
 module FeedMapView : sig
 
