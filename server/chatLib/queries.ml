@@ -17,7 +17,7 @@ type info = <
    track    : bool ;
 >
 
-let format_info id access info = object
+let format_info id access track info = object
   method id       = id 
   method count    = if Set.mem `Read access then Some (info # count) else None
   method root     = if Set.mem `Read access then Some (info # root) else None
@@ -26,9 +26,13 @@ let format_info id access info = object
   method audience = if Set.mem `Admin access then Some (info # audience) else None   
   method access   = access
   method custom   = info # custom
-  method track    = false
+  method track    = track
 end
 
+let tracked pid cid = 
+  match pid with None -> return false | Some pid ->
+    let! list = Cqrs.TripleSetView.intersect View.trackers cid None [pid] in
+    return (list <> []) 
 
 let get pid cid = 
   let! info = Cqrs.MapView.get View.info cid in 
@@ -37,7 +41,8 @@ let get pid cid =
     let! access = ChatAccess.compute pid (info # audience) in 
     if not (Set.mem `View access) then return None else
 
-      return (Some (format_info cid access info))
+      let! tracked = tracked pid cid in
+      return (Some (format_info cid access tracked info))
 
 let get_many pid cids = 
   let compute = ChatAccess.compute pid in 
@@ -46,7 +51,8 @@ let get_many pid cids =
     match info with None -> return None | Some info ->
       let! access = compute (info # audience) in
       if not (Set.mem `View access) then return None else
-	return (Some (format_info cid access info))
+	let! tracked = tracked pid cid in
+	return (Some (format_info cid access tracked info))
   end cids
 
 (* Reading multiple chatrooms 
@@ -70,7 +76,7 @@ type post = <
   track  : bool ; 
 >
 
-let rec transform node = (object
+let rec transform set node = (object
 
   val id = node # id
   method id = id
@@ -86,10 +92,11 @@ let rec transform node = (object
   val count = node # count
   method count = count 
 
-  val sub = List.map transform (node # subtree)
+  val sub = List.map (transform set) (node # subtree)
   method sub = sub
 
-  method track = false
+  val track = Set.mem (Some (node # id)) set
+  method track = track
 
 end : post)
 
@@ -100,7 +107,14 @@ let list pid ?(depth=1) ?(limit=1000) ?(offset=0) ?parent cid =
     if not (Set.mem `Read (info # access)) then return (`NeedRead info) else
 
       let! list = Cqrs.TreeMapView.list View.posts ~depth ~limit ~offset ?parent cid in 
-      let  list = List.map transform list in 
+
+      let! track = match pid with None -> return Set.empty | Some pid -> 
+	let  list = List.map (fun node -> Some (node # id)) list in 
+	let! list = Cqrs.TripleSetView.(intersect (flipBC View.trackers) cid pid list) in
+	return (Set.of_list list)
+      in
+
+      let  list = List.map (transform track) list in 
 
       let! count = match parent with 
 	| None -> return (Option.default 0 (info # root))
