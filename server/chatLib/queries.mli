@@ -60,7 +60,6 @@ val unread :
 val unreaders : 
   PId.t option ->
   ?limit:int ->
-  ?offset:int ->
   I.t ->
   PostI.t -> (#O.ctx as 'ctx, [ `NeedAccess of Id.t 
 			      | `NotFound of I.t

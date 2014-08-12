@@ -376,7 +376,7 @@ module Unreaders = Endpoint.Get(struct
     `Forbidden (!! "Not allowed to view non-readers in database %S." (Id.to_string id)) 
 
   let response req arg = 
-    let! result = Chat.unreaders (req # as_) ?limit:(req # limit) ?offset:(req # offset) 
+    let! result = Chat.unreaders (req # as_) ?limit:(req # limit) 
       (arg # id) (arg # post) in
     match result with 
     | `NeedAccess         id  -> return (needAccess id)

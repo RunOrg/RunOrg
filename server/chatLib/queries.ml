@@ -247,7 +247,7 @@ let unread pid ?(limit=10) ?(offset=0) who =
 (* Who is allowed to query unreaders *)
 let unreaders_audience = Audience.admin
 
-let unreaders pid ?(limit=1000) ?(offset=0) id post = 
+let unreaders pid ?(limit=1000) id post = 
   
   let! allowed = Audience.is_member pid unreaders_audience in 
   if not allowed then
@@ -263,7 +263,7 @@ let unreaders pid ?(limit=1000) ?(offset=0) id post =
 
 	let rec read personCache count = 
 	  
-	  let! list = Cqrs.TripleSetView.all2 View.unread ~limit:count ~offset id post in
+	  let! list = Cqrs.TripleSetView.all2 View.unread ~limit:count ~offset:0 id post in
 	  
 	  let rec process personCache found = function 
 	    | [] -> return (personCache, found) 
