@@ -354,3 +354,35 @@ module MarkAsRead = Endpoint.Post(struct
       | `NotFound id -> return (notFound id)
 
 end)
+
+(* View people who have not read tracked post
+   ========================================== *)
+
+(* UNTESTED *)
+module Unreaders = Endpoint.Get(struct
+
+  module Arg = type module < 
+    id   : Chat.I.t ;
+    post : Chat.PostI.t ;
+  >
+
+  module Out = type module <
+    list : PId.t list ;
+  >
+
+  let path = "chat/{id}/posts/{post}/unread"
+
+  let needAccess id = 
+    `Forbidden (!! "Not allowed to view non-readers in database %S." (Id.to_string id)) 
+
+  let response req arg = 
+    let! result = Chat.unreaders (req # as_) ?limit:(req # limit) ?offset:(req # offset) 
+      (arg # id) (arg # post) in
+    match result with 
+    | `NeedAccess         id  -> return (needAccess id)
+    | `NotFound           id  -> return (notFound id)
+    | `PostNotFound (id,post) -> return (postNotFound id post)
+    | `OK             result  -> let! () = result # erase in
+				 return (`OK (Out.make ~list:(result#list)))
+
+end)
