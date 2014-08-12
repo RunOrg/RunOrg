@@ -113,5 +113,116 @@ let list pid ?(depth=1) ?(limit=1000) ?(offset=0) ?parent cid =
 
       return (`OK (count, list))
 
-let unread pid ?limit ?offset who = 
-  assert false
+(* List unread posts for user
+   ========================== *)
+
+type unread = <
+  chat   : I.t ;
+  id     : PostI.t ;
+  author : PId.t ;
+  time   : Time.t ;
+  body   : String.Rich.t ;
+  custom : Json.t ; 
+  count  : int ; 
+>
+
+let to_unread chat node = (object
+
+  val chat = chat
+  method chat = chat
+
+  val id = node # id
+  method id = id
+
+  val time = node # time
+  method time = time
+
+  val data = node # value
+  method author = data # author
+  method body = data # body
+  method custom = data # custom 
+
+  val count = node # count
+  method count = count 
+
+end : unread) 
+
+let unread pid ?(limit=10) ?(offset=0) who = 
+
+  let! allowed = match pid with 
+    | None -> return false
+    | Some id when id = who -> return true
+    | Some _ -> Audience.is_member pid Audience.admin in
+
+  if not allowed then 
+    let! ctx = Run.context in
+    return (`NeedAccess (ctx # db))
+  else
+
+    let unread : (PId.t, I.t, PostI.t) Cqrs.TripleSetView.t = 
+      Cqrs.TripleSetView.(View.unread |> flipBC |> flipAB) in
+
+    let rec read chatCache postCache count =
+      
+      let! list = Cqrs.TripleSetView.all unread ~limit:count ~offset who in
+      
+      let rec process chatCache postCache found = function 
+	| [] -> return (chatCache,postCache,found) 
+	| (id,post) :: tail -> 
+	
+	  if found >= limit then return (chatCache,postCache,found) else 
+
+	    let! allowed, chatCache = 
+	      try return (Map.find id chatCache, chatCache) with Not_found ->
+		let! allowed = 
+		  let! info = Cqrs.MapView.get View.info id in 
+		  match info with None -> return false | Some info -> 
+		    let! access = ChatAccess.compute pid (info # audience) in 
+		    return (Set.mem `Read access) 
+		in
+		return (allowed, Map.add id allowed chatCache) 
+	    in
+	    
+	    if not allowed then process chatCache postCache found tail else
+	      
+	      let! info, postCache = 
+		try return (Map.find (id,post) postCache, postCache) with Not_found -> 
+		  let! info = 
+		    let! node = Cqrs.TreeMapView.get View.posts id post in
+		    match node with None -> return None | Some node -> 
+		      return (Some (to_unread id node))
+		  in
+		  return (info, Map.add (id,post) info postCache)
+	      in
+
+	      process chatCache postCache (if info = None then found else (found + 1)) tail 
+
+      in
+
+      let! chatCache, postCache, found = process chatCache postCache 0 list in 
+
+      if found < limit && count < limit * 8 then 
+	read chatCache postCache (count * 2) 
+      else
+	
+	let badChat = Map.to_list chatCache |> List.filter (fun (_,allowed) -> not allowed) |> List.map fst in
+	let badPost = Map.to_list postCache |> List.filter (fun (_,d) -> d = None) |> List.map fst in
+	let list = List.filter_map (fun k -> try Map.find k postCache with Not_found -> None) list in
+	
+	return (list, badChat, badPost)
+	
+    in
+
+    let! list, badChat, badPost = read Map.empty Map.empty limit in
+
+    return (`OK (object
+      method list  = list 
+      method erase = 
+	let events = 
+	  List.map (fun id -> Events.trackerGarbageCollected ~id ~pid:who) badChat
+	  @ List.map (fun (id,post) -> Events.markedAsRead ~id ~posts:[post] ~pid:who) badPost
+	in
+	if events = [] then return () else
+	  let! _ = Store.append events in 
+	  return () 
+    end))

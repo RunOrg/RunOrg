@@ -39,4 +39,20 @@ val list :
 		  | `NotFound of I.t 
 		  | `OK of int * post list ]) Run.t
 
-val unread : PId.t option -> ?limit:int -> ?offset:int -> PId.t -> (#O.ctx, (I.t * PostI.t) list) Run.t
+type unread = <
+  chat   : I.t ;
+  id     : PostI.t ;
+  author : PId.t ;
+  time   : Time.t ;
+  body   : String.Rich.t ;
+  custom : Json.t ; 
+  count  : int ; 
+>
+
+val unread : 
+  PId.t option -> 
+  ?limit:int -> 
+  ?offset:int -> 
+  PId.t -> 
+  (#O.ctx as 'ctx, [ `NeedAccess of Id.t 
+		   | `OK of < list : unread list ; erase : 'ctx Run.effect > ]) Run.t

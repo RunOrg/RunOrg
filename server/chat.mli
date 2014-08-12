@@ -115,9 +115,25 @@ val track :
 		  | `PostNotFound of I.t * PostI.t
 		  | `NotFound of I.t ]) Run.t
 
-(** List all unread posts for the specified user. *)
-val unread : PId.t option -> ?limit:int -> ?offset:int -> PId.t -> (#O.ctx, (I.t * PostI.t) list) Run.t
+(** An unread post (less information that normal post) *)
+type unread = <
+  chat   : I.t ;
+  id     : PostI.t ;
+  author : PId.t ;
+  time   : Time.t ;
+  body   : String.Rich.t ;
+  custom : Json.t ; 
+  count  : int ; 
+>
 
+(** List all unread posts for the specified user. *)
+val unread : 
+  PId.t option -> 
+  ?limit:int -> 
+  ?offset:int -> 
+  PId.t -> (#O.ctx as 'ctx, [ `NeedAccess of Id.t
+			    | `OK of < list : unread list ; erase : 'ctx Run.effect > ]) Run.t
+  
 (** Mark a set of posts as read within the specified chatroom.
     Does nothing for posts that are not currently "unread" or do not exist. *)
 val markAsRead : 
