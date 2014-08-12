@@ -35,6 +35,7 @@ TEST("With single post.", function(Query) {
 		    author: auth.id,
 		    body: "<p>Hi</p>",
 		    tree: { count: 0, top: [] },
+		    track: false
 		}], 
 		people: [{
 		    id: auth.id,
@@ -67,11 +68,13 @@ TEST("With two posts, single author.", function(Query) {
 			    author: auth.id,
 			    body: "<p><strong>Hello</strong></p>",
 			    tree: { count: 0, top: [] },
+			    track: false
 			},{
 			    id: pid1,
 			    author: auth.id,
 			    body: "<p>Hi</p>",
 			    tree: { count: 0, top: [] },
+			    track: false
 			}], 
 			people: [{
 			    id: auth.id,
@@ -122,15 +125,18 @@ TEST("With nested posts.", function(Query) {
 		    id: pid2,
 		    author: auth2.id,
 		    body: "<p><strong>Hello</strong></p>",
+		    track: false,
 		    tree: { count: 0, top: [] }
 		},{
 		    id: pid1,
 		    author: auth.id,
 		    body: "<p>Hi</p>",
+		    track: false,
 		    tree: { count: 1, top: [ {
 			id: pid3,
 			author: auth2.id,
 			body: '<p>Child</p>',
+			track: false,
 			tree: { count: 0, top: [] }
 		    } ] }
 		}], 
@@ -158,6 +164,7 @@ TEST("With nested posts.", function(Query) {
 		    id: pid2,
 		    author: auth2.id,
 		    body: "<p><strong>Hello</strong></p>",
+		    track: false,
 		    tree: { count: 0, top: [] }
 		}], 
 		people: [{
@@ -181,10 +188,12 @@ TEST("With nested posts.", function(Query) {
 		    id: pid1,
 		    author: auth.id,
 		    body: "<p>Hi</p>",
+		    track: false,
 		    tree: { count: 1, top: [ {
 			id: pid3,
 			author: auth2.id,
 			body: '<p>Child</p>',
+			track: false,
 			tree: { count: 0, top: [] }
 		    } ] }
 		}], 
@@ -241,6 +250,7 @@ TEST("With nested posts, reading child.", function(Query) {
 		    id: pid3,
 		    author: auth2.id,
 		    body: '<p>Child</p>',
+		    track: false,
 		    tree: { count: 0, top: [] }		    
 		}], 
 		people: [{

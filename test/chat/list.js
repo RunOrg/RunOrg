@@ -33,6 +33,7 @@ TEST("Returns correct data as admin.", function(Query) {
 	    var expected = $.extend({
 		id: id,
 		count: 0,
+		track: false,
 		access: [ "view","read","admin","moderate","write" ]	   
 	    }, created);
 	    
@@ -61,6 +62,7 @@ TEST("Returns correct data as reader.", function(Query) {
 	    var expected = $.extend({
 		id: id,
 		count: 0,
+		track: false,
 		access: [ "view","read" ]	   
 	    }, created);
 	    
@@ -90,6 +92,7 @@ TEST("Returns correct data as viewer.", function(Query) {
 	    var expected = $.extend({
 		id: id,
 		count: null,
+		track: false,
 		access: [ "view" ]	   
 	    }, created);
 	    

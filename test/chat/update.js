@@ -24,6 +24,7 @@ TEST("Updates all data.", function(Query) {
     var updated = {
 	subject: null,
 	custom: { b: false },
+	track: false,
 	audience: { moderate: "anyone" }
     };
  
@@ -65,6 +66,7 @@ TEST("Partial data update.", function(Query) {
 	    var expected = $.extend({
 		id: id,
 		count: 0,
+		track: false,
 		access: [ "view","read","admin","moderate","write" ]	   
 	    }, created);
 	    

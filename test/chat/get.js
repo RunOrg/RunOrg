@@ -25,7 +25,8 @@ TEST("Returns correct data as admin.", function(Query) {
 	var expected = $.extend({
 	    id: id,
 	    count: 0,
-	    access: [ "view","read","admin","moderate","write" ]	   
+	    track: false,
+	    access: [ "view","read","admin","moderate","write" ]
 	}, created);
 	
 	delete value.info.last;
@@ -52,6 +53,7 @@ TEST("Returns correct data as moderator.", function(Query) {
 	var expected = $.extend({
 	    id: id,
 	    count: 0,
+	    track: false,
 	    access: [ "view","read","moderate","write" ]	   
 	}, created);
 
@@ -81,6 +83,7 @@ TEST("Returns correct data as viewer.", function(Query) {
 
 	var expected = $.extend({
 	    id: id,
+	    track: false,
 	    count: null, // Not available to non-readers
 	    access: [ "view" ]	   
 	}, created);

@@ -171,6 +171,7 @@ module ChatInfo = type module <
   access   : Chat.Access.Set.t ; 
   audience : Chat.Access.Audience.t option ;  
   custom   : Json.t ; 
+  track    : bool ;
 >
 
 module Get = Endpoint.Get(struct
@@ -217,6 +218,7 @@ module Post = type module <
   author : PId.t ;
   time   : Time.t ; 
   body   : String.Rich.t ;
+  track  : bool ; 
   tree   : < count : int ; top : t list > ;
 >
 
@@ -225,6 +227,7 @@ let rec load_tree post = object
   method author = post # author
   method time   = post # time
   method body   = post # body 
+  method track  = post # track 
   method tree   = object
     method count = post # count
     method top   = List.map load_tree (post # sub) 
