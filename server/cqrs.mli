@@ -375,7 +375,15 @@ module TreeMapView : sig
     ?parent:'id -> 
     'key ->
     (#ctx, ('id,'value) node list) Run.t
-      
+
+  (** Lists elements in chronological order across all trees in the current 
+      database, starting with the oldest. *)
+  val ticker :     
+    ?limit:int ->
+    ?since:('key * 'id) -> 
+    ('key, 'id, 'value) t -> 
+    (#ctx, ('key * 'id * Time.t) list) Run.t
+
 end
 
 

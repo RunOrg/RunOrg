@@ -41,3 +41,9 @@ val list :
   ?parent:'id -> 
   'key ->
   (#Common.ctx, ('id,'value) node list) Run.t
+
+val ticker :     
+  ?limit:int ->
+  ?since:('key * 'id) -> 
+  ('key, 'id, 'value) t -> 
+  (#Common.ctx, ('key * 'id * Time.t) list) Run.t

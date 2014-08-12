@@ -116,7 +116,7 @@ let recount map db dbname k i =
   if i = "" then return () else 
     Sql.command 
       ("UPDATE \"" ^ dbname ^ "\" SET \"count\" = sub.c " 
-       ^ "FROM (SELECT COUNT(*) AS c FROM \"" ^ dbname ^"\""
+       ^ "FROM (SELECT COUNT(*) AS c FROM \"" ^ dbname ^ "\""
        ^ "  WHERE \"db\" = $1 AND \"key\" = $2 AND \"p\" = $3) sub "
        ^ "WHERE \"db\" = $1 AND \"key\" = $2 AND \"id\" = $3 AND sub.c <> \"count\"")
       [ `Id db ; `Binary k ; `Binary i ]
@@ -312,3 +312,49 @@ let list map ?(depth=0) ?(limit=1000) ?(offset=0) ?parent k =
     [match p with None -> "" | Some p -> p] in
 
   return (build map byParent p) 
+
+(* Extracting chronological values
+   =============================== *)
+    
+let ticker ?(limit=1000) ?since map = 
+
+  let! ctx = Run.context in 
+  let! ()  = Run.with_context (ctx :> ctx) map.wait in 
+  let! dbname = Run.with_context (ctx :> ctx) map.dbname in 
+
+  (* Find out the time value based on the (key,id) pair, directly build the serialized 
+     set of arguments. *)
+
+  let! since = match since with None -> return None | Some (key,id) ->
+
+    let  args = [ `Id (ctx # db) ;
+		  `Binary (Pack.to_string map.kpack key) ;
+		  `Binary (Pack.to_string map.ipack id) ] in
+
+    let! result = Sql.query 
+      ("SELECT \"t\" FROM \""^dbname^"\" WHERE \"db\" = $1 AND \"id\" = $2") 
+      args in
+    
+    return (if Array.length result = 0 then None else Some (args @ [ `String result.(0).(0) ]))
+  
+  in
+
+  (* The actual query. *)
+
+  let query = 
+    "SELECT \"key\", \"id\", \"t\" FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1" 
+    ^ (if since = None then "" else " AND ROW(\"t\",\"id\",\"key\") > ROW($4,$3,$2)") 
+    ^ "ORDER BY \"t\", \"id\", \"key\" LIMIT " ^ string_of_int limit 
+  in
+
+  let args = match since with None -> [ `Id (ctx # db) ] | Some sort -> sort in
+
+  let! result = Sql.query query args in
+
+  return 
+    (List.map 
+       (fun a -> 
+	 Pack.of_string map.kupack (Postgresql.unescape_bytea a.(0)),
+	 Pack.of_string map.iupack (Postgresql.unescape_bytea a.(1)),
+	 Option.default (ctx # time) (Time.of_compact a.(2)))
+       (Array.to_list result))
