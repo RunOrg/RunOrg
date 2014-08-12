@@ -56,3 +56,13 @@ val unread :
   PId.t -> 
   (#O.ctx as 'ctx, [ `NeedAccess of Id.t 
 		   | `OK of < list : unread list ; erase : 'ctx Run.effect > ]) Run.t
+
+val unreaders : 
+  PId.t option ->
+  ?limit:int ->
+  ?offset:int ->
+  I.t ->
+  PostI.t -> (#O.ctx as 'ctx, [ `NeedAccess of Id.t 
+			      | `NotFound of I.t
+			      | `PostNotFound of I.t * PostI.t
+			      | `OK of < list : PId.t list ; erase : 'ctx Run.effect > ]) Run.t

@@ -142,3 +142,15 @@ val markAsRead :
   PostI.t list -> (#O.ctx, [ `OK of Cqrs.Clock.t
 			   | `NeedRead of I.t
 			   | `NotFound of I.t ]) Run.t
+
+(** A list of all people who have subscribed to the specified post, can see it, and have not
+    marked it as read yet. *)
+val unreaders : 
+  PId.t option ->
+  ?limit:int ->
+  ?offset:int ->
+  I.t ->
+  PostI.t -> (#O.ctx as 'ctx, [ `NeedAccess of Id.t
+			      | `NotFound of I.t
+			      | `PostNotFound of I.t * PostI.t 
+			      | `OK of < list : PId.t list ; erase : 'ctx Run.effect > ]) Run.t

@@ -240,3 +240,66 @@ let unread pid ?(limit=10) ?(offset=0) who =
 	  let! _ = Store.append events in 
 	  return () 
     end))
+
+(* List people who have not read a post yet
+   ======================================== *)
+
+(* Who is allowed to query unreaders *)
+let unreaders_audience = Audience.admin
+
+let unreaders pid ?(limit=1000) ?(offset=0) id post = 
+  
+  let! allowed = Audience.is_member pid unreaders_audience in 
+  if not allowed then
+    let! ctx = Run.context in
+    return (`NeedAccess (ctx # db))
+  else
+
+    let! chat = Cqrs.MapView.get View.info id in
+    match chat with None -> return (`NotFound id) | Some chat -> 
+
+      let! exists = Cqrs.TreeMapView.exists View.posts id post in
+      if not exists then return (`PostNotFound (id,post)) else
+
+	let rec read personCache count = 
+	  
+	  let! list = Cqrs.TripleSetView.all2 View.unread ~limit:count ~offset id post in
+	  
+	  let rec process personCache found = function 
+	    | [] -> return (personCache, found) 
+	    | head :: tail -> 
+	      
+	      if found >= limit then return (personCache, found) else 
+	      
+		let! personCache, allowed = 
+		  try return (personCache, Map.find head personCache) with Not_found -> 
+		    let! access = ChatAccess.compute (Some head) (chat # audience) in 
+		    let  allowed = Set.mem `Read access in
+		    return (Map.add head allowed personCache, allowed) 
+		in
+		
+		process personCache (if allowed then found + 1 else found) tail
+
+	  in
+
+	  let! personCache, found = process personCache 0 list in
+
+	  if found < limit && List.length list = limit && count < limit * 8 then
+	    read personCache (2 * count) 
+	  else
+	    return (Map.to_list personCache)
+
+	in
+
+	let! people = read Map.empty limit in
+	      
+	let keep = people |> List.filter snd |> List.map fst in
+	let discard = people |> List.filter (fun (_,a) -> not a) |> List.map fst in
+
+	return (`OK (object
+	  method list = keep 
+	  method erase = 
+	    let  events = List.map (fun pid -> Events.trackerGarbageCollected ~id ~pid) discard in
+	    let! _ = Store.append events in
+	    return ()
+	end))
