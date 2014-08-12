@@ -277,3 +277,80 @@ module Items = Endpoint.Get(struct
       return (`OK (Out.make ~posts ~people ~count))
 
 end)
+
+(* Tracking 
+   ======== *)
+
+(* UNTESTED *)
+module TrackChat = Endpoint.Post(struct
+
+  module Arg = type module < id : Chat.I.t >
+  module Post = type module bool 
+
+  module Out = type module < at : Cqrs.Clock.t >
+      
+  let path = "chat/{id}/track"
+
+  let needAuthor = 
+    `BadRequest "'as' parameter required to track."
+
+  let response req arg track = 
+    match req # as_ with None -> return needAuthor | Some pid ->
+      let! result = Chat.track pid ~unsubscribe:(not track) (arg # id) in
+      match result with 
+      | `OK at -> return (`OK (Out.make ~at))
+      | `NeedRead id -> return (needRead id)
+      | `NotFound id
+      | `PostNotFound (id,_) -> return (notFound id)
+
+end)
+
+(* UNTESTED *)
+module TrackPost = Endpoint.Post(struct
+
+  module Arg = type module < id : Chat.I.t ; post : Chat.PostI.t >
+  module Post = type module bool 
+
+  module Out = type module < at : Cqrs.Clock.t >
+      
+  let path = "chat/{id}/posts/{post}/track"
+
+  let needAuthor = 
+    `BadRequest "'as' parameter required to track."
+
+  let response req arg track = 
+    match req # as_ with None -> return needAuthor | Some pid ->
+      let! result = Chat.track pid ~unsubscribe:(not track) ~under:(arg # post) (arg # id) in
+      match result with 
+      | `OK at -> return (`OK (Out.make ~at))
+      | `NeedRead id -> return (needRead id)
+      | `NotFound id -> return (notFound id)
+      | `PostNotFound (id,post) -> return (postNotFound id post)
+
+end)
+
+(* Mark posts as read 
+   ================== *)
+
+(* UNTESTED *)
+module MarkAsRead = Endpoint.Post(struct
+
+  module Arg = type module < id : Chat.I.t >
+  module Post = type module (Chat.PostI.t list)
+
+  module Out = type module < at : Cqrs.Clock.t >
+
+  let path = "chat/{id}/read"
+
+  let needAuthor = 
+    `BadRequest "'as' parameter required to mark posts as read."
+
+  let response req arg posts = 
+    match req # as_ with None -> return needAuthor | Some pid ->
+      let! result = Chat.markAsRead pid (arg # id) posts in
+      match result with 
+      | `OK at -> return (`OK (Out.make ~at))
+      | `NeedRead id -> return (needRead id)
+      | `NotFound id -> return (notFound id)
+
+end)
