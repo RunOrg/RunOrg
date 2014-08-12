@@ -65,3 +65,10 @@ val unreaders :
 			      | `NotFound of I.t
 			      | `PostNotFound of I.t * PostI.t
 			      | `OK of < list : PId.t list ; erase : 'ctx Run.effect > ]) Run.t
+
+val ticker : 
+  ?limit:int ->
+  ?since:(I.t * PostI.t) ->
+  PId.t option ->
+  (#O.ctx, [ `NeedAccess of Id.t 
+	   | `OK of (I.t * PostI.t * Time.t) list ]) Run.t

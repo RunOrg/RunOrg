@@ -303,3 +303,18 @@ let unreaders pid ?(limit=1000) id post =
 	    let! _ = Store.append events in
 	    return ()
 	end))
+
+(* Listing all posts
+   ================= *)
+
+let ticker_audience = Audience.admin
+
+let ticker ?(limit=100) ?since pid = 
+  
+  let! allowed = Audience.is_member pid ticker_audience in 
+  if not allowed then
+    let! ctx = Run.context in
+    return (`NeedAccess (ctx # db))
+  else
+    let! list = Cqrs.TreeMapView.ticker ~limit ?since View.posts in
+    return (`OK list)
