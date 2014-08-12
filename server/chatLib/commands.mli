@@ -45,7 +45,7 @@ val track :
    PId.t -> 
   ?unsubscribe:bool -> 
   ?under:PostI.t -> 
-  I.t -> (#O.ctx, [ `OK 
+  I.t -> (#O.ctx, [ `OK of Cqrs.Clock.t
 		  | `NeedRead of I.t 
 		  | `PostNotFound of I.t * PostI.t
 		  | `NotFound of I.t ]) Run.t
@@ -53,7 +53,7 @@ val track :
 val markAsRead : 
   PId.t -> 
   I.t -> 
-  PostI.t list -> (#O.ctx, [ `OK 
+  PostI.t list -> (#O.ctx, [ `OK of Cqrs.Clock.t
+			   | `NeedRead of I.t 
 			   | `NotFound of I.t ]) Run.t
 
-val garbageCollectTracker : PId.t -> I.t -> #O.ctx Run.effect

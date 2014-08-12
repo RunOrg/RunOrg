@@ -79,13 +79,14 @@ let deletePost pid id post =
   let! info = Cqrs.MapView.get View.info id in 
   match info with None -> return (`NotFound id) | Some info -> 
 
-    let! node = Cqrs.TreeMapView.get View.posts id post in
-    match node with None -> return (`PostNotFound (id, post)) | Some node ->
-      
-      let item = node # value in 
-      let required = if Some (item # author) = pid then `View else `Moderate in
-      let! access = ChatAccess.compute pid (info # audience) in
-      if not (Set.mem `View access) then return (`NotFound id) else
+    let! access = ChatAccess.compute pid (info # audience) in
+    if not (Set.mem `View access) then return (`NotFound id) else
+
+      let! node = Cqrs.TreeMapView.get View.posts id post in
+      match node with None -> return (`PostNotFound (id, post)) | Some node ->
+	
+	let item = node # value in 
+	let required = if Some (item # author) = pid then `View else `Moderate in
 	if not (Set.mem required access) then return (`NeedModerate id) else
 	  
 	  let! clock = Store.append [ Events.postDeleted ~id ~pid ~post ] in
@@ -95,10 +96,43 @@ let deletePost pid id post =
    ============== *)
 
 let track pid ?(unsubscribe=false) ?under id = 
-  assert false
+
+  let! info = Cqrs.MapView.get View.info id in 
+  match info with None -> return (`NotFound id) | Some info -> 
+
+    let! access = ChatAccess.compute (Some pid) (info # audience) in
+    if not (Set.mem `View access) then return (`NotFound id) else
+      if not (Set.mem `Read access) then return (`NeedRead id) else
+
+	let! postNotFound = match under with None -> return None | Some post ->
+	  let! node = Cqrs.TreeMapView.get View.posts id post in
+	  match node with None -> return (Some (`PostNotFound (id, post))) | Some _ -> return None in
+	match postNotFound with Some err -> return err | None -> 
+
+	  (* The post and chat exist and are available *)
+
+	  let! tracked = Cqrs.TripleSetView.intersect View.trackers id under [pid] in
+	  if (tracked = []) == unsubscribe then return (`OK Cqrs.Clock.empty) else 	    
+	    let! clock = Store.append [
+	      if unsubscribe then Events.trackDisabled ~id ~pid ~post:under
+	      else Events.trackEnabled ~id ~pid ~post:under
+	    ] in 
+	    return (`OK clock) 
 
 let markAsRead pid id posts = 
-  assert false
 
-let garbageCollectTracker pid id = 
-  assert false
+  let! info = Cqrs.MapView.get View.info id in 
+  match info with None -> return (`NotFound id) | Some info -> 
+
+    let! access = ChatAccess.compute (Some pid) (info # audience) in
+    if not (Set.mem `View access) then return (`NotFound id) else
+      if not (Set.mem `Read access) then return (`NeedRead id) else
+	
+	(* The chat exists and is available *)
+
+	let! posts = Cqrs.TripleSetView.(intersect (flipBC View.unread) id pid posts) in 
+
+	if posts = [] then return (`OK Cqrs.Clock.empty) else
+	  let! clock = Store.append [ Events.markedAsRead ~id ~pid ~posts ] in
+	  return (`OK clock) 
+
