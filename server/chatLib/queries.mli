@@ -29,6 +29,14 @@ type post = <
   track  : bool ; 
 >
 
+val getPost : 
+  PId.t option ->
+  I.t -> 
+  PostI.t -> (#O.ctx, [ `OK of post
+		      | `NeedRead of I.t
+		      | `PostNotFound of (I.t * PostI.t)
+		      | `NotFound of I.t ]) Run.t
+
 val list : 
   PId.t option -> 
   ?depth:int ->
@@ -72,3 +80,4 @@ val ticker :
   PId.t option ->
   (#O.ctx, [ `NeedAccess of Id.t 
 	   | `OK of (I.t * PostI.t * Time.t) list ]) Run.t
+

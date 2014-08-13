@@ -94,6 +94,15 @@ type post = <
   sub      : post list ; 
 >
 
+(** Gets a single post from a chatroom. *)
+val getPost : 
+  PId.t option ->
+  I.t -> 
+  PostI.t -> (#O.ctx, [ `OK of post
+		      | `NeedRead of I.t
+		      | `PostNotFound of (I.t * PostI.t)
+		      | `NotFound of I.t ]) Run.t
+
 (** Get posts from a chatroom, in reverse chronological order. *)
 val list :
    PId.t option -> 

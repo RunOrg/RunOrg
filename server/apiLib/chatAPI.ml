@@ -278,6 +278,36 @@ module Items = Endpoint.Get(struct
 
 end)
 
+(* UNTESTED *)
+module GetPost = Endpoint.Get(struct
+
+  module Arg = type module < 
+    id   : Chat.I.t ; 
+    post : Chat.PostI.t ;   
+  >
+
+  module Out = type module <
+    info   : Post.t ;
+    people : PersonAPI.Short.t list ;
+  >
+
+  let path = "chat/{id}/posts/{post}"
+
+  let response req arg = 
+    let! result = Chat.getPost (req # as_) (arg # id) (arg # post) in
+    match result with 
+    | `NeedRead id -> return (needRead id)
+    | `NotFound id -> return (notFound id)
+    | `PostNotFound (id,post) -> return (postNotFound id post)
+    | `OK post -> 
+      let  info   = load_tree post in
+      let  cids   = all_people [info] in
+      let! people = List.M.filter_map Person.get cids in
+      return (`OK (Out.make ~info ~people))
+
+end)
+
+
 (* Tracking 
    ======== *)
 
@@ -304,7 +334,6 @@ module TrackChat = Endpoint.Post(struct
 
 end)
 
-(* UNTESTED *)
 module TrackPost = Endpoint.Post(struct
 
   module Arg = type module < id : Chat.I.t ; post : Chat.PostI.t >
@@ -321,7 +350,7 @@ module TrackPost = Endpoint.Post(struct
     match req # as_ with None -> return needAuthor | Some pid ->
       let! result = Chat.track pid ~unsubscribe:(not track) ~under:(arg # post) (arg # id) in
       match result with 
-      | `OK at -> return (`OK (Out.make ~at))
+      | `OK at -> return (`Accepted (Out.make ~at))
       | `NeedRead id -> return (needRead id)
       | `NotFound id -> return (notFound id)
       | `PostNotFound (id,post) -> return (postNotFound id post)

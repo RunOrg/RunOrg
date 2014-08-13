@@ -100,6 +100,25 @@ let rec transform set node = (object
 
 end : post)
 
+let getPost pid id (post : PostI.t) = 
+
+  let! info = Cqrs.MapView.get View.info id in 
+  match info with None -> return (`NotFound id) | Some info -> 
+
+    let! access = ChatAccess.compute pid (info # audience) in
+    if not (Set.mem `View access) then return (`NotFound id) else
+      if not (Set.mem `Read access) then return (`NeedRead id) else
+
+	let! node = Cqrs.TreeMapView.get View.posts id post in
+	match node with None -> return (`PostNotFound (id, post)) | Some node ->
+	  
+	  let! track = match pid with None -> return false | Some pid -> 
+	    let! list = Cqrs.TripleSetView.(intersect View.trackers id (Some post) [pid]) in
+	    return (list <> [])
+	  in
+	  
+	  return (`OK (transform (if track then Set.add (Some post) Set.empty else Set.empty) node))
+
 let list pid ?(depth=1) ?(limit=1000) ?(offset=0) ?parent cid = 
   let! info = get pid cid in
   match info with None -> return (`NotFound cid) | Some info ->

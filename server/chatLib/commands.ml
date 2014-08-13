@@ -112,7 +112,7 @@ let track pid ?(unsubscribe=false) ?under id =
 	  (* The post and chat exist and are available *)
 
 	  let! tracked = Cqrs.TripleSetView.intersect View.trackers id under [pid] in
-	  if (tracked = []) == unsubscribe then return (`OK Cqrs.Clock.empty) else 	    
+	  if (tracked = []) = unsubscribe then return (`OK Cqrs.Clock.empty) else 	    
 	    let! clock = Store.append [
 	      if unsubscribe then Events.trackDisabled ~id ~pid ~post:under
 	      else Events.trackEnabled ~id ~pid ~post:under
