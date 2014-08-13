@@ -332,7 +332,7 @@ let ticker ?(limit=1000) ?since map =
 		  `Binary (Pack.to_string map.ipack id) ] in
 
     let! result = Sql.query 
-      ("SELECT \"t\" FROM \""^dbname^"\" WHERE \"db\" = $1 AND \"id\" = $2") 
+      ("SELECT \"t\" FROM \""^dbname^"\" WHERE \"db\" = $1 AND \"key\" = $2 AND \"id\" = $3") 
       args in
     
     return (if Array.length result = 0 then None else Some (args @ [ `String result.(0).(0) ]))
@@ -343,7 +343,8 @@ let ticker ?(limit=1000) ?since map =
 
   let query = 
     "SELECT \"key\", \"id\", \"t\" FROM \"" ^ dbname ^ "\" WHERE \"db\" = $1" 
-    ^ (if since = None then "" else " AND ROW(\"t\",\"id\",\"key\") > ROW($4,$3,$2)") 
+    ^ (if since = None then "" else 
+	" AND (\"t\" > $4 OR \"t\" = $4 AND (\"id\" > $3 OR \"id\" = $3 AND \"key\" > $2))") 
     ^ "ORDER BY \"t\", \"id\", \"key\" LIMIT " ^ string_of_int limit 
   in
 
