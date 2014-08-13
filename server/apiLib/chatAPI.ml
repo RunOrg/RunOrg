@@ -281,7 +281,6 @@ end)
 (* Tracking 
    ======== *)
 
-(* UNTESTED *)
 module TrackChat = Endpoint.Post(struct
 
   module Arg = type module < id : Chat.I.t >
@@ -298,7 +297,7 @@ module TrackChat = Endpoint.Post(struct
     match req # as_ with None -> return needAuthor | Some pid ->
       let! result = Chat.track pid ~unsubscribe:(not track) (arg # id) in
       match result with 
-      | `OK at -> return (`OK (Out.make ~at))
+      | `OK at -> return (`Accepted (Out.make ~at))
       | `NeedRead id -> return (needRead id)
       | `NotFound id
       | `PostNotFound (id,_) -> return (notFound id)
@@ -390,7 +389,6 @@ end)
 (* Listing all posts as they come
    ============================== *)
 
-(* UNTESTED *)
 module Ticker = Endpoint.Get(struct
 
   module Arg = type module <
