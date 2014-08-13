@@ -11,6 +11,13 @@ val send :
 		    | `NoSuchGroup of GId.t
 		    | `GroupEmpty of GId.t
 		    | `OK of I.t * int * Cqrs.Clock.t ]) Run.t
+
+val sendToPeople :
+  PId.t option -> 
+  Mail.I.t ->
+  PId.t list -> (#O.ctx, [ `NeedAccess of Id.t
+			 | `NoSuchMail of Mail.I.t
+			 | `OK of I.t * int * Cqrs.Clock.t ]) Run.t
   
 val follow : Link.t -> IpAddress.t -> (#O.ctx, [ `NotFound of Link.t * Id.t
 					       | `Auth of Token.I.t * String.Url.t

@@ -19,7 +19,9 @@ let status =
 
   let () = Store.track statusV begin function 
 
-    | `GroupWaveCreated  _ -> return ()
+    | `GroupWaveCreated  _ 
+    | `PersonWaveCreated _ -> return ()
+
     | `BatchScheduled   ev -> 
 
       let mid = ev # mid in 
@@ -68,6 +70,7 @@ let openStatus =
   let () = Store.track openStatusV begin function 
 
     | `GroupWaveCreated  _ 
+    | `PersonWaveCreated _
     | `BatchScheduled    _ 
     | `Sent              _ 
     | `SendingFailed     _ -> return () 
@@ -127,7 +130,9 @@ let info =
 
   let () = Store.track infoV begin function 
 
+    | `PersonWaveCreated _
     | `GroupWaveCreated  _ -> return ()
+
     | `BatchScheduled   ev -> 
 
       let mid = ev # mid in 
@@ -178,7 +183,6 @@ let info =
 module Wave = type module <
   pid : PId.t option ;
   mid : Mail.I.t ;
-  gid : GId.t ;
   from : PId.t ;
   subject : Unturing.t ;
   text : Unturing.t option ;
@@ -190,13 +194,18 @@ module Wave = type module <
 
 let wave = 
 
-  let waveV, wave = Cqrs.MapView.make projection "wave" 0
+  let waveV, wave = Cqrs.MapView.make projection "wave" 1
     (module I : Fmt.FMT with type t = I.t)
     (module Wave : Fmt.FMT with type t = Wave.t) in
 
   let () = Store.track waveV begin function 
 
     | `GroupWaveCreated ev ->
+
+      let put = (ev :> Wave.t) in
+      Cqrs.MapView.update wave (ev # id) (fun _ -> `Put put) 
+
+    | `PersonWaveCreated ev ->
 
       let put = (ev :> Wave.t) in
       Cqrs.MapView.update wave (ev # id) (fun _ -> `Put put) 
@@ -223,6 +232,7 @@ let last =
     let clock = arg # clock in
     let put e = Cqrs.MapView.update last (e # mid) (fun _ -> `Put clock) in
     match arg # event with 
+    | `PersonWaveCreated _
     | `GroupWaveCreated  _  -> return () 
     | `BatchScheduled    ev -> put ev  
     | `Sent              ev -> put ev 
@@ -246,6 +256,7 @@ let byLinkRoot =
 
   let () = Store.track byLinkRootV begin function
 
+    | `PersonWaveCreated _
     | `GroupWaveCreated  _  
     | `BatchScheduled    _  
     | `LinkFollowed      _  

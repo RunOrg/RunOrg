@@ -23,6 +23,16 @@ val send :
 		    | `NoSuchGroup of GId.t 
 		    | `GroupEmpty of GId.t
 		    | `OK of I.t * int * Cqrs.Clock.t ]) Run.t
+
+(** Start sending a specific e-mail to a list of people. This will actually 
+    cause the e-mails to be sent out. Creates a new wave and returns 
+    its identifier. *)
+val sendToPeople :
+  PId.t option -> 
+  Mail.I.t ->
+  PId.t list -> (#O.ctx, [ `NeedAccess of Id.t
+			 | `NoSuchMail of Mail.I.t
+			 | `OK of I.t * int * Cqrs.Clock.t ]) Run.t
   
 (** Current status of a sent e-mail. *)
 module Status : Fmt.FMT with type t = 

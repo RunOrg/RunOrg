@@ -53,6 +53,35 @@ let send pid mid gid =
 
 	  return (`OK (id, count, clock))
 
+let sendToPeople pid mid pids = 
+  let! allowed = Audience.is_member pid send_audience in 
+  
+  if not allowed then     
+    let! ctx = Run.context in 
+    return (`NeedAccess (ctx # db))
+  else
+
+    let! info = Mail.get mid in 
+    match info with None -> return (`NoSuchMail mid) | Some info -> 
+
+      let id = I.gen () in
+      
+      let waveCreate = Events.personWaveCreated ~id ~pid ~mid
+	~from:(info # from) 
+	~subject:(info # subject) 
+	~text:(info # text)
+	~html:(info # html)
+	~urls:(info # urls)
+	~self:(info # self) 
+	~custom:(info # custom) in
+      
+      let count = List.length pids in
+      let batch = Events.batchScheduled ~id ~mid ~pos:0 ~list:pids in
+      
+      let! clock = Store.append [ waveCreate ; batch ] in
+      
+      return (`OK (id, count, clock))
+
 (* Following links 
    =============== *)
 
