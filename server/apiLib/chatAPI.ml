@@ -386,3 +386,51 @@ module Unreaders = Endpoint.Get(struct
 				 return (`OK (Out.make ~list:(result#list)))
 
 end)
+
+(* Listing all posts as they come
+   ============================== *)
+
+(* UNTESTED *)
+module Ticker = Endpoint.Get(struct
+
+  module Arg = type module <
+    ?since : string option ;
+  >
+
+  module Item = type module <      
+    id   : Chat.I.t ; 
+    post : Chat.PostI.t ; 
+    time : Time.t 
+  >
+
+  module Out = type module <
+    list : Item.t list
+  >
+
+  let path = "chat/posts"
+
+  let needAccess id = 
+    `Forbidden (!! "Not allowed to view all posts in database %S." (Id.to_string id))
+
+  let badSince s =
+    `BadRequest (!! "Unexpected format for query parameter 'since': %S." s)
+
+  let response req arg = 
+
+    (* Make sure that '?since' is not badly formatted, if present. *)
+
+    let since = 
+      match arg # since with None -> Ok None | Some since ->
+	match List.filter (fun s -> s <> "") (String.nsplit since ",") with 
+	| [ id ; post ] -> Ok (Some (Chat.I.of_string id,  Chat.PostI.of_string post))
+	| _ -> Bad since
+    in
+
+    match since with Bad s -> return (badSince s) | Ok since ->
+
+      let! result = Chat.ticker ?limit:(req # limit) ?since (req # as_) in
+      return (match result with 
+      | `NeedAccess id -> needAccess id
+      | `OK list -> `OK (Out.make ~list:(List.map (fun (id,post,time) -> Item.make ~id ~post ~time) list)))
+
+end)
