@@ -21,22 +21,6 @@ include type module
       self : String.Url.t option ; 
     >
 
-  (* A new wave is created. Includes a copy of all the data required to render
-     the mail, because it will need to remain as-is just in case the original
-     is edited afterwards. *)
-  | `PersonWaveCreated of <
-      id : I.t ;
-      pid : PId.t option ;
-      mid : Mail.I.t ;
-      from : PId.t ;
-      subject : Unturing.t ;
-      text : Unturing.t option ;
-      html : Unturing.t option ;
-      custom : Json.t ;
-      urls : String.Url.t list ; 
-      self : String.Url.t option ; 
-    >
-
     (* A batch of contacts is scheduled for receiving a copy, as part of a wave. 
        Contacts are numbered (with 'pos' being the position of the first contact
        in this batch). Note that contacts are scheduled even if they have already
@@ -84,6 +68,22 @@ include type module
 	     | `HtmlError       of string * int * int 
 	     | `Exception       of string 
 	     ]	
+    >
+
+  (* A new wave is created. Includes a copy of all the data required to render
+     the mail, because it will need to remain as-is just in case the original
+     is edited afterwards. *)
+  | `PersonWaveCreated of <
+      id : I.t ;
+      pid : PId.t option ;
+      mid : Mail.I.t ;
+      from : PId.t ;
+      subject : Unturing.t ;
+      text : Unturing.t option ;
+      html : Unturing.t option ;
+      custom : Json.t ;
+      urls : String.Url.t list ; 
+      self : String.Url.t option ; 
     >
 
   ]

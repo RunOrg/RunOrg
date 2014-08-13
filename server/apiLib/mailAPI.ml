@@ -97,7 +97,10 @@ end)
 module Send = Endpoint.Post(struct
 
   module Arg  = type module < id : Mail.I.t >
-  module Post = type module < group : GId.t >
+  module Post = type module < 
+    ?group : GId.t option ;
+    ?people : PId.t list = [] ;
+  >
 
   module Out  = type module < 
     count : int ;
@@ -112,18 +115,37 @@ module Send = Endpoint.Post(struct
 
   let groupNotFound id =
     `NotFound (!! "Group %S does not exist." (GId.to_string id)) 
+      
+  let needRecipient = 
+    `BadRequest "Need either non-null 'group:' or a non-empty 'people:' list."
 
   let path = "mail/{id}/send"
 
   let response req arg post = 
-    let! result = SentMail.send (req # as_) (arg # id) (post # group) in
-    match result with 
-    | `NeedAccess       id -> return (needAccess id)
-    | `NeedList        gid -> return (needList gid)
-    | `NoSuchMail      mid -> return (notFound mid) 
-    | `NoSuchGroup     gid -> return (groupNotFound gid) 
-    | `GroupEmpty        _ -> return (`Accepted (Out.make ~count:0 ~at:Cqrs.Clock.empty))
-    | `OK (wid, count, at) -> return (`Accepted (Out.make ~count ~at))
+    match post # group, post # people with 
+    | Some group, [] -> begin
+
+      let! result = SentMail.send (req # as_) (arg # id) group in
+      match result with 
+      | `NeedAccess       id -> return (needAccess id)
+      | `NeedList        gid -> return (needList gid)
+      | `NoSuchMail      mid -> return (notFound mid) 
+      | `NoSuchGroup     gid -> return (groupNotFound gid) 
+      | `GroupEmpty        _ -> return (`Accepted (Out.make ~count:0 ~at:Cqrs.Clock.empty))
+      | `OK (wid, count, at) -> return (`Accepted (Out.make ~count ~at))
+
+    end 
+    | None, [] -> return needRecipient    
+    | None, people -> begin
+
+      let! result = SentMail.sendToPeople (req # as_) (arg # id) people in
+      match result with 
+      | `NeedAccess       id -> return (needAccess id)
+      | `NoSuchMail      mid -> return (notFound mid) 
+      | `OK (wid, count, at) -> return (`Accepted (Out.make ~count ~at))
+
+    end
+    | _ -> return needRecipient
 
 end)
 

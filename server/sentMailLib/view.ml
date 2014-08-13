@@ -194,7 +194,7 @@ module Wave = type module <
 
 let wave = 
 
-  let waveV, wave = Cqrs.MapView.make projection "wave" 1
+  let waveV, wave = Cqrs.MapView.make projection "wave" 2
     (module I : Fmt.FMT with type t = I.t)
     (module Wave : Fmt.FMT with type t = Wave.t) in
 
