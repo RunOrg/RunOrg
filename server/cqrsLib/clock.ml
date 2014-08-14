@@ -8,14 +8,12 @@ include Fmt.Make(struct
 
   let json_of_t map = 
     let open Json in 
-    Array (Map.foldi (fun k v l -> Array [ Int k ; Int v ] :: l) map [])
+    Object (Map.foldi (fun k v l -> ( string_of_int k, Int v ) :: l) map [])
 
   let t_of_json json = 
     let open Json in 
-    let list = to_list (function 
-      | Array [ Int k ; Int v ] -> (k,v) 
-      | json -> parse_error "Int pair" json) json in 
-    List.fold_left (fun m (k,v) -> Map.add k v m) Map.empty list 
+    let list = to_assoc json in
+    List.fold_left (fun m (k,v) -> Map.add (int_of_string k) (to_int v) m) Map.empty list 
 
   let pack m p = 
     let open Pack.Pack in 

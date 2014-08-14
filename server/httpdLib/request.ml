@@ -63,12 +63,13 @@ let decode_regexp = Str.regexp "%[0-9A-Za-z][0-9A-Za-z]"
 
 exception DecodeChar of string
 
-let decode_char sub = 
+let decode_char str = 
+  let i = Str.match_beginning () in  
   try 
-    let h = Char.base36_decode sub.[1] and l = Char.base36_decode sub.[2] in
+    let h = Char.base36_decode str.[i + 1] and l = Char.base36_decode str.[i + 2] in  
     String.of_char (Char.chr (h * 16 + l))
   with _ -> 
-    raise (DecodeChar sub)
+    raise (DecodeChar (String.sub str i 3))
 
 let urldecode str = 
 
