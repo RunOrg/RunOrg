@@ -10,7 +10,7 @@ let create_forced ?name ?givenName ?familyName ?gender email =
 
     let  update = 
       if name <> None || givenName <> None || familyName <> None || gender <> None 
-      then [ Events.infoUpdated ~id ~familyName ~givenName ~name ~gender ]
+      then [ Events.infoCreated ~id ~familyName ~givenName ~name ~gender ]
       else []
     in
 
@@ -38,3 +38,28 @@ let import pid =
   else
     return (`OK create_forced)
   
+(* Updating people's profiles
+   ========================== *)
+
+(* Who is allowed to update contacts ? *)
+let update_audience = Audience.admin 
+
+let update pid ~name ~givenName ~familyName ~gender ~email who = 
+  
+  let! allowed = 
+    if pid = Some who then return true else
+      Audience.is_member pid update_audience in
+  if not allowed then
+    let! ctx = Run.context in 
+    return (`NeedAccess (ctx # db))
+  else
+    
+    if name <> `Keep || givenName <> `Keep || familyName <> `Keep || gender <> `Keep || email <> `Keep then
+      return (`OK Cqrs.Clock.empty)
+    else
+
+      let! clock = Store.append [
+	Events.infoUpdated ~id:who ~name ~givenName ~familyName ~gender ~email 
+      ] in
+      
+      return (`OK clock) 

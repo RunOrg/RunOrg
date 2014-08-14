@@ -29,6 +29,18 @@ type short = <
 (** Return the short profile for a person. *)
 val get : PId.t -> (# O.ctx, short option) Run.t
 
+(** Update a person's profile *)
+val update : 
+  PId.t option -> 
+  name:String.Label.t option Change.t ->
+  givenName:String.Label.t option Change.t ->
+  familyName:String.Label.t option Change.t ->
+  gender:[`F|`M] option Change.t ->
+  email:String.Label.t Change.t ->
+  PId.t -> (#O.ctx, [ `OK of Cqrs.Clock.t
+		    | `NotFound of PId.t 
+		    | `NeedAccess of Id.t ]) Run.t
+
 (** Return the short profiles for all people. *)
 val all : PId.t option -> limit:int -> offset:int -> (# O.ctx, [ `NeedAccess of Id.t 
 							       | `OK of short list * int ]) Run.t

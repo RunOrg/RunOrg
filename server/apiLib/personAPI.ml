@@ -148,6 +148,40 @@ module Get = Endpoint.Get(struct
     
 end)
 
+(* UNTESTED *)
+module Update = Endpoint.Put(struct
+    
+  module Arg = type module < id : PId.t >
+  module Put = type module <
+    ?name : String.Label.t option ;
+    ?givenName : String.Label.t option ;
+    ?familyName : String.Label.t option ;
+    ?gender : [`M|`F] option ;
+    ?email : String.Label.t option ;
+  >
+
+  module Out = type module < at : Cqrs.Clock.t >
+
+  let path = "people/{id}"
+
+  let needAccess id = 
+    `Forbidden (!! "You may not update other people's profiles in database %S." (Id.to_string id))
+
+  let response req args (put:Put.t) = 
+    let! result = Person.update (req # as_) 
+      ~name:(Change.of_field "name" (req # body) (put # name))
+      ~givenName:(Change.of_field "givenName" (req # body) (put # givenName))
+      ~familyName:(Change.of_field "familyName" (req # body) (put # familyName))
+      ~gender:(Change.of_field "gender" (req # body) (put # gender))
+      ~email:(Change.of_option (put # email))
+      (args # id) in
+    match result with 
+    | `OK at -> return (`OK (Out.make ~at))
+    | `NotFound id -> return (`NotFound (!! "Person '%s' does not exist" (PId.to_string id)))
+    | `NeedAccess db -> return (needAccess db)
+
+end)
+
 let needAllAccess id = 
   `Forbidden (!! "Not allowed to list people in database '%s'." (Id.to_string id)) 
 

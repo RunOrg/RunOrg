@@ -21,38 +21,31 @@ let byEmail =
 	| None   -> `Put (ev # id)
 	| Some _ -> `Keep)
 
-    | `InfoUpdated _ -> return () 
+    | `InfoCreated _  -> return () 
+    | `InfoUpdated ev ->
+      
+      (* TODO: find a way to erase the old binding *)
+      (match ev # email with `Keep -> return () | `Set email -> 
+	Cqrs.MapView.update byEmail email (fun _ -> `Put (ev # id)))
 	
   end in 
 
   byEmail 
       
-(* Short person details by id *)
 
-module Short = type module < 
-  email  : String.Label.t ;
-  label  : String.Label.t ; 
-  force  : bool ; 
-  gender : [`F|`M] option 
->
-
-(* Computes the new full name. 
-   - If provided explicitly, keep and mark as forced.
-   - If was forced earlier, keep older and mark as forced.
-   - Combine given name and family name, do not mark as forced. *)
-let new_name force oldName newName givenName familyName = 
-  match newName with Some _ -> true, newName | None -> 
-    if force && oldName <> None then true, oldName else
-      false, match givenName, familyName with 
-        | None, None -> None
-	| Some name, None 
-	| None, Some name -> Some name
-	| Some gn, Some fn -> let gns = String.Label.to_string gn in
-			      let fns = String.Label.to_string fn in 
-			      match String.Label.of_string (gns ^ " " ^ fns) with 
-			      | None   -> Some gn
-			      | Some l -> Some l
-
+(* Computes the new full name. *)
+let new_name newName givenName familyName = 
+  match newName with Some _ -> newName | None -> 
+    match givenName, familyName with 
+    | None, None -> None
+    | Some name, None 
+    | None, Some name -> Some name
+    | Some gn, Some fn -> let gns = String.Label.to_string gn in
+			  let fns = String.Label.to_string fn in 
+			  match String.Label.of_string (gns ^ " " ^ fns) with 
+			  | None   -> Some gn
+			  | Some l -> Some l
+			    
 let no_label = 
   match String.Label.of_string "???" with 
   | Some label -> label
@@ -66,37 +59,100 @@ let new_label email nameopt =
 	| None -> no_label
     with Not_found -> no_label (* <-- No '@' in email: allow leak. *)
 			      
-let short = 
-  
-  let shortV, short = Cqrs.MapView.make projection "short" 0
-    (module PId : Fmt.FMT with type t = PId.t)
-    (module Short : Fmt.FMT with type t = Short.t)  in
+(* Full contact information 
+   ======================== *)
 
-  let () = Store.track shortV begin function 
+module Full = type module < 
+  email      : String.Label.t ;
+  label      : String.Label.t ; 
+  name       : String.Label.t option ; 
+  forcedName : String.Label.t option ; 
+  givenName  : String.Label.t option ;
+  familyName : String.Label.t option ; 
+  gender     : [`F|`M] option ;
+>
+
+let full = 
+  
+  let fullV, full = Cqrs.MapView.make projection "full" 0
+    (module PId : Fmt.FMT with type t = PId.t)
+    (module Full : Fmt.FMT with type t = Full.t)  in
+
+  let () = Store.track fullV begin function 
 
     | `Created ev -> 
 
       let label = new_label (ev # email) None in 
-      Cqrs.MapView.update short (ev # id) 
+      Cqrs.MapView.update full (ev # id) 
 	(function 
-	| None -> `Put (Short.make ~email:(ev # email) ~label ~force:false ~gender:None)
+	| None -> `Put (Full.make ~email:(ev # email) ~label ~gender:None
+			  ~forcedName:None ~name:None ~familyName:None ~givenName:None)
 	| Some o -> `Keep)
+
+    | `InfoCreated ev -> 
+
+      Cqrs.MapView.update full (ev # id) 
+	(function None -> `Keep | Some old -> 
+	  let name = new_name (ev # name) (ev # givenName) (ev # familyName) in
+	  let label = new_label (old # email) name in
+	  `Put (Full.make ~email:(old # email) ~label ~name 
+		  ~forcedName:(ev # name) 
+		  ~gender:(ev # gender) 
+		  ~givenName:(ev # givenName) 
+		  ~familyName:(ev # familyName)))
 
     | `InfoUpdated ev -> 
 
-      Cqrs.MapView.update short (ev # id) 
+      Cqrs.MapView.update full (ev # id) 
 	(function None -> `Keep | Some old -> 
-	  let force, name = new_name (old # force) 
-	    (Some (old # label)) (ev # name) (ev # givenName) (ev # familyName) in
-	  let label  = if force || not (old # force) then new_label (old # email) name else old # label in
-	  let gender = if ev # gender = None then old # gender else ev # gender in
-	  `Put (Short.make ~email:(old # email) ~label ~force ~gender))
+	  let givenName = Change.apply (ev # givenName) (old # givenName) in
+	  let familyName = Change.apply (ev # familyName) (old # familyName) in
+	  let email = Change.apply (ev # email) (old # email) in
+	  let gender = Change.apply (ev # gender) (old # gender) in
+	  let forcedName = Change.apply (ev # name) (old # forcedName) in
+	  let name = new_name forcedName givenName familyName in
+	  let label = new_label email name in
+	  `Put (Full.make ~email ~label ~name ~forcedName ~gender ~givenName ~familyName))
 
+
+  end in    
+
+  full
+
+(* Short person details by id 
+   ========================== *)
+
+module Short = type module < 
+  email  : String.Label.t ;
+  label  : String.Label.t ; 
+  gender : [`F|`M] option 
+>
+
+let short = 
+  
+  let shortV, short = Cqrs.MapView.make projection "short" 1
+    (module PId : Fmt.FMT with type t = PId.t)
+    (module Short : Fmt.FMT with type t = Short.t)  in
+
+  let update id = 
+    let! current = Cqrs.MapView.get full id in
+    match current with None -> return () | Some person ->
+      let data = Short.make ~email:(person # email) ~label:(person # label) ~gender:(person # gender) in
+      Cqrs.MapView.update short id (fun _ -> `Put data)
+  in
+
+  let () = Store.track shortV begin function 
+
+    | `Created     ev -> update (ev # id)
+    | `InfoCreated ev -> update (ev # id) 
+    | `InfoUpdated ev -> update (ev # id)
+      
   end in    
 
   short
 
-(* Search index (by short.name) *)
+(* Search index (by short.name) 
+   ============================ *)
 
 let search = 
 
@@ -115,53 +171,8 @@ let search =
 
     | `Created ev -> update (ev # id) 
     | `InfoUpdated ev -> update (ev # id) 
+    | `InfoCreated ev -> update (ev # id)
 
   end in    
 
   search
-
-(* Full contact information 
-   ======================== *)
-
-module Full = type module < 
-  email      : String.Label.t ;
-  label      : String.Label.t ; 
-  name       : String.Label.t option ; 
-  givenName  : String.Label.t option ;
-  familyName : String.Label.t option ; 
-  force      : bool ; (* True if 'name' was provided directly. *)
-  gender     : [`F|`M] option ;
->
-
-let full = 
-  
-  let fullV, full = Cqrs.MapView.make projection "full" 0
-    (module PId : Fmt.FMT with type t = PId.t)
-    (module Full : Fmt.FMT with type t = Full.t)  in
-
-  let () = Store.track fullV begin function 
-
-    | `Created ev -> 
-
-      let label = new_label (ev # email) None in 
-      Cqrs.MapView.update full (ev # id) 
-	(function 
-	| None -> `Put (Full.make ~email:(ev # email) ~label ~gender:None
-			  ~name:None ~familyName:None ~givenName:None ~force:false )
-	| Some o -> `Keep)
-
-    | `InfoUpdated ev -> 
-
-      Cqrs.MapView.update full (ev # id) 
-	(function None -> `Keep | Some old -> 
-	  let force, name = new_name (old # force) (old # name) 
-	    (ev # name) (ev # givenName) (ev # familyName) in
-	  let label = new_label (old # email) name in
-	  let gender = if ev # gender = None then old # gender else ev # gender in
-	  `Put (Full.make ~email:(old # email) ~label ~name ~force ~gender
-		  ~givenName:(ev # givenName) ~familyName:(ev # familyName)))
-
-  end in    
-
-  full
-
