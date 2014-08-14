@@ -24,52 +24,50 @@ var API = (function(){
 
 	ajax: function(method,path,data,success) {
 
-	    var self = this, 	        
-	        clock = self.clock, 
-	        noBody = (method == 'GET' || method == 'DELETE'), 
-	        ajax = {
-
-		    // The token is a ready-to-use session authentication digest.
-		    beforeSend: function(xhr) {
-			if (self.token) xhr.setRequestHeader('Authorization','RUNORG token=' + self.token);
-		    },
+	    var self = this; 	 
+       	    var sep = /[?]/.exec(path) ? '&' : '?';
+	    var clock = self.clock; 
+	    var noBody = (method == 'GET' || method == 'DELETE');
+	    var ajax = {
 		
-		    dataType: 'json',
-		    
-		    type: method,
-		    
-		    url: self.root 
-			+ (path.charAt(0) == '/' ? '' : '/db/' + self.db + '/') 
-			+ path 
-			+ (clock ? '?at=' + clock : ''),
-		    
-		    statusCode: {
-
-			// 200 code is always provided by successful GET requests
-			200: success,
-
-			// 401 indicates that a valid token is expected but not provided
-			401: function() { self.onLoginRequired() },
+		// The token is a ready-to-use session authentication digest.
+		beforeSend: function(xhr) {
+		    if (self.token) xhr.setRequestHeader('Authorization','RUNORG token=' + self.token);
+		},
 		
-			// 202 code indicates that the request was taken into account,
-			// and includes a clock value
-			202: function(data) {
-			    var c = clock ? JSON.parse(clock) : [], i, j;
-
-			    // Merge the new clock value with the old one
-			    for (i = 0; i < data.at.length; ++i) {
-				for (j = 0; j < c.length; ++j) 
-				    if (c[j][0] == data.at[i][0]) { c[j][1] = data.at[i][1]; break; }
-				if (j == c.length) 
-				    c.push(data.at[i]);
-			    }
-			    
-			    self.clock = JSON.stringify(c);
-			    success(data);
-			},			
-		    }
-		};
-
+		dataType: 'json',
+		
+		type: method,
+		
+		url: self.root 
+		    + (path.charAt(0) == '/' ? '' : '/db/' + self.db + '/') 
+		    + path 
+		    + (clock ? sep + 'at=' + clock : ''),
+		
+		statusCode: {
+		    
+		    // 200 code is always provided by successful GET requests
+		    200: success,
+		    
+		    // 401 indicates that a valid token is expected but not provided
+		    401: function() { self.onLoginRequired() },
+		    
+		    // 202 code indicates that the request was taken into account,
+		    // and includes a clock value
+		    202: function(data) {
+			var c = clock ? JSON.parse(clock) : {}, at = data.at;
+			
+			// Merge the new clock value with the old one
+			for (var k in at)
+			    if (!(k in c) || c[k] < at[k])
+				c[k] = at[k];
+			
+			self.clock = JSON.stringify(c);
+			success(data);
+		    },			
+		}
+	    };
+	    
 	    if (noBody) {
 		ajax.data = data;
 	    } 

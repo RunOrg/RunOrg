@@ -47,15 +47,12 @@ var Query = (function(){
 	    promise.then(function(data,status) {
 		if (status != 'success' || ! ('at' in data)) return;
 
-		var c = self._clock ? JSON.parse(self._clock) : [], i, j, at = data.at;
+		var c = self._clock ? JSON.parse(self._clock) : {}, at = data.at;
 
 		// Merge the new clock value with the old one
-		for (i = 0; i < at.length; ++i) {
-		    for (j = 0; j < c.length; ++j) 
-			if (c[j][0] == at[i][0]) { c[j][1] = at[i][1]; break; }
-		    if (j == c.length) 
-			c.push(at[i]);
-		}
+		for (var k in at)
+		    if (!(k in c) || c[k] < at[k])
+			c[k] = at[k];
 		
 		self._clock = JSON.stringify(c);
 	    });
