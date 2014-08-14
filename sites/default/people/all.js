@@ -1,4 +1,4 @@
-Route.add(/#\/people$/,function(R){
+Route.add(/^$/,function(R){
 
     R.layout({ body: page });
     R.show();

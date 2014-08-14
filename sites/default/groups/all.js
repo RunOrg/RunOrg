@@ -17,7 +17,7 @@ Route.add(/#\/groups$/,function(R){
     }
 
     function body(R) {
-	api.GET('groups/public',{},function(all){
+	api.GET('groups',{},function(all){
 	    R['groups/all'](all);
 	    R.show();
 	});
