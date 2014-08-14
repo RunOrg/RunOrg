@@ -23,4 +23,10 @@ include type module
 	people : PId.t list ; 
         groups : GId.t list ;
       >
+    | `Updated of <
+        id       : GId.t ; 
+        pid      : PId.t option ; 
+	label    : [ `Keep | `Set of String.Label.t option ] ;
+	audience : [ `Keep | `Set of GroupAccess.Audience.t ] ; 
+      >	
     ]

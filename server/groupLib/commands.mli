@@ -10,6 +10,14 @@ val create :
 				     | `NeedAccess of Id.t
 				     | `AlreadyExists of CustomId.t ]) Run.t
 
+val update :
+  PId.t option ->
+  label:String.Label.t option Change.t -> 
+  audience:GroupAccess.Audience.t Change.t ->
+  GId.t -> (#O.ctx, [ `OK of Cqrs.Clock.t
+		    | `NeedAdmin of GId.t
+		    | `NotFound of GId.t ]) Run.t    
+
 val add_forced : PId.t list -> GId.t list -> (#O.ctx, Cqrs.Clock.t) Run.t
 
 val add : PId.t option -> PId.t list -> GId.t list -> (#O.ctx, [ `OK of Cqrs.Clock.t

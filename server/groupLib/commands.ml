@@ -29,6 +29,20 @@ let create pid ?label ?id audience =
       let! clock = Store.append [ Events.created ~pid ~id ~label ~audience ] in
       return (`OK (id, clock))
 
+(* Updating the group's information 
+   ================================ *)
+
+let update pid ~label ~audience id = 
+  
+    let! info = Cqrs.MapView.get View.info id in
+    match info with None -> return (`NotFound id) | Some info -> 
+      let! access = GroupAccess.compute pid (info # audience) in 
+      if not (Set.mem `View access) then return (`NotFound id) else
+	if not (Set.mem `Admin access) then return (`NeedAdmin id) else
+
+	  let! clock = Store.append [ Events.updated ~pid ~id ~label ~audience ] in
+	  return (`OK clock) 
+
 (* Adding and removing from the group
    ================================== *)
 

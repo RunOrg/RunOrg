@@ -22,6 +22,7 @@ let exists =
   let () = Store.track existsV begin function 
     | `Created ev -> Cqrs.SetView.add exists [ev # id] 
     | `Deleted ev -> if GId.is_admin (ev # id) then return () else Cqrs.SetView.remove exists [ev # id]
+    | `Updated ev -> ensure_admin (ev # id)
     | `Added   ev 
     | `Removed ev -> List.M.iter ensure_admin (ev # groups)
   end in 
@@ -39,6 +40,7 @@ let people =
 
   let () = Store.track peopleV begin function 
 
+    | `Updated _ 
     | `Created _ -> return () 
     | `Deleted ev -> 
 
@@ -69,10 +71,14 @@ let byAccess =
 
   let () = Store.track byAccessV begin function 
 
-
     | `Created ev -> 
 
       GroupAccess.Map.update byAccess (ev # id) (ev # audience) 
+
+    | `Updated ev -> 
+      
+      (match ev # audience with `Keep -> return () | `Set audience ->
+	GroupAccess.Map.update byAccess (ev # id) audience)	
 
     | `Deleted ev ->
 
@@ -118,6 +124,16 @@ let info =
 	(function 
 	| None   -> `Put (Info.make ~label:(ev # label) ~count:0 ~audience:(ev # audience))
 	| Some _ -> `Keep) 
+
+    | `Updated ev ->
+
+      Cqrs.MapView.update info (ev # id)
+	(function 
+	| None   -> `Keep
+	| Some o -> `Put (Info.make
+			    ~label:(Change.apply (ev # label) (o # label))
+			    ~audience:(Change.apply (ev # audience) (o # audience))
+			    ~count:(o # count)))
 
     | `Deleted ev ->
 

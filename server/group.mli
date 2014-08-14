@@ -24,6 +24,15 @@ val create :
 				 | `NeedAccess of Id.t
 				 | `AlreadyExists of CustomId.t ]) Run.t
 
+(** update a group. *)
+val update :
+  PId.t option ->
+  label:String.Label.t option Change.t -> 
+  audience:Access.Audience.t Change.t ->
+  GId.t -> (#O.ctx, [ `OK of Cqrs.Clock.t
+		    | `NeedAdmin of GId.t
+		    | `NotFound of GId.t ]) Run.t
+    
 (** Add people to groups. Nothing happens if a contact or a group does not exist, 
     or if the contact is already in the group. *)
 val add : PId.t option -> PId.t list -> GId.t list -> (#O.ctx, [ `OK of Cqrs.Clock.t
