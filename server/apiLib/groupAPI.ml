@@ -39,6 +39,32 @@ module Create = Endpoint.Post(struct
 
 end)
 
+module Update = Endpoint.Put(struct
+
+  module Arg = type module < id : GId.t >
+  module Put = type module <
+    ?label    : String.Label.t option ;
+    ?audience : Group.Access.Audience.t option ;
+  >
+
+  module Out = type module < at : Cqrs.Clock.t >
+
+  let needAdmin gid = 
+    `Forbidden (!! "You need 'admin' access to update group %S." (GId.to_string gid))
+
+  let path = "groups/{id}/info"
+
+  let response req arg put =
+    let label = Change.of_field "label" (req # body) (put # label) in
+    let audience = Change.of_option (put # audience) in
+    let! result = Group.update (req # as_) ~label ~audience (arg # id) in
+    match result with 
+    | `OK        at -> return (`Accepted (Out.make ~at))
+    | `NeedAdmin id -> return (needAdmin id)
+    | `NotFound  id -> return (notFound id)
+
+end)
+
 module Add = Endpoint.Post(struct
 
   module Arg = type module < id : GId.t >
