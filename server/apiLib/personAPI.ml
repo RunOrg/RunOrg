@@ -148,7 +148,6 @@ module Get = Endpoint.Get(struct
     
 end)
 
-(* UNTESTED *)
 module Update = Endpoint.Put(struct
     
   module Arg = type module < id : PId.t >
@@ -176,7 +175,7 @@ module Update = Endpoint.Put(struct
       ~email:(Change.of_option (put # email))
       (args # id) in
     match result with 
-    | `OK at -> return (`OK (Out.make ~at))
+    | `OK at -> return (`Accepted (Out.make ~at))
     | `NotFound id -> return (`NotFound (!! "Person '%s' does not exist" (PId.to_string id)))
     | `NeedAccess db -> return (needAccess db)
 

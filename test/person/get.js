@@ -1,5 +1,4 @@
-// GET /db/{db}/people/{id}
-// People / Fetch basic information for a person 
+// GET /people/{id}
 
 TEST("The response has valid return code and content type.", function(Query) {
 

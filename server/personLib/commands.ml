@@ -53,13 +53,24 @@ let update pid ~name ~givenName ~familyName ~gender ~email who =
     let! ctx = Run.context in 
     return (`NeedAccess (ctx # db))
   else
-    
-    if name <> `Keep || givenName <> `Keep || familyName <> `Keep || gender <> `Keep || email <> `Keep then
-      return (`OK Cqrs.Clock.empty)
-    else
 
-      let! clock = Store.append [
-	Events.infoUpdated ~id:who ~name ~givenName ~familyName ~gender ~email 
-      ] in
-      
-      return (`OK clock) 
+    let! exists = Cqrs.MapView.exists View.short who in
+    if not exists then return (`NotFound who) else 
+    
+      if 
+	name <> `Keep 
+	|| givenName <> `Keep 
+	|| familyName <> `Keep 
+	|| gender <> `Keep 
+	|| email <> `Keep 
+      then
+	
+	let! clock = Store.append [
+	  Events.infoUpdated ~id:who ~name ~givenName ~familyName ~gender ~email 
+	] in
+	
+	return (`OK clock) 
+
+      else
+
+	return (`OK Cqrs.Clock.empty)
