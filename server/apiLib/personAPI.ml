@@ -9,12 +9,12 @@ module Short = type module <
   pic    : string ; 
 >
 
-let bad_auth  = `Forbidden "Could not log in"
-
 module Auth_Persona = Endpoint.Post(struct
 
   module Arg  = type module unit
-  module Post = type module < assertion : string > 
+  module Post = type module < 
+    assertion : string ;
+  > 
   module Out = type module < 
     token : Token.I.t ; 
     self  : Short.t ; 
@@ -23,11 +23,29 @@ module Auth_Persona = Endpoint.Post(struct
 
   let path = "people/auth/persona"
 
+  let noAudience = 
+    `BadRequest "Unable to determine audience."
+
+  let badAudience url = 
+    `BadRequest (!! "Unsupported audience %S." (String.Url.to_string url))
+
+  let invalidAssertion url = 
+    `BadRequest (!! "Invalid assertion on audience %S." (String.Url.to_string url))
+
   let response req () p = 
-    let! result = Person.auth_persona (p # assertion) in 
-    match result with None -> return bad_auth | Some (token, self, at) -> 
-      let token = Token.I.decay token in 
-      return (`Accepted (Out.make ~token ~self ~at))
+
+    let audience = match req # origin with 
+      | Some origin -> String.Url.of_string origin 
+      | None -> String.Url.of_string ("https://" ^ req # host) in
+
+    match audience with None -> return noAudience | Some audience -> 
+
+      let! result = Person.auth_persona audience (p # assertion) in 
+      match result with 
+      | `BadAudience a -> return (badAudience a)
+      | `InvalidAssertion -> return (invalidAssertion audience) 
+      | `OK (token, self, at) -> let token = Token.I.decay token in 
+				 return (`Accepted (Out.make ~token ~self ~at))
 
 end)
 

@@ -36,10 +36,15 @@ module View = struct
 
   (* A view of all databases *)
   module Unit = type module unit
-  module Item = type module < created : Time.t ; label : string >
+  module Item = type module < 
+    created : Time.t ; 
+    label   : string ;
+    personaAudience : String.Url.t list ;
+  >
+
   let all = 
 
-    let allV, all = Cqrs.MapView.make projection "all" 2 
+    let allV, all = Cqrs.MapView.make projection "all" 3 
       (module Unit : Fmt.FMT with type t = unit)
       (module Item : Fmt.FMT with type t = Item.t) in
 
@@ -48,9 +53,12 @@ module View = struct
       | `DatabaseCreated label -> 
 	let! ctx  = Run.context in 
 	let  created = ctx # time in
-	Cqrs.MapView.update all () (fun _ -> `Put (Item.make ~created ~label))
+	let  personaAudience = [] in
+	Cqrs.MapView.update all () (fun _ -> `Put (Item.make ~created ~label ~personaAudience))
 
-      | `PersonaAudienceUpdated _ -> return () 
+      | `PersonaAudienceUpdated personaAudience -> 
+	Cqrs.MapView.update all () (function None -> `Keep | Some old ->
+	  `Put (Item.make ~created:(old # created) ~label:(old # label) ~personaAudience))
 
     end in 
 
@@ -81,4 +89,6 @@ let ctx id =
   return (if exists then Some ctx else None) 
 
 let persona_audience () = 
-  return Configuration.Audience.admin
+  let! db = Cqrs.MapView.get View.all () in
+  return 
+    (match db with None -> Configuration.Audience.persona | Some db -> db # personaAudience)

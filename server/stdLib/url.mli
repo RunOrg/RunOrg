@@ -14,3 +14,5 @@ val of_string_template : string -> string -> (string -> t) option
 
 (** Add a query string parameter to the URL. *)
 val add_query_string_parameter : string -> string -> t -> t
+
+val equal : t -> t -> bool

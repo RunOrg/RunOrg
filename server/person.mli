@@ -52,7 +52,12 @@ val search : PId.t option -> ?limit:int -> string -> (#O.ctx, [ `NeedAccess of I
 (** Attempt to log in with persona. Returns a token and the short profile for
     the authenticated token, or [None] if the authentication failed. May create a
     brand new contact. *)
-val auth_persona : string -> (# O.ctx, ([`Person] Token.I.id * short * Cqrs.Clock.t) option) Run.t
+val auth_persona : 
+  Std.String.Url.t ->
+  string ->
+  (#O.ctx, [ `BadAudience of Std.String.Url.t
+           | `InvalidAssertion
+           | `OK of [ `Person ] Token.I.id * short * Cqrs.Clock.t ]) Run.t
   
 (** A full profile for a person. *)
 type full = <

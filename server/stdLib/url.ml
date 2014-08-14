@@ -61,3 +61,11 @@ let raw_add_query_string_parameter key value t =
 
 let add_query_string_parameter key value = function 
   | `Raw t -> `Raw (raw_add_query_string_parameter key value t)
+
+(* Test URL equality 
+   ================= *)
+
+let equal url1 url2 = 
+
+  (* TODO: perform canonicalization *)
+  url1 = url2
