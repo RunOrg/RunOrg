@@ -78,7 +78,7 @@ let openStatus =
 
       if ev # auto then 
 	Cqrs.StatusView.update openStatus (ev # mid) (ev # pid) (function
-	| `None
+	| `None   
 	| `Opened  -> `Opened
 	| `Clicked -> `Clicked)
       else
@@ -95,11 +95,13 @@ let openStatus =
    =========================================== *)
 
 module SentInfo = type module <
-  sent   : Time.t ;
-  input  : Json.t ; 
-  from   : < name : string option ; email : string > ;
-  to_    : < name : string option ; email : string > ; 
-  link   : Link.Root.t ; 
+  sent    : Time.t ;
+  opened  : Time.t option ;
+  clicked : Time.t option ; 
+  input   : Json.t ; 
+  from    : < name : string option ; email : string > ;
+  to_     : < name : string option ; email : string > ; 
+  link    : Link.Root.t ; 
 >
 
 module FailInfo = type module <
@@ -124,7 +126,7 @@ module Info = type module <
 
 let info = 
 
-  let infoV, info = Cqrs.MapView.make projection "info" 1
+  let infoV, info = Cqrs.MapView.make projection "info" 2
     (module MidPid : Fmt.FMT with type t = MidPid.t)
     (module Info : Fmt.FMT with type t = Info.t) in
 
@@ -149,7 +151,7 @@ let info =
       let  status = `Sent 
 	(SentInfo.make 
 	   ~sent:(ctx # time) ~input:(ev # input) ~link:(ev # link)
-	   ~from:(ev # from) ~to_:(ev # to_)) in
+	   ~opened:None ~clicked:None ~from:(ev # from) ~to_:(ev # to_)) in
 
       Cqrs.MapView.update info (ev # mid, ev # pid) (function 
       | None   -> `Keep 
@@ -158,7 +160,37 @@ let info =
 	| `Failed  _ -> `Keep
 	| `Scheduled -> `Put (Info.make ~wid:(i # wid) ~pos:(i # pos) ~status)) 
 
-    | `LinkFollowed   _ -> return () 
+    | `LinkFollowed  ev -> 
+
+      let! ctx = Run.context in
+      let  update = 
+	if ev # auto then 
+	  fun status -> SentInfo.make 
+	    ~sent:(status # sent) 
+	    ~input:(status # input) 
+	    ~link:(status # link)
+	    ~opened:(Some (Option.default (ctx # time) (status # opened))) 
+	    ~clicked:(status # clicked) 
+	    ~from:(status # from) 
+	    ~to_:(status # to_)
+	else
+	  fun status -> SentInfo.make
+	    ~sent:(status # sent)
+	    ~input:(status # input)
+	    ~link:(status # link)
+	    ~opened:(Some (Option.default (ctx # time) (status # opened))) 
+	    ~clicked:(Some (Option.default (ctx # time) (status # clicked))) 
+	    ~from:(status # from) 
+	    ~to_:(status # to_)
+      in
+
+      Cqrs.MapView.update info (ev # mid, ev # pid) (function
+      | None   -> `Keep
+      | Some i -> match i # status with 
+	| `Scheduled
+	| `Failed  _ -> `Keep
+	| `Sent    s -> `Put (Info.make ~wid:(i # wid) ~pos:(i # pos) ~status:(`Sent (update s))))
+
     | `SendingFailed ev -> 
 
       let! ctx = Run.context in 

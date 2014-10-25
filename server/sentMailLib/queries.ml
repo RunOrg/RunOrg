@@ -15,14 +15,14 @@ type info = <
   status  : Status.t ; 
 >
 
-let make mid pid status sent data = 
+let make mid pid status ?sent ?opened ?clicked data = 
   let rendered = Compose.render data in 
   ( object
     method mail    = mid
     method to_     = pid
     method sent    = sent
-    method opened  = None
-    method clicked = None
+    method opened  = opened 
+    method clicked = clicked
     method view    = rendered
     method status  = status 
   end : info ) 
@@ -30,17 +30,20 @@ let make mid pid status sent data =
 let get_unsent mail pid = 
   let! preview = Compose.preview mail pid in 
   match preview with Bad f -> return (Bad f) | Ok data ->
-    return (Ok (make (mail # id) pid `Preview None data))
+    return (Ok (make (mail # id) pid `Preview data))
       
 let get_scheduled mid pid = 
   let! data = Compose.scheduled mid pid in
   match data with Bad f -> return (Bad f) | Ok (_,_,data) ->
-    return (Ok (make mid pid `Scheduled None data))
+    return (Ok (make mid pid `Scheduled data))
 
 let get_sent wid mid pid sent = 
   let! data = Compose.sent wid sent in
   match data with Bad f -> return (Bad f) | Ok data -> 
-    return (Ok (make mid pid `Sent (Some (sent # sent)) data))
+    return (Ok (make mid pid `Sent 
+		  ~sent:(sent # sent) 
+		  ?opened:(sent # opened)
+		  ?clicked:(sent # clicked) data))
 
 let get mail pid = 
   let  mid  = mail # id in
