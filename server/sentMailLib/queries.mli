@@ -3,12 +3,13 @@
 open Std
 
 type info = <
-  mail   : Mail.I.t ;
-  to_    : PId.t ; 
-  sent   : Time.t option ; 
-  opened : Time.t option ; 
-  status : Status.t ; 
-  view   : <
+  mail    : Mail.I.t ;
+  to_     : PId.t ; 
+  sent    : Time.t option ; 
+  opened  : Time.t option ; 
+  clicked : Time.t option ; 
+  status  : Status.t ; 
+  view    : <
     from    : < name : string option ; email : string > ;
     to_     : < name : string option ; email : string > ;
     subject : string ;

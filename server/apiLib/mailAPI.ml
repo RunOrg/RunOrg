@@ -188,9 +188,11 @@ module GetSent = Endpoint.Get(struct
   >
 
   module Out = type module <
-    status : SentMail.Status.t ;
-    sent   : Time.t option ;
-    view   : <
+    status  : SentMail.Status.t ;
+    sent    : Time.t option ;
+    opened  : Time.t option ;
+    clicked : Time.t option ; 
+    view    : <
       from     : < name : string option ; email : string > ;
       to_ "to" : < name : string option ; email : string > ;
       subject  : string ;
