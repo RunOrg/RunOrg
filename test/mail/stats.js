@@ -185,9 +185,21 @@ TEST("Correct number after clicking links.", function(Query) {
 	    
 	    if (d.opened != 2) 
 		return Async.sleep(1000).then(waitForStats);
-	    
-	    return Assert.areEqual(1, d.clicked);	    
-	    
+
+	    return $.when(
+
+		// Check that the track link is marked as opened but not clicked
+		Query.get(["db/",db,"/mail/",id,"/to/",auth.id],auth).then(function(d,s,r) {
+		    return Assert.isTrue(d.opened !== null && d.clicked === null);
+		}),
+
+		// Check that the self link is marked as both opened and clicked
+		Query.get(["db/",db,"/mail/",id,"/to/",auth2.id],auth).then(function(d,s,r) {
+		    return Assert.isTrue(d.opened !== null && d.clicked !== null);
+		}),
+	   	   
+		Assert.areEqual(1, d.clicked)
+	    );
 	});
 
     }
