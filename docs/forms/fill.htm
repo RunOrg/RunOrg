@@ -2,7 +2,7 @@
       api="PUT /db/{db}/forms/{id}/filled/{owner}"
       js="method RunOrg.Form.Filled.Save"
       tags="methods:form.filled"
-      parent="forms/filled.htm" />
+      parent="forms.htm" />
 
 <doc for="js">
   If `filled` is an instance of [`RunOrg.Form.Filled`](/forms/filled.htm),
@@ -40,7 +40,7 @@
   # Request
   
   The following properties are sent to the server:
-</div>
+</doc>
 
 <fields>
   data | <dictionary> | Maps field names (as they are defined in the form itself)
@@ -82,7 +82,8 @@
   # Errors
   
   ## Returns `400 Bad Request`
-  - if a required field was not provided or is `null`, `""`, `[]` or `{}`. 
+  - if a required field was not provided or is `null`, `""`, `{}`
+    or an empty array.
   - if a provided field does not exist in the form. 
   - if a provided field was not in the expected data format. 
 
