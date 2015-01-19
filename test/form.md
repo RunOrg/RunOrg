@@ -1,8 +1,0 @@
-Forms
-
-A **form** is a list of fields that can be filled by people. A
-single form can be filled several times, with each instance being tied
-to a separate **owner** (for instance, if a form is configured so that
-its owners are people, then each person can fill their own instance
-of the form).
-

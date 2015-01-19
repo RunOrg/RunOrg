@@ -1,0 +1,105 @@
+<page title="Create an API key"
+      api="POST /db/{db}/keys"
+      js="method RunOrg.Key.Create"
+      tags="methods:key"
+      parent="keys.htm" />
+
+<doc for="js">
+  After assigning a new instance of `RunOrg.Key` to variable `key`,
+  `key.Create()` will attempt to create a new [key](/keys.htm) on the
+  server from that object.
+
+  Returns a [promise](/concepts/promise.htm) that will resolve to
+  the updated `key` object after creation is complete.
+  
+  The following fields are expected.
+</doc>
+
+<doc for="api">
+  Create a new [key](/keys.htm) on the server.
+
+  # Request
+
+  The following fields are expected.
+</doc>
+
+<fields>
+  key | <hex>, null | The key to be added to the database, encoded as
+                      a hexadecimal string.
+  hash | "SHA-1" | The hash algorithm to be used when computing HMAC based on
+                   this function. Currently, only `"SHA-1"` is supported.
+  encoding | "hex" | The encoding used for the key. Currently, only `"hex"` is
+                     supported.  
+</fields>
+
+<doc>
+  For SHA-1, the recommended key length is 64 bytes, which translates
+  to 128 hex characters. You may use shorter keys (they will be padded
+  with zeros). Longer keys are not currently supported.
+</doc>
+
+<example type="api" caption="Example request">
+  POST /db/0SNQc00211H/keys
+  Content-Type: application/json
+
+  { "hash": "SHA-1",
+    "key": "74e6f7298a9c2d168935f58c001bad88",
+    "encoding": "hex" }
+</example>
+
+<doc for="js">
+  Once the key is created, its `id` field contains the **key-id** to be
+  used when authenticating requests.
+</doc>
+
+<example type="JS" caption="Example code">
+  var key = new RunOrg.Key({
+    "hash": "SHA-1",
+    "key": "74e6f7298a9c2d168935f58c001bad88",
+    "encoding": "hex" 
+  });
+
+  key.Create().then(function() {
+    console.log("Key available with id %s", key.id);
+  });
+</example>
+
+<doc for="api">
+
+  # Response
+
+  Alwys returns `202 Accepted`: this is a [delayed](/concepts/delayed.htm) request.
+
+  The response contains the following fields:
+</doc>
+
+<fields for="api">
+  id | <id> | The **key-id** to be used when authenticating requests.
+  at | <clock> | The [clock position](/concepts/delayed.htm) when the key will be
+                 available for use.                             
+</fields>
+
+<example type="api" caption="Example response">
+  202 Accepted
+  Content-Type: application/json
+ 
+  { "id" : "0Et9j0026rO",
+    "at" : {"2":218} }
+</example>
+
+<doc>
+  # Errors
+
+  ## Returns `401 Unauthorized`
+  - if the provided token does not match the requester. 
+
+  ## Returns `403 Forbidden`
+  - if the provided `{as}` may not create keys. 
+
+  ## Returns `404 Not Found`
+  - if database `{db}` does not exist
+
+  # Access restrictions
+
+  Only [database administrators](/groups/admin.htm) may create new keys. 
+</doc>
