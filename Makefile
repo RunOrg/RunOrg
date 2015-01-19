@@ -10,7 +10,7 @@ tests:
 
 depend: 
 	opam switch 4.00.0
-	opam install postgresql-ocaml ssl sha batteries ocurl menhir ocamlnet
+	opam install postgresql ssl sha batteries ocurl menhir ocamlnet
 
 toolchain:
 	make -C syntax
