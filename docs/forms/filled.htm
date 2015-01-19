@@ -1,0 +1,33 @@
+<page title="A filled instance of a form"
+      js="class RunOrg.Form.Filled"
+      tags="types classes class:form.filled"
+      parent="forms.htm" />
+<doc>
+  A javascript representation of a filled instance of a [form](/forms/form.htm).
+  
+  This object is [viewer-dependent](/concepts/viewer-dependent.htm): its 
+  contents depend on the identity of the viewer.
+
+  Use [RunOrg.Form.Fill(owner)](/forms/jsfill.htm) to create a `RunOrg.Form.Filled`
+  javascript object, which can then be used to read or write the filled
+  form instance.
+</doc>
+<fields>
+  id    | <id> | The identifier of the form to which this filled instance belongs.
+  owner | <id> | The identifier of the owner of this instance (e.g. a person's identifier).
+  data  | <dictionary> | The form data, maps field names to arbitrary JSON values.
+                         See [reading](/forms/get-filled.htm) and [writing](/forms/fill.htm) 
+	                 for more information about this field.
+</fields>
+<example type="json">
+  { "id": "0SNQe0032JZ",
+    "owner": "0Et9j0026rO",
+    "data": { 
+      "color": "Red",
+      "birth": "1985-04-19" } }
+</example>
+<doc>
+  # Class methods
+</doc>
+<list tags="methods:form.filled" />
+

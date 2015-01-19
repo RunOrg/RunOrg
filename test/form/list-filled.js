@@ -1,27 +1,4 @@
 // GET /db/{db}/forms/{id}/filled
-// Forms / List all filled instances of a form.
-// 
-// Beta @ 0.9.0
-//
-// `200 OK`, 
-// [Read-only](/docs/#/concept/read-only.md),
-// [Paginated](/docs/#/concept/paginated.md).
-//
-// Returns all the filled instances of form `{id}`.
-// Supports `limit` and `offset` pagination. 
-//
-// ### Response format
-//     { "list": [ { 
-//          "owner": <id>,
-//          "data": { <key> : <value> }
-//        }, ... ],
-//       "count": <int> }
-// - `list` is a list of form instances on the requested page.
-// - `list[].owner` is the identifier of the entity that owns the filled
-//   form instance, such as a person.
-// - `list[].data` is the data used to [fill the form](/docs/#/form/fill.js),
-//   returned as-is.
-// - `count` is the number of form instances available. 
 
 var Form = { 
     "owner": "person",
@@ -44,24 +21,6 @@ TEST("The response has valid return code and content type.", function(Query) {
 	.assertStatus(200).assertIsJson();
 
 });
-
-// # Examples
-// 
-// ### Example request
-//     GET /db/0SNQc00211H/forms/0SNQc00711H/filled?as=0Sd7003511H&limit=3&offset=213
-// 
-// ### Example response
-//     200 OK
-//     Content-Type: application/json 
-//     
-//     { "list" : [ { 
-//         "owner" : "0SNQe00311H",
-//         "data": { "color" : "Orange", "birth" : "1985-04-19" } 
-//       }, { 
-//         "owner" :  "0SNQe00311H",
-//         "data": { "birth" : "2013-10-08" }
-//       } ],
-//       "count": 215 }
 
 TEST("Returns correct items and count.", function(Query) {
 
@@ -117,23 +76,14 @@ TEST("Returns correct items and count.", function(Query) {
 
 });
 
-// # Errors
-// 
-// ## Returns `404 Not Found`
-// - ... if database `{db}` does not exist
-
 TEST("Returns 404 when database does not exist.", function(Query) {
     return Query.get(["db/00000000000/forms/00000000001/filled"]).assertStatus(404);
 });
-
-// - ... if form `{id}` does not exist in database `{db}` 
 
 TEST("Returns 404 when form does not exist.", function(Query) {
     var db = Query.mkdb();
     return Query.get(["db/",db,"/forms/00000000001/filled"]).assertStatus(404);
 });
-
-// - ... if person `{as}` cannot view form `{id}`
 
 TEST("Returns 404 when form cannot be viewed.", function(Query) {
 
@@ -144,9 +94,6 @@ TEST("Returns 404 when form cannot be viewed.", function(Query) {
     return Query.get(["db/",db,"/forms/",id,"/filled"]).assertStatus(404);
 
 });
-
-// ## Returns `403 Forbidden`
-// - ... if person `as` does not have **admin** access to the form.
 
 TEST("Returns 403 when form cannot be viewed.", function(Query) {
 
@@ -161,9 +108,6 @@ TEST("Returns 403 when form cannot be viewed.", function(Query) {
 
 });
 
-// ## Returns `401 Unauthorized` 
-// - ... if the provided token does not grant match person `{as}`.
-
 TEST("Returns 401 when token is not valid.", function(Query) {
 
     var db = Query.mkdb();
@@ -174,6 +118,3 @@ TEST("Returns 401 when token is not valid.", function(Query) {
 	.assertStatus(401);
 });
  
-// # Access restrictions
-//
-// [**Admin** access](/docs/#/form/audience.js) is required to view all filled form instances. 

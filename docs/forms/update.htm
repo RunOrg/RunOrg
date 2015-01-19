@@ -1,4 +1,4 @@
-<page title="Read form meta-data"
+<page title="Update form meta-data"
       api="GET /db/{db}/forms/{id}"
       js="method RunOrg.Form.Save"
       tags="methods:form" 
@@ -34,6 +34,8 @@
   **Note**: if a form has already been filled (even if only once), the list
   of fields may not be updated anymore (though other properties can).
 
+  # Request
+    
   The following properties are expected by the server:   
 </doc> 
 <fields>
@@ -47,14 +49,9 @@
   audience | <audience> | The [audience](/forms/audience.htm) of the form.
 </fields>
 <example type="api" caption="Example request">
-  GET /db/0Et4X0016om/forms/0Et9j0026rO
-</example>
-<example type="api" caption="Example response">
-  200 OK 
-  Content-Type: application/json
-
-  { "id" : "0SNQe0032JZ",
-    "label" : "Personal information", 
+  PUT /db/0Et4X0016om/forms/0Et9j0026rO
+  
+  { "label" : "Personal information", 
     "owner" : "person",
     "custom" : null,
     "fields" : [ {
@@ -73,15 +70,39 @@
         "Less than once a month" ],
       "required" : false
     } ],
-    "access" : [ "admin", "fill" ],
     "audience" : {
       "admin": {},
       "fill": { groups: [ "0SNQe0032JZ" ] } } }
+</example>
+
+<doc for="api">
+
+  # Response
+
+  Always returns `202 Accepted`: this is a [delayed](/concepts/delayed.htm),
+  [idempotent](/concepts/idempotent.md) request.
+
+  The response contains a single field:
+</doc>
+<fields for="api">
+  at | <clock> | The [clock position](/concepts/delayed.htm) when the 
+                 new data will be available in the form.
+</fields>
+
+<example type="api" caption="Example response">
+  202 Accepted 
+  Content-Type: application/json
+
+  { "at" : {"2":218} }
 </example>
 <doc>
 
   # Errors
 
+  ## Returns `400 Bad Request`
+  - if a mandatory property is missing.
+  - if a field is badly configured.
+  
   ## Returns `401 Unauthorized` 
   - if the provided token does not allow acting as `{as}`.
 

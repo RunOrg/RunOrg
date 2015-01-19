@@ -35,9 +35,9 @@
 <see for="js" ref="concepts/errors.md" />
 
 <doc for="js">
-  Note: it is not necessary to `Load()` a form to call its other methods. 
-  You can, for example, run `new RunOrg.Form(id).Stats()` to get the 
-  fill statistics for a form without loading the form itself. 
+  **Note**: it is not necessary to `Load()` a form to call its other
+  methods.  You can, for example, run `new RunOrg.Form(id).Stats()` to
+  get the fill statistics for a form without loading the form itself.
 </doc>
 
 <doc for="api">
@@ -45,19 +45,38 @@
   identifier `{id}` in database `{db}`. 
 </doc> 
 <example type="api" caption="Example request">
-  PUT /db/0SNQc00211H/forms/0SNQe0032JZ
+  GET /db/0SNQc00211H/forms/0SNQe0032JZ
   Content-Type: application/json
 
-  { "label" : "Personal information", 
+</example>
+<example type="api" caption="Example response">
+  200 OK
+  Content-Type: application/json
+
+  { "id" : "0SNQe0032JZ",
+    "label" : "Personal information", 
+    "owner" : "person",
+    "custom" : null,
+    "fields" : [ {
+      "id" : "1",
+      "label" : "Why did you join our group ?",
+      "kind" : "text",
+      "required" : true
+    }, {
+      "id" : "2", 
+      "label" : "How often do you log in ?",
+      "kind" : "single",
+      "choices" : [
+        "Every day",
+        "Once a week",
+        "Once a month",
+        "Less than once a month" ],
+      "required" : false
+    } ],
+    "access" : [ "admin", "fill" ],
     "audience" : {
       "admin": {},
       "fill": { groups: [ "0SNQe0032JZ" ] } } }
-</example>
-<example type="api" caption="Example response">
-  202 Accepted
-  Content-Type: application/json
- 
-  { "at" : {"2":219} }  
 </example>
 <doc>
 

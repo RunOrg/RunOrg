@@ -1,0 +1,95 @@
+<page title="Read a filled form"
+      api="GET /db/{db}/forms/{id}/filled/{owner}"
+      js="method RunOrg.Form.Filled.Load"
+      tags="methods:form.filled"
+      parent="forms.htm" />
+
+<doc for="js">
+  If `filled` is an instance of [`RunOrg.Form.Filled`](/forms/filled.htm),
+  then `filled.Load()` reads its contents from the server (if any).
+
+  Returns a [promise](/concepts/promise.htm) that will resolve to the
+  `filled` object if it could be loaded.
+</doc>
+
+<example type="js" caption="Example usage">
+  var form = new RunOrg.Form("1ax69bfa335");
+  var filled = form.Fill("0SNQe0033JA");
+
+  filled.Load().then(function() {
+    console.log("Form instance contains: %o", filled.data);
+  });
+</example>
+
+<example type="js" caption="Example usage, with error handling">
+  var form = new RunOrg.Form("1ax69bfa335");
+  var filled = form.Fill("0SNQe0033JA");
+
+  filled.Load().then(function() {
+    console.log("Form instance contains: %o", filled.data);
+  }, function(error) {
+    if (error.HTTP == 404) 
+      console.log("Form not filled for %s.", filled.owner)
+    else 
+      console.log("An error happened: %o", error)
+  });
+</example>
+
+<see for="js" ref="concepts/errors.md" />
+
+<doc for="api">
+  Returns the data entered into an instance of form `{id}` bound
+  to entity `{owner}`.
+</doc>
+
+<fields>
+  owner | <id> | The identifier of the owner of this filled instance.  
+  data | <dictionary> | Maps field names (as they are defined in the form itself)
+                        to arbitrary JSON values which will be saved by RunOrg.
+                        The contents of each field depend on the
+                        [configuration](/forms/field.htm) of that field.
+</fields>
+
+<example type="api" caption="Example request">
+  GET /db/0SNQc00211H/forms/0SNQe0032JZ/filled/0SNxd0002JZ?as=0SNxd0002JZ
+</example>
+
+<example type="api" caption="Example response">
+  200 OK
+  Content-Type: application/json 
+
+  { "data": {
+      "color": "orange",
+      "born" : "1985-04-18" },
+    "owner": "0SNxd0002JZ" }
+</example>
+
+<doc>
+
+  # Errors
+
+  ## Returns `401 Unauthorized` 
+  - if the provided token does not grant access as the requester
+
+  ## Returns `403 Forbidden`
+  - if the requester is can view the form, but not the requested 
+    instance. For instance, without **admin** access, a person may only
+    view the instance bound to himself (`{owner} == {as}`), and not to 
+    other persons. Access restrictions are defined for each type of 
+    owner.
+ 
+  ## Returns `404 Not Found`
+  - if database `{db}` does not exist
+  - if form `{id}` does not exist in database `{db}`
+  - if form `{id}` has not been filled for entity `{owner}`.
+  - if the requester is not allowed to view form `{id}`, to ensure 
+    [absence equivalence](/concepts/absence-equivalence.htm). 
+
+  # Access restrictions
+  
+  Person must have the **fill** [access level](/forms/audience.htm)
+  access to the form, and be able to view the instance.
+
+  When owners are people, an instance may be viewed only by its owner or
+  by a person with **admin** access level.
+</doc>

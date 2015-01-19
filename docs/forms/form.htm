@@ -4,9 +4,13 @@
       tags="types classes class:form"
       parent="forms.htm" />
 <doc>
-  Returned by most API methods that involve groups. It is intended to 
-  provide data relevant for displaying the group: its label and count.
+  Returned by several API methods that involve forms. In addition to a
+  label and custom JSON, it determines the behaviour of a form: what the fields
+  are and who is allowed to fill it.
 
+  A form may be filled several times, each is called a **filled form
+  instance** and is bound to an owner. 
+  
   This object is [viewer-dependent](/concepts/viewer-dependent.htm): its 
   contents depend on the identity of the viewer.
 </doc>
@@ -59,4 +63,7 @@
   # Related API endpoints
 </doc>
 <list tags="methods:form" />
-
+<doc for="api">
+  See the (parent page)[/forms.htm] for methods related to filling a form
+  or querying the individual filled form instances.
+</doc>

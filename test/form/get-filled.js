@@ -1,23 +1,4 @@
 // GET /db/{db}/forms/{id}/filled/{owner}
-// Forms / Get the data from a filled form.
-// 
-// Beta @ 0.9.0
-//
-// `200 OK`, 
-// [Read-only](/docs/#/concept/read-only.md).
-//
-// Person [`{as}`](/docs/#/concept/as.md) retrieves returns the data entered into
-// an instance of form `{id}` bound to entity `{owner}`. 
-//
-// ### Response format
-//     { "data": { <key> : <value> },
-//       "owner": <id> }
-//
-// - `data` contains a dictionary mapping field names to arbitrary JSON values, 
-//   as they were provided when [filling the form](/docs/#/form/fill.js). 
-// - `owner` contains the owner identifier provied in the URL: it identifies the
-//   entity to which the filled form instance is bound.  
-//
 
 var Form = { 
     "owner": "person",
@@ -43,19 +24,6 @@ TEST("The response has valid return code and content type.", function(Query) {
     });
 });
 
-// # Examples
-// 
-// ### Example request
-//     GET /db/0SNQc00211H/forms/0SNQe0032JZ/filled/0SNxd0002JZ?as=0SNxd0002JZ
-// 
-// ### Example response
-//     200 OK
-//     Content-Type: application/json 
-//     { "data" : {
-//         "color" : "orange",
-//         "born"  : "1985-04-18" },
-//       "owner" : "0SNxd0002JZ" }
-
 TEST("Returns correct data.", function(Query) {
 
     var db = Query.mkdb();
@@ -77,20 +45,12 @@ TEST("Returns correct data.", function(Query) {
 
 });
 
-
-// # Errors
-// 
-// ## Returns `404 Not Found`
-// - ... if database `{db}` does not exist
-
 TEST("Returns 404 when database does not exist.", function(Query) {
 
     return Query.get(["db/00000000000/forms/00000000001/filled/00000000002"])
 	.assertStatus(404);
 
 });
-
-// - ... if form `{id}` does not exist in database `{db}`
 
 TEST("Returns 404 when form does not exist.", function(Query) {
 
@@ -100,8 +60,6 @@ TEST("Returns 404 when form does not exist.", function(Query) {
 	.assertStatus(404);
 
 });
-
-// - ... if form `{id}` has not been filled for entity `{owner}`.
 
 TEST("Returns 404 when form is not filled.", function(Query) {
 
@@ -113,10 +71,6 @@ TEST("Returns 404 when form is not filled.", function(Query) {
 	.assertStatus(404);
 
 });
-
-
-// - ... if person `{as}` is not allowed to view form `{id}, to ensure 
-// [absence equivalence](/docs/#/concept/absence-equivalence.md). 
 
 TEST("Returns 404 when form not viewable.", function(Query) {
 
@@ -133,11 +87,6 @@ TEST("Returns 404 when form not viewable.", function(Query) {
     });
 });
 
-
-// ## Returns `401 Unauthorized` 
-// - ... if the provided auth does not grant access as the named 
-//   person, or no auth was provided
-
 TEST("Returns 401 when auth is not valid.", function(Query) {
 
     var db = Query.mkdb();
@@ -148,14 +97,6 @@ TEST("Returns 401 when auth is not valid.", function(Query) {
 	.assertStatus(401);    
 
 });
-
-
-// ## Returns `403 Forbidden`
-// - ... if person `{as}` is can view the form, but not the requested 
-//   instance. For instance, without **admin** access, a person may only
-//   view the instance bound to himself (`{owner} == {as}`), and not to 
-//   other persons. Access restrictions are defined for each type of 
-//   owner.
 
 TEST("Returns 403 when form instance not viewable.", function(Query) {
 
@@ -174,8 +115,3 @@ TEST("Returns 403 when form instance not viewable.", function(Query) {
     });
 });
 
-
-// # Access restrictions
-//
-// Person must have `fill` [audience](/docs/#/form/audience.md) access to 
-// the form, and be able to view the instance.

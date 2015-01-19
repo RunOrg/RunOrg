@@ -1,0 +1,26 @@
+<page title="Reference a filled instance"
+      js="method RunOrg.Form.Fill"
+      tags="methods:form"
+      parent="forms.htm" />
+<doc for="js">
+  Creates a [`RunOrg.Form.Filled`](/forms/filled.htm) javascript object
+  that can be used to read or write the corresponding filled form
+  instance.
+
+  The parameter is the identifier of the instance owner. 
+</doc>
+<example type="js">
+  var form = new RunOrg.Form("0SNQe0032JZ");
+  var filled = form.Fill("0Et9j0026ro");
+
+  assert(filled.id == "0SNQe0032JZ");
+  assert(filled.owner == "0Et9j0026ro");
+
+  filled.Load().then(function(){
+    console.log("Form instance contains: %o", filled.data);
+  });
+</example>
+<doc for="js">
+  **Note**: you do not need to load the `RunOrg.Form` before calling
+  this function. 
+</doc>
