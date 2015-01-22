@@ -222,7 +222,10 @@ module Fill = Endpoint.Put(struct
     let id   = args # id in
 
     let data = match put # data with 
-      | Json.Object l -> Map.of_list (List.map (fun (k,v) -> Field.I.of_string k, v) l)
+      | Json.Object l -> Map.of_list (List.filter_map (fun (k,v) -> 
+          match Field.I.of_string_checked k with 
+            | Some k -> Some (k, v)
+	    | None   -> None) l)
       | _ -> Map.empty in
 
     let! result = Form.fill (req # as_) id fid data in
