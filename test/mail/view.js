@@ -96,9 +96,11 @@ TEST("Template previewing shows correct data.", function(Query) {
 
 	    var self = "https://example.com/view/" + id;
 	    var expected = {
-		"status": "preview",
-		"sent"  : null,
-		"view"  : {
+		"status" : "preview",
+		"sent"   : null,
+		"opened" : null,
+		"clicked": null,
+		"view"   : {
 		    "from"   : { "email": "test@runorg.com", "name": null },
 		    "to"     : { "email": "test@runorg.com", "name": null },
 		    "subject": "Hello, world",
