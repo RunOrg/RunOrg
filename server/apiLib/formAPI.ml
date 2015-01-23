@@ -95,6 +95,26 @@ module Update = Endpoint.Put(struct
 
 end)
 
+
+(* Deleting a form
+   =============== *)
+			    
+module Delete = Endpoint.Delete(struct
+
+  module Arg = type module < id : Form.I.t >
+  module Out = type module < at : Cqrs.Clock.t >
+
+  let path = "forms/{id}"
+
+  let response req args = 
+    let! result = Form.delete (req # as_) (args # id) in
+    match result with 
+    | `OK          at -> return (`Accepted (Out.make ~at))
+    | `NoSuchForm fid -> return (notFound fid)
+    | `NeedAdmin  fid -> return (needAdmin fid)
+
+end)
+
 (* Reading form data 
    ================= *)
 
