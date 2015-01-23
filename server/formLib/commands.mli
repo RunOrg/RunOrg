@@ -24,7 +24,14 @@ val update :
 		   | `NoSuchForm of I.t  
 		   | `NeedAdmin of I.t
 		   | `FormFilled of I.t ] ) Run.t
-val fill : 
+
+val delete :
+  PId.t option ->
+  I.t -> (# O.ctx, [ `OK of Cqrs.Clock.t
+		   | `NoSuchForm of I.t
+		   | `NeedAdmin of I.t ]) Run.t
+		
+val fill :
   PId.t option ->
   I.t ->
   FilledI.t -> 

@@ -64,6 +64,11 @@ let info =
 			    ~audience:(f # audience) ~empty:false ~clock) 
 	| None -> `Keep) 
 
+
+    | `Deleted ev ->
+
+      Cqrs.MapView.update info (ev # id) (fun _ -> `Delete)
+			    
   end in
 
   info
@@ -89,6 +94,10 @@ let byAccess =
 
     | `Filled _ -> return () 
 
+    | `Deleted ev ->
+
+       FormAccess.Map.remove byAccess (ev # id)
+			  
   end in
 
   byAccess
@@ -120,6 +129,10 @@ let fillInfo =
 	| None       -> `Put (ctx # time, FillInfo.make ~data:(ev # data))
 	| Some (_,t) -> `Put (ctx # time, FillInfo.make ~data:(Map.union (t # data) (ev # data))))  
 
+    | `Deleted ev ->
+
+       Cqrs.FeedMapView.delete fillInfo (ev # id)
+	
   end in
 
   fillInfo

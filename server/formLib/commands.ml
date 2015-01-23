@@ -53,6 +53,22 @@ let update ?label ?owner ?audience ?custom ?fields pid id =
 	    let! clock = Store.append [ Events.updated ~id ~pid ~label ~owner ~audience ~fields ~custom ] in
 	    return (`OK clock) 
 
+(* Updating a form 
+   =============== *)
+
+let delete pid id = 
+  
+  let! form = Cqrs.MapView.get View.info id in 
+
+  match form with None -> return (`NoSuchForm id) | Some form -> 
+
+    let! access = FormAccess.compute pid (form # audience) in
+    if not (Set.mem `Fill access) then return (`NoSuchForm id) else
+      if not (Set.mem `Admin access) then return (`NeedAdmin id) else
+
+	let! clock = Store.append [ Events.deleted ~id ~pid ] in
+	return (`OK clock) 
+		   
 (* Filling the form
    ================ *)
 

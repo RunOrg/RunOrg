@@ -69,6 +69,13 @@ val update :
 		   | `NeedAdmin of I.t
 		   | `FormFilled of I.t ] ) Run.t
 
+(** Delete an existing form. *)
+val delete :
+  PId.t option ->
+  I.t -> (# O.ctx, [ `OK of Cqrs.Clock.t
+		   | `NoSuchForm of I.t
+		   | `NeedAdmin of I.t ]) Run.t
+					    
 (** Get short information about a form. *)
 val get : I.t -> (#O.ctx, info option) Run.t
 

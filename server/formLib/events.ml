@@ -27,4 +27,9 @@ include type module
 	fid : FilledI.t ;
 	data : FillData.t ;
       >
+    | `Deleted of <
+        id : I.t ;
+	pid : PId.t option ;
+      >
     ]
+      
